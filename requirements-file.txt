@@ -1,0 +1,28 @@
+# Requirements for Visual Inspection System
+# python 3.8+ recommended
+
+# Core dependencies
+opencv-python>=4.5.0
+numpy>=1.19.0
+Pillow>=8.0.0
+
+# GUI
+tk>=0.1.0
+
+# Database
+SQLAlchemy>=1.4.0
+sqlite3>=2.6.0  # Viene incluido con Python, pero se menciona para claridad
+
+# Utilities
+PyYAML>=6.0  # Para archivos de configuración
+pandas>=1.3.0  # Para procesamiento de datos y reportes
+matplotlib>=3.4.0  # Para visualización de datos y gráficos
+scikit-image>=0.18.0  # Procesamiento avanzado de imágenes
+tqdm>=4.62.0  # Barras de progreso
+
+# Testing
+pytest>=6.2.0
+pytest-cov>=2.12.0
+
+# Logging
+logging>=0.5.1.2

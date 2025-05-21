@@ -1,0 +1,83 @@
+{
+  "sku_id": "SKU123",
+  "name": "Pieza Metálica A",
+  "description": "Componente metálico rectangular con acabado anodizado",
+  "created_date": "2025-02-15",
+  "modified_date": "2025-05-01",
+  "version": "1.2",
+  
+  "camera_config": {
+    "main_camera": {
+      "camera_id": 0,
+      "width": 1280,
+      "height": 720,
+      "fps": 30,
+      "brightness": 0,
+      "contrast": 25,
+      "saturation": 50,
+      "exposure": -6
+    },
+    "secondary_camera": {
+      "camera_id": 1,
+      "width": 1280,
+      "height": 720,
+      "fps": 15,
+      "enabled": false
+    }
+  },
+  
+  "inspection_modules": {
+    "color": {
+      "enabled": true,
+      "threshold": 127,
+      "min_area": 500,
+      "color_ranges": {
+        "anodized_blue": {"lower": [100, 100, 100], "upper": [130, 255, 255]},
+        "rust": {"lower": [0, 100, 100], "upper": [20, 255, 255]}
+      }
+    },
+    
+    "defect": {
+      "enabled": true,
+      "threshold": 50,
+      "min_area": 100,
+      "reference_image": "references/SKU123_ref.jpg",
+      "max_defects": 0,
+      "sensitivity": 0.8
+    },
+    
+    "dimensions": {
+      "enabled": true,
+      "pixels_per_mm": 10.5,
+      "threshold": 150,
+      "target_dimensions": {
+        "width": {"min": 95, "max": 105},
+        "height": {"min": 45, "max": 55},
+        "aspect_ratio": {"min": 1.8, "max": 2.2}
+      }
+    },
+    
+    "text_verification": {
+      "enabled": false,
+      "target_text": "A123",
+      "min_confidence": 0.85
+    }
+  },
+  
+  "inspection_settings": {
+    "auto_capture": true,
+    "capture_interval_ms": 2000,
+    "trigger_mode": "continuous",
+    "save_failed_inspections": true,
+    "save_all_inspections": false,
+    "save_path": "inspections/{date}/{sku_id}/",
+    "notification_level": "errors_only"
+  },
+  
+  "reporting": {
+    "save_csv": true,
+    "export_images": true,
+    "generate_pdf": false,
+    "metrics": ["pass_rate", "defect_distribution", "dimension_deviation"]
+  }
+}

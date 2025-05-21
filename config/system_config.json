@@ -1,0 +1,33 @@
+{
+    "version": "1.0.0",
+    "inspection": {
+        "save_all_images": true,
+        "image_storage_path": "data/images",
+        "timeout": 30
+    },
+    "camera": {
+        "default_camera_id": 0,
+        "resolution": {
+            "width": 1280,
+            "height": 720
+        },
+        "fps": 30
+    },
+    "gui": {
+        "theme": "light",
+        "language": "es",
+        "fullscreen": false,
+        "display_results_timeout": 5
+    },
+    "logging": {
+        "level": "info",
+        "log_file": "logs/inspection_system.log",
+        "max_size_mb": 10,
+        "backup_count": 5
+    },
+    "database": {
+        "path": "data/inspection_system.db",
+        "backup_enabled": true,
+        "backup_interval_hours": 24
+    }
+}

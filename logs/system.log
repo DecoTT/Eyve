@@ -1,0 +1,735 @@
+2025-03-25 18:03:33 [INFO] system_logger: Gestor del sistema inicializado
+2025-03-25 18:03:33 [INFO] system_logger: Iniciando inicialización del sistema...
+2025-03-25 18:03:33 [INFO] system_logger: Inicializando base de datos: D:\Desarrollo\Eyve Inspection\CL_v2\data\inspection_system.db
+2025-03-25 18:03:33 [INFO] system_logger: Conexión establecida con la base de datos: D:\Desarrollo\Eyve Inspection\CL_v2\data\inspection_system.db
+2025-03-25 18:03:33 [INFO] system_logger: Tablas verificadas/creadas correctamente
+2025-03-25 18:03:33 [INFO] system_logger: Configuraciones predeterminadas inicializadas
+2025-03-25 18:03:33 [INFO] system_logger: Creando usuario administrador por defecto
+2025-03-25 18:03:33 [INFO] system_logger: Usuario 'admin' creado correctamente
+2025-03-25 18:03:33 [INFO] system_logger: Inicializando gestor de configuración
+2025-03-25 18:03:33 [INFO] system_logger: Directorio creado: D:\Desarrollo\Eyve Inspection\CL_v2\config\products
+2025-03-25 18:03:33 [INFO] system_logger: Directorio creado: D:\Desarrollo\Eyve Inspection\CL_v2\config\profiles
+2025-03-25 18:03:33 [INFO] system_logger: Archivo de configuración no encontrado, se creará uno nuevo
+2025-03-25 18:03:33 [INFO] system_logger: Configuración del sistema guardada en D:\Desarrollo\Eyve Inspection\CL_v2\config\system_config.json
+2025-03-25 18:03:33 [INFO] system_logger: Gestor de configuración inicializado
+2025-03-25 18:03:33 [INFO] system_logger: Inicializando gestor de cámaras
+2025-03-25 18:03:33 [INFO] system_logger: Cámara main_camera agregada al gestor
+2025-03-25 18:03:33 [INFO] system_logger: Cámara principal configurada: main_camera
+2025-03-25 18:03:33 [INFO] system_logger: Inicializando controlador de inspección
+2025-03-25 18:03:33 [INFO] system_logger: Módulo de detección de color inicializado
+2025-03-25 18:03:33 [INFO] system_logger: Módulo 'ColorDetection' agregado al controlador
+2025-03-25 18:03:33 [INFO] system_logger: Módulo de detección de defectos inicializado
+2025-03-25 18:03:33 [INFO] system_logger: Módulo 'DefectDetection' agregado al controlador
+2025-03-25 18:03:33 [INFO] system_logger: Módulo de medición de dimensiones inicializado
+2025-03-25 18:03:33 [INFO] system_logger: Módulo 'DimensionMeasurement' agregado al controlador
+2025-03-25 18:03:33 [INFO] system_logger: Módulo de análisis de textura inicializado
+2025-03-25 18:03:33 [INFO] system_logger: Módulo 'TextureAnalysis' agregado al controlador
+2025-03-25 18:03:33 [INFO] system_logger: Módulo de detección de códigos inicializado
+2025-03-25 18:03:33 [INFO] system_logger: Módulo 'BarcodeQRDetection' agregado al controlador
+2025-03-25 18:03:33 [INFO] system_logger: Sistema inicializado correctamente
+2025-03-25 18:03:33 [INFO] system_logger: Hilo de tareas en segundo plano iniciado
+2025-03-25 18:03:33 [INFO] system_logger: Sistema iniciado correctamente
+2025-03-25 18:04:04 [INFO] system_logger: Cámara USB main_camera (índice: 0) conectada
+2025-03-25 18:04:57 [WARNING] system_logger: Intento fallido de autenticación para 'Deco'
+2025-03-25 18:08:36 [INFO] system_logger: Usuario 'admin' autenticado correctamente
+2025-03-25 18:08:36 [INFO] system_logger: Usuario 'admin' autenticado correctamente
+2025-03-25 18:08:36 [WARNING] system_logger: El sistema ya está inicializado
+2025-03-25 18:08:36 [WARNING] system_logger: El sistema ya está en ejecución
+2025-03-25 18:08:36 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:08:36 [INFO] system_logger: Iniciada captura de cámara main_camera
+2025-03-25 18:08:36 [INFO] system_logger: Iniciada captura de cámara main_camera
+2025-03-25 18:09:14 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:09:14 [INFO] system_logger: Iniciada captura de cámara main_camera
+2025-03-25 18:13:06 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:13:06 [INFO] system_logger: Iniciada captura de cámara main_camera
+2025-03-25 18:16:21 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:16:21 [INFO] system_logger: Hilo de tareas en segundo plano detenido
+2025-03-25 18:16:21 [INFO] system_logger: Cámara USB main_camera desconectada
+2025-03-25 18:16:21 [INFO] system_logger: Todas las cámaras desconectadas
+2025-03-25 18:16:21 [INFO] system_logger: Conexión con la base de datos cerrada
+2025-03-25 18:16:21 [INFO] system_logger: Sistema detenido correctamente
+2025-03-25 18:19:32 [INFO] system_logger: Gestor del sistema inicializado
+2025-03-25 18:19:32 [INFO] system_logger: Iniciando inicialización del sistema...
+2025-03-25 18:19:32 [INFO] system_logger: Inicializando base de datos: D:\Desarrollo\Eyve Inspection\CL_v2\data\inspection_system.db
+2025-03-25 18:19:32 [INFO] system_logger: Conexión establecida con la base de datos: D:\Desarrollo\Eyve Inspection\CL_v2\data\inspection_system.db
+2025-03-25 18:19:32 [INFO] system_logger: Tablas verificadas/creadas correctamente
+2025-03-25 18:19:32 [INFO] system_logger: Configuraciones predeterminadas inicializadas
+2025-03-25 18:19:32 [INFO] system_logger: Inicializando gestor de configuración
+2025-03-25 18:19:32 [INFO] system_logger: Configuración del sistema cargada desde D:\Desarrollo\Eyve Inspection\CL_v2\config\system_config.json
+2025-03-25 18:19:32 [INFO] system_logger: Gestor de configuración inicializado
+2025-03-25 18:19:32 [INFO] system_logger: Inicializando gestor de cámaras
+2025-03-25 18:19:48 [INFO] system_logger: Cámara camera_0 agregada al gestor
+2025-03-25 18:19:48 [INFO] system_logger: Cámara detectada: camera_0 (índice: 0)
+2025-03-25 18:19:48 [INFO] system_logger: Cámara camera_1 agregada al gestor
+2025-03-25 18:19:48 [INFO] system_logger: Cámara detectada: camera_1 (índice: 1)
+2025-03-25 18:19:48 [INFO] system_logger: Cámara camera_2 agregada al gestor
+2025-03-25 18:19:48 [INFO] system_logger: Cámara detectada: camera_2 (índice: 2)
+2025-03-25 18:19:48 [INFO] system_logger: Cámara camera_3 agregada al gestor
+2025-03-25 18:19:48 [INFO] system_logger: Cámara detectada: camera_3 (índice: 3)
+2025-03-25 18:19:48 [INFO] system_logger: Inicializando controlador de inspección
+2025-03-25 18:19:48 [INFO] system_logger: Módulo de detección de color inicializado
+2025-03-25 18:19:48 [INFO] system_logger: Módulo 'ColorDetection' agregado al controlador
+2025-03-25 18:19:48 [INFO] system_logger: Módulo de detección de defectos inicializado
+2025-03-25 18:19:48 [INFO] system_logger: Módulo 'DefectDetection' agregado al controlador
+2025-03-25 18:19:48 [INFO] system_logger: Módulo de medición de dimensiones inicializado
+2025-03-25 18:19:48 [INFO] system_logger: Módulo 'DimensionMeasurement' agregado al controlador
+2025-03-25 18:19:48 [INFO] system_logger: Módulo de análisis de textura inicializado
+2025-03-25 18:19:48 [INFO] system_logger: Módulo 'TextureAnalysis' agregado al controlador
+2025-03-25 18:19:48 [INFO] system_logger: Módulo de detección de códigos inicializado
+2025-03-25 18:19:48 [INFO] system_logger: Módulo 'BarcodeQRDetection' agregado al controlador
+2025-03-25 18:19:48 [INFO] system_logger: Sistema inicializado correctamente
+2025-03-25 18:19:48 [INFO] system_logger: Hilo de tareas en segundo plano iniciado
+2025-03-25 18:19:48 [INFO] system_logger: Sistema iniciado correctamente
+2025-03-25 18:20:17 [INFO] system_logger: Cámara USB camera_0 (índice: 0) conectada
+2025-03-25 18:20:17 [INFO] system_logger: Cámara USB camera_1 (índice: 1) conectada
+2025-03-25 18:20:22 [INFO] system_logger: Usuario 'admin' autenticado correctamente
+2025-03-25 18:20:22 [INFO] system_logger: Usuario 'admin' autenticado correctamente
+2025-03-25 18:20:22 [WARNING] system_logger: El sistema ya está inicializado
+2025-03-25 18:20:22 [WARNING] system_logger: El sistema ya está en ejecución
+2025-03-25 18:20:22 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:20:22 [INFO] system_logger: Iniciada captura de cámara camera_0
+2025-03-25 18:20:22 [INFO] system_logger: Iniciada captura de cámara camera_0
+2025-03-25 18:20:25 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:20:25 [INFO] system_logger: Iniciada captura de cámara camera_1
+2025-03-25 18:20:27 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:20:27 [INFO] system_logger: Iniciada captura de cámara camera_2
+2025-03-25 18:20:29 [INFO] system_logger: Cámara USB camera_2 (índice: 2) conectada
+2025-03-25 18:20:30 [INFO] system_logger: Cámara USB camera_3 (índice: 3) conectada
+2025-03-25 18:20:38 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:20:38 [INFO] system_logger: Iniciada captura de cámara camera_0
+2025-03-25 18:20:38 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:20:38 [INFO] system_logger: Iniciada captura de cámara camera_2
+2025-03-25 18:20:40 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:20:40 [INFO] system_logger: Iniciada captura de cámara camera_1
+2025-03-25 18:21:03 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:21:03 [INFO] system_logger: Iniciada captura de cámara camera_2
+2025-03-25 18:21:06 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:21:06 [INFO] system_logger: Iniciada captura de cámara camera_3
+2025-03-25 18:21:12 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:21:12 [INFO] system_logger: Iniciada captura de cámara camera_0
+2025-03-25 18:21:52 [INFO] system_logger: Gestor del sistema inicializado
+2025-03-25 18:21:52 [INFO] system_logger: Iniciando inicialización del sistema...
+2025-03-25 18:21:52 [INFO] system_logger: Inicializando base de datos: D:\Desarrollo\Eyve Inspection\CL_v2\data\inspection_system.db
+2025-03-25 18:21:52 [INFO] system_logger: Conexión establecida con la base de datos: D:\Desarrollo\Eyve Inspection\CL_v2\data\inspection_system.db
+2025-03-25 18:21:52 [INFO] system_logger: Tablas verificadas/creadas correctamente
+2025-03-25 18:21:52 [INFO] system_logger: Configuraciones predeterminadas inicializadas
+2025-03-25 18:21:52 [INFO] system_logger: Inicializando gestor de configuración
+2025-03-25 18:21:52 [INFO] system_logger: Configuración del sistema cargada desde D:\Desarrollo\Eyve Inspection\CL_v2\config\system_config.json
+2025-03-25 18:21:52 [INFO] system_logger: Gestor de configuración inicializado
+2025-03-25 18:21:52 [INFO] system_logger: Inicializando gestor de cámaras
+2025-03-25 18:22:07 [INFO] system_logger: Cámara camera_0 agregada al gestor
+2025-03-25 18:22:07 [INFO] system_logger: Cámara detectada: camera_0 (índice: 0)
+2025-03-25 18:22:07 [INFO] system_logger: Cámara camera_1 agregada al gestor
+2025-03-25 18:22:07 [INFO] system_logger: Cámara detectada: camera_1 (índice: 1)
+2025-03-25 18:22:07 [INFO] system_logger: Cámara camera_2 agregada al gestor
+2025-03-25 18:22:07 [INFO] system_logger: Cámara detectada: camera_2 (índice: 2)
+2025-03-25 18:22:07 [INFO] system_logger: Cámara camera_3 agregada al gestor
+2025-03-25 18:22:07 [INFO] system_logger: Cámara detectada: camera_3 (índice: 3)
+2025-03-25 18:22:07 [INFO] system_logger: Inicializando controlador de inspección
+2025-03-25 18:22:07 [INFO] system_logger: Módulo de detección de color inicializado
+2025-03-25 18:22:07 [INFO] system_logger: Módulo 'ColorDetection' agregado al controlador
+2025-03-25 18:22:07 [INFO] system_logger: Módulo de detección de defectos inicializado
+2025-03-25 18:22:07 [INFO] system_logger: Módulo 'DefectDetection' agregado al controlador
+2025-03-25 18:22:07 [INFO] system_logger: Módulo de medición de dimensiones inicializado
+2025-03-25 18:22:07 [INFO] system_logger: Módulo 'DimensionMeasurement' agregado al controlador
+2025-03-25 18:22:07 [INFO] system_logger: Módulo de análisis de textura inicializado
+2025-03-25 18:22:07 [INFO] system_logger: Módulo 'TextureAnalysis' agregado al controlador
+2025-03-25 18:22:07 [INFO] system_logger: Módulo de detección de códigos inicializado
+2025-03-25 18:22:07 [INFO] system_logger: Módulo 'BarcodeQRDetection' agregado al controlador
+2025-03-25 18:22:07 [INFO] system_logger: Sistema inicializado correctamente
+2025-03-25 18:22:07 [INFO] system_logger: Hilo de tareas en segundo plano iniciado
+2025-03-25 18:22:07 [INFO] system_logger: Sistema iniciado correctamente
+2025-03-25 18:22:12 [INFO] system_logger: Usuario 'admin' autenticado correctamente
+2025-03-25 18:22:12 [INFO] system_logger: Usuario 'admin' autenticado correctamente
+2025-03-25 18:22:12 [WARNING] system_logger: El sistema ya está inicializado
+2025-03-25 18:22:12 [WARNING] system_logger: El sistema ya está en ejecución
+2025-03-25 18:22:12 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:22:12 [INFO] system_logger: Iniciada captura de cámara camera_0
+2025-03-25 18:22:12 [INFO] system_logger: Iniciada captura de cámara camera_0
+2025-03-25 18:22:29 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:22:34 [INFO] system_logger: Todas las cámaras desconectadas
+2025-03-25 18:22:34 [INFO] system_logger: Conexión con la base de datos cerrada
+2025-03-25 18:22:34 [INFO] system_logger: Sistema detenido correctamente
+2025-03-25 18:32:20 [INFO] system_logger: Gestor del sistema inicializado
+2025-03-25 18:32:20 [INFO] system_logger: Iniciando inicialización del sistema...
+2025-03-25 18:32:20 [INFO] system_logger: Inicializando base de datos: D:\Desarrollo\Eyve Inspection\CL_v2\data\inspection_system.db
+2025-03-25 18:32:20 [INFO] system_logger: Conexión establecida con la base de datos: D:\Desarrollo\Eyve Inspection\CL_v2\data\inspection_system.db
+2025-03-25 18:32:20 [INFO] system_logger: Tablas verificadas/creadas correctamente
+2025-03-25 18:32:20 [INFO] system_logger: Configuraciones predeterminadas inicializadas
+2025-03-25 18:32:20 [INFO] system_logger: Inicializando gestor de configuración
+2025-03-25 18:32:20 [INFO] system_logger: Configuración del sistema cargada desde D:\Desarrollo\Eyve Inspection\CL_v2\config\system_config.json
+2025-03-25 18:32:20 [INFO] system_logger: Gestor de configuración inicializado
+2025-03-25 18:32:20 [INFO] system_logger: Inicializando gestor de cámaras
+2025-03-25 18:32:20 [INFO] system_logger: Cámara main_camera agregada al gestor
+2025-03-25 18:32:20 [INFO] system_logger: Cámara registrada: main_camera (índice: 0)
+2025-03-25 18:32:20 [INFO] system_logger: Cámara camera_1 agregada al gestor
+2025-03-25 18:32:20 [INFO] system_logger: Cámara registrada: camera_1 (índice: 1)
+2025-03-25 18:32:20 [INFO] system_logger: Cámara camera_2 agregada al gestor
+2025-03-25 18:32:20 [INFO] system_logger: Cámara registrada: camera_2 (índice: 2)
+2025-03-25 18:32:20 [INFO] system_logger: Cámara predeterminada establecida: main_camera
+2025-03-25 18:32:20 [INFO] system_logger: Inicializando controlador de inspección
+2025-03-25 18:32:20 [INFO] system_logger: Módulo de detección de color inicializado
+2025-03-25 18:32:20 [INFO] system_logger: Módulo 'ColorDetection' agregado al controlador
+2025-03-25 18:32:20 [INFO] system_logger: Módulo de detección de defectos inicializado
+2025-03-25 18:32:20 [INFO] system_logger: Módulo 'DefectDetection' agregado al controlador
+2025-03-25 18:32:20 [INFO] system_logger: Módulo de medición de dimensiones inicializado
+2025-03-25 18:32:20 [INFO] system_logger: Módulo 'DimensionMeasurement' agregado al controlador
+2025-03-25 18:32:20 [INFO] system_logger: Módulo de análisis de textura inicializado
+2025-03-25 18:32:20 [INFO] system_logger: Módulo 'TextureAnalysis' agregado al controlador
+2025-03-25 18:32:20 [INFO] system_logger: Módulo de detección de códigos inicializado
+2025-03-25 18:32:20 [INFO] system_logger: Módulo 'BarcodeQRDetection' agregado al controlador
+2025-03-25 18:32:20 [INFO] system_logger: Sistema inicializado correctamente
+2025-03-25 18:32:20 [INFO] system_logger: Hilo de tareas en segundo plano iniciado
+2025-03-25 18:32:20 [INFO] system_logger: Sistema iniciado correctamente
+2025-03-25 18:32:24 [INFO] system_logger: Cámara USB main_camera (índice: 0) conectada
+2025-03-25 18:32:24 [INFO] system_logger: Usuario 'admin' autenticado correctamente
+2025-03-25 18:32:24 [INFO] system_logger: Usuario 'admin' autenticado correctamente
+2025-03-25 18:32:24 [WARNING] system_logger: El sistema ya está inicializado
+2025-03-25 18:32:24 [WARNING] system_logger: El sistema ya está en ejecución
+2025-03-25 18:32:24 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:32:24 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:32:24 [INFO] system_logger: Iniciada captura de cámara main_camera
+2025-03-25 18:32:24 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:32:24 [INFO] system_logger: Iniciada captura de cámara main_camera
+2025-03-25 18:32:26 [INFO] system_logger: Cámara USB camera_1 (índice: 1) conectada
+2025-03-25 18:32:27 [INFO] system_logger: Cámara USB camera_2 (índice: 2) conectada
+2025-03-25 18:32:32 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:32:32 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:32:32 [INFO] system_logger: Iniciada captura de cámara camera_1
+2025-03-25 18:32:40 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:32:40 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:32:40 [INFO] system_logger: Iniciada captura de cámara main_camera
+2025-03-25 18:32:40 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:32:40 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:32:40 [INFO] system_logger: Iniciada captura de cámara camera_1
+2025-03-25 18:32:46 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:32:46 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:32:46 [INFO] system_logger: Iniciada captura de cámara camera_2
+2025-03-25 18:32:48 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:32:48 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:32:48 [INFO] system_logger: Iniciada captura de cámara main_camera
+2025-03-25 18:32:54 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:32:54 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:32:54 [INFO] system_logger: Iniciada captura de cámara camera_1
+2025-03-25 18:32:57 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:32:57 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:32:57 [INFO] system_logger: Iniciada captura de cámara camera_2
+2025-03-25 18:33:13 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:33:13 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:33:13 [INFO] system_logger: Iniciada captura de cámara main_camera
+2025-03-25 18:33:31 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:33:31 [INFO] system_logger: Hilo de tareas en segundo plano detenido
+2025-03-25 18:33:32 [INFO] system_logger: Cámara USB main_camera desconectada
+2025-03-25 18:33:32 [INFO] system_logger: Cámara USB camera_1 desconectada
+2025-03-25 18:33:32 [INFO] system_logger: Cámara USB camera_2 desconectada
+2025-03-25 18:33:32 [INFO] system_logger: Todas las cámaras desconectadas
+2025-03-25 18:33:32 [INFO] system_logger: Conexión con la base de datos cerrada
+2025-03-25 18:33:32 [INFO] system_logger: Sistema detenido correctamente
+2025-03-25 18:39:31 [INFO] system_logger: Gestor del sistema inicializado
+2025-03-25 18:39:31 [INFO] system_logger: Iniciando inicialización del sistema...
+2025-03-25 18:39:31 [INFO] system_logger: Inicializando base de datos: D:\Desarrollo\Eyve Inspection\CL_v2\data\inspection_system.db
+2025-03-25 18:39:31 [INFO] system_logger: Conexión establecida con la base de datos: D:\Desarrollo\Eyve Inspection\CL_v2\data\inspection_system.db
+2025-03-25 18:39:31 [INFO] system_logger: Tablas verificadas/creadas correctamente
+2025-03-25 18:39:31 [INFO] system_logger: Configuraciones predeterminadas inicializadas
+2025-03-25 18:39:31 [INFO] system_logger: Inicializando gestor de configuración
+2025-03-25 18:39:31 [INFO] system_logger: Configuración del sistema cargada desde D:\Desarrollo\Eyve Inspection\CL_v2\config\system_config.json
+2025-03-25 18:39:31 [INFO] system_logger: Gestor de configuración inicializado
+2025-03-25 18:39:31 [INFO] system_logger: Inicializando gestor de cámaras
+2025-03-25 18:39:31 [INFO] system_logger: Cámara main_camera agregada al gestor
+2025-03-25 18:39:31 [INFO] system_logger: Cámara registrada: main_camera (índice: 0)
+2025-03-25 18:39:31 [INFO] system_logger: Cámara camera_1 agregada al gestor
+2025-03-25 18:39:31 [INFO] system_logger: Cámara registrada: camera_1 (índice: 1)
+2025-03-25 18:39:31 [INFO] system_logger: Cámara camera_2 agregada al gestor
+2025-03-25 18:39:31 [INFO] system_logger: Cámara registrada: camera_2 (índice: 2)
+2025-03-25 18:39:31 [INFO] system_logger: Cámara predeterminada establecida: main_camera
+2025-03-25 18:39:31 [INFO] system_logger: Inicializando controlador de inspección
+2025-03-25 18:39:31 [INFO] system_logger: Módulo de detección de color inicializado
+2025-03-25 18:39:31 [INFO] system_logger: Módulo 'ColorDetection' agregado al controlador
+2025-03-25 18:39:31 [INFO] system_logger: Módulo de detección de defectos inicializado
+2025-03-25 18:39:31 [INFO] system_logger: Módulo 'DefectDetection' agregado al controlador
+2025-03-25 18:39:31 [INFO] system_logger: Módulo de medición de dimensiones inicializado
+2025-03-25 18:39:31 [INFO] system_logger: Módulo 'DimensionMeasurement' agregado al controlador
+2025-03-25 18:39:31 [INFO] system_logger: Módulo de análisis de textura inicializado
+2025-03-25 18:39:31 [INFO] system_logger: Módulo 'TextureAnalysis' agregado al controlador
+2025-03-25 18:39:31 [INFO] system_logger: Módulo de detección de códigos inicializado
+2025-03-25 18:39:31 [INFO] system_logger: Módulo 'BarcodeQRDetection' agregado al controlador
+2025-03-25 18:39:31 [INFO] system_logger: Sistema inicializado correctamente
+2025-03-25 18:39:31 [INFO] system_logger: Hilo de tareas en segundo plano iniciado
+2025-03-25 18:39:31 [INFO] system_logger: Sistema iniciado correctamente
+2025-03-25 18:39:34 [INFO] system_logger: Usuario 'admin' autenticado correctamente
+2025-03-25 18:39:34 [INFO] system_logger: Usuario 'admin' autenticado correctamente
+2025-03-25 18:39:34 [WARNING] system_logger: El sistema ya está inicializado
+2025-03-25 18:39:34 [WARNING] system_logger: El sistema ya está en ejecución
+2025-03-25 18:39:34 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:39:34 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:39:39 [INFO] system_logger: Cámara USB main_camera (índice: 0) conectada
+2025-03-25 18:39:53 [INFO] system_logger: Gestor del sistema inicializado
+2025-03-25 18:39:53 [INFO] system_logger: Iniciando inicialización del sistema...
+2025-03-25 18:39:53 [INFO] system_logger: Inicializando base de datos: D:\Desarrollo\Eyve Inspection\CL_v2\data\inspection_system.db
+2025-03-25 18:39:53 [INFO] system_logger: Conexión establecida con la base de datos: D:\Desarrollo\Eyve Inspection\CL_v2\data\inspection_system.db
+2025-03-25 18:39:53 [INFO] system_logger: Tablas verificadas/creadas correctamente
+2025-03-25 18:39:53 [INFO] system_logger: Configuraciones predeterminadas inicializadas
+2025-03-25 18:39:53 [INFO] system_logger: Inicializando gestor de configuración
+2025-03-25 18:39:53 [INFO] system_logger: Configuración del sistema cargada desde D:\Desarrollo\Eyve Inspection\CL_v2\config\system_config.json
+2025-03-25 18:39:53 [INFO] system_logger: Gestor de configuración inicializado
+2025-03-25 18:39:53 [INFO] system_logger: Inicializando gestor de cámaras
+2025-03-25 18:39:53 [INFO] system_logger: Cámara main_camera agregada al gestor
+2025-03-25 18:39:53 [INFO] system_logger: Cámara registrada: main_camera (índice: 0)
+2025-03-25 18:39:53 [INFO] system_logger: Cámara camera_1 agregada al gestor
+2025-03-25 18:39:53 [INFO] system_logger: Cámara registrada: camera_1 (índice: 1)
+2025-03-25 18:39:53 [INFO] system_logger: Cámara camera_2 agregada al gestor
+2025-03-25 18:39:53 [INFO] system_logger: Cámara registrada: camera_2 (índice: 2)
+2025-03-25 18:39:53 [INFO] system_logger: Cámara predeterminada establecida: main_camera
+2025-03-25 18:39:53 [INFO] system_logger: Inicializando controlador de inspección
+2025-03-25 18:39:53 [INFO] system_logger: Módulo de detección de color inicializado
+2025-03-25 18:39:53 [INFO] system_logger: Módulo 'ColorDetection' agregado al controlador
+2025-03-25 18:39:53 [INFO] system_logger: Módulo de detección de defectos inicializado
+2025-03-25 18:39:53 [INFO] system_logger: Módulo 'DefectDetection' agregado al controlador
+2025-03-25 18:39:53 [INFO] system_logger: Módulo de medición de dimensiones inicializado
+2025-03-25 18:39:53 [INFO] system_logger: Módulo 'DimensionMeasurement' agregado al controlador
+2025-03-25 18:39:53 [INFO] system_logger: Módulo de análisis de textura inicializado
+2025-03-25 18:39:53 [INFO] system_logger: Módulo 'TextureAnalysis' agregado al controlador
+2025-03-25 18:39:53 [INFO] system_logger: Módulo de detección de códigos inicializado
+2025-03-25 18:39:53 [INFO] system_logger: Módulo 'BarcodeQRDetection' agregado al controlador
+2025-03-25 18:39:53 [INFO] system_logger: Sistema inicializado correctamente
+2025-03-25 18:39:53 [INFO] system_logger: Hilo de tareas en segundo plano iniciado
+2025-03-25 18:39:53 [INFO] system_logger: Sistema iniciado correctamente
+2025-03-25 18:39:56 [INFO] system_logger: Cámara USB main_camera (índice: 0) conectada
+2025-03-25 18:39:56 [INFO] system_logger: Usuario 'admin' autenticado correctamente
+2025-03-25 18:39:56 [INFO] system_logger: Usuario 'admin' autenticado correctamente
+2025-03-25 18:39:56 [WARNING] system_logger: El sistema ya está inicializado
+2025-03-25 18:39:56 [WARNING] system_logger: El sistema ya está en ejecución
+2025-03-25 18:39:56 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:39:56 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:39:56 [INFO] system_logger: Iniciada captura de cámara main_camera
+2025-03-25 18:39:56 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:39:56 [INFO] system_logger: Iniciada captura de cámara main_camera
+2025-03-25 18:39:56 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:57 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:57 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:57 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:57 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:57 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:57 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:57 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:57 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:57 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:57 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:58 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:58 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:58 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:58 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:58 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:58 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:58 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:58 [INFO] system_logger: Cámara USB camera_1 (índice: 1) conectada
+2025-03-25 18:39:58 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:58 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:58 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:59 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:59 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:59 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:59 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:59 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:59 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:59 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:59 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:59 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:39:59 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:00 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:00 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:00 [INFO] system_logger: Cámara USB camera_2 (índice: 2) conectada
+2025-03-25 18:40:00 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:00 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:00 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:00 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:00 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:00 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:00 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:00 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:01 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:01 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:01 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:01 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:01 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:01 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:01 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:01 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:01 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:01 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:40:02 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:40:02 [INFO] system_logger: Iniciada captura de cámara camera_1
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:02 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:40:03 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:40:03 [INFO] system_logger: Iniciada captura de cámara camera_2
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:03 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:04 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:04 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:04 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:04 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:04 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:04 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:04 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:04 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:04 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:04 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:05 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:05 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:05 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:05 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:05 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:05 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:40:05 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:40:05 [INFO] system_logger: Iniciada captura de cámara main_camera
+2025-03-25 18:40:05 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:05 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:05 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:05 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:05 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:05 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:06 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:06 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:06 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:06 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:06 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:06 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:06 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:06 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:06 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:06 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:07 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:07 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:07 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:07 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:07 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:07 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:07 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:07 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:07 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:07 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:08 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:08 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:08 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:08 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:08 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:08 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:08 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:08 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:08 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:08 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:09 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:09 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:09 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:09 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:09 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:09 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:09 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:09 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:09 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:09 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:10 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:10 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:10 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:10 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:10 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:10 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:10 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:10 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:10 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:10 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:11 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:11 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:11 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:11 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:11 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:11 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:11 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:11 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:11 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:11 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:12 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:12 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:12 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:12 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:12 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:12 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:12 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:12 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:12 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:12 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:13 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:13 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:13 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:13 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:13 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:13 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:13 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:13 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:13 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:13 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:14 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:14 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:14 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:14 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:14 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:14 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:14 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:14 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:14 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:14 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:15 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:15 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:15 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:15 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:15 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:15 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:15 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:15 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:15 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:15 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:16 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:16 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:16 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:16 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:16 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:16 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:16 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:16 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:16 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:16 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:17 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:17 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:17 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:17 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:17 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:17 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:17 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:17 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:17 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:17 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:18 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:18 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:18 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:18 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:18 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:18 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:18 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:18 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:18 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:18 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:19 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:19 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:19 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:19 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:19 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:19 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:19 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:19 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:19 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:19 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:20 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:20 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:20 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:20 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:20 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:20 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:20 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:20 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:20 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:21 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:21 [WARNING] system_logger: No hay fotograma disponible de cámara main_camera
+2025-03-25 18:40:21 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:21 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:21 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:21 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:21 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:21 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:21 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:21 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:21 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:21 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:22 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:22 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:22 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:22 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:22 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:22 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:22 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:22 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:22 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:23 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:23 [WARNING] system_logger: No hay fotograma disponible de cámara main_camera
+2025-03-25 18:40:23 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:23 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:23 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:23 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:23 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:23 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:23 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:23 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:23 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:24 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:24 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:24 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:24 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:24 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:24 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:24 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:24 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:24 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:24 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:25 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:25 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:25 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:25 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:25 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:25 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:25 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:25 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:25 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:25 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:26 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:26 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:26 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:26 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:26 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:26 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:26 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:26 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:26 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:26 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:27 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:27 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:27 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:27 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:27 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:27 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:27 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:27 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:27 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:27 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:28 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:28 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:28 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:28 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:28 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:28 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:28 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:28 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:28 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:28 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:29 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:29 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:29 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:29 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:29 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:29 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:29 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:29 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:29 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:29 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:30 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:30 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:30 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:30 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:30 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:30 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:30 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:30 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:30 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:30 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:31 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:31 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:31 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:31 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:31 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:31 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:31 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:31 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:31 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:31 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:32 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:32 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:32 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:32 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:32 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:32 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:32 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:32 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:32 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:32 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:33 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:33 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:33 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:33 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:33 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:33 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:33 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:33 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:33 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:33 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:34 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:34 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:34 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:34 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:34 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:34 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:34 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:34 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:34 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:34 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:35 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:35 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:35 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:35 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:35 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:35 [INFO] system_logger: Frame recibido: 1280x720, tipo: uint8, forma: (720, 1280, 3)
+2025-03-25 18:40:35 [INFO] system_logger: Detenida captura de cámara
+2025-03-25 18:40:35 [INFO] system_logger: Hilo de tareas en segundo plano detenido
+2025-03-25 18:40:36 [INFO] system_logger: Cámara USB main_camera desconectada
+2025-03-25 18:40:36 [INFO] system_logger: Cámara USB camera_1 desconectada
+2025-03-25 18:40:36 [INFO] system_logger: Cámara USB camera_2 desconectada
+2025-03-25 18:40:36 [INFO] system_logger: Todas las cámaras desconectadas
+2025-03-25 18:40:36 [INFO] system_logger: Conexión con la base de datos cerrada
+2025-03-25 18:40:36 [INFO] system_logger: Sistema detenido correctamente
