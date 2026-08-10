@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+*.log
+projects/
+sessions/
+Release/Eyve_2.1_Beta/
+Release/*.zip

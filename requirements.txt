@@ -1,0 +1,19 @@
+# Eyve 2.1 — Python dependencies
+# Install with: pip install -r requirements.txt
+
+# UI
+customtkinter>=5.2.0
+
+# Vision & inference
+ultralytics>=8.0.0
+opencv-python>=4.8.0
+Pillow>=10.0.0
+
+# Data
+numpy>=1.24.0
+PyYAML>=6.0
+
+# Training (YOLO uses torch — install GPU version manually if needed)
+# torch torchvision torchaudio are installed by ultralytics automatically,
+# but for GPU (CUDA 12.x) run first:
+#   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121

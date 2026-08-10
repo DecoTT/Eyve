@@ -1,0 +1,27 @@
+GNU AFFERO GENERAL PUBLIC LICENSE
+Version 3, 19 November 2007
+
+Copyright (C) 2024-2026 Eyve Project Contributors
+
+Everyone is permitted to copy and distribute verbatim copies of this license document,
+but changing it is not allowed.
+
+                            PREAMBLE
+
+The GNU Affero General Public License is a free, copyleft license for software and
+other kinds of works, specifically designed to ensure cooperation with the community
+in the case of network server software.
+
+[Full AGPL-3.0 text — see https://www.gnu.org/licenses/agpl-3.0.txt]
+
+────────────────────────────────────────────────────────────────────────────────
+BRAND & TRADEMARK NOTICE
+
+The Eyve source code is released under AGPL-3.0.
+
+The Eyve name, logo, and official branding are NOT granted for unauthorized commercial
+use under this license. Forks and modified versions must clearly identify themselves
+as modified versions and must not misrepresent themselves as official Eyve releases.
+
+Your images, annotations, datasets, and project files remain yours.
+────────────────────────────────────────────────────────────────────────────────
