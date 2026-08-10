@@ -634,12 +634,9 @@ class TaggingScreen(ctk.CTkFrame):
         if not proj or not self._images:
             return None
         img_path = self._images[self._idx]
-        # Use a path-based unique key to avoid stem collisions across class dirs
-        try:
-            rel = img_path.relative_to(proj.paths.raw_images)
-            unique_stem = str(rel.with_suffix("")).replace("/", "_").replace("\\", "_")
-        except ValueError:
-            unique_stem = img_path.stem
+        # Canonical stem — single source of truth shared with dataset_builder
+        # (two conventions here is what silently broke training: BUG-01)
+        unique_stem = proj.paths.label_stem(img_path)
 
         label_dir = proj.paths.tagged_labels
         label_dir.mkdir(parents=True, exist_ok=True)
@@ -652,7 +649,7 @@ class TaggingScreen(ctk.CTkFrame):
                 shutil.copy2(str(img_path), str(tagged_img))
             except Exception:
                 pass
-        return label_dir / f"{unique_stem}.txt"
+        return proj.paths.label_file(img_path)
 
     def _load_labels(self) -> None:
         proj = self._app.get_project()
@@ -816,12 +813,7 @@ class TaggingScreen(ctk.CTkFrame):
         total = len(self._images)
         labeled = 0
         for img in self._images:
-            try:
-                rel = img.relative_to(proj.paths.raw_images)
-                stem = str(rel.with_suffix("")).replace("/", "_").replace("\\", "_")
-            except ValueError:
-                stem = img.stem
-            if (proj.paths.tagged_labels / f"{stem}.txt").exists():
+            if proj.paths.label_file(img).exists():
                 labeled += 1
         self._progress_lbl.configure(
             text=t("tag_progress", labeled=labeled, total=total))

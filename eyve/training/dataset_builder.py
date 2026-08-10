@@ -41,9 +41,11 @@ def validate_dataset(project: Project) -> DatasetValidation:
         return result
 
     # collect paired image+label files
+    # label_file() is the canonical resolver — the SAME one tagging_screen
+    # writes with.  Using img.stem here was BUG-01 (labels never found).
     pairs: list[tuple[Path, Path]] = []
     for img in sorted(p.raw_images.rglob("*.jpg")):
-        label = p.tagged_labels / f"{img.stem}.txt"
+        label = p.label_file(img)
         if label.exists() and label.stat().st_size > 0:
             pairs.append((img, label))
 
@@ -100,10 +102,10 @@ def build_dataset(project: Project, val_split: float = 0.15, seed: int = 42) -> 
             shutil.rmtree(d)
         d.mkdir(parents=True)
 
-    # collect pairs
+    # collect pairs via the canonical resolver (same as tagging_screen writes)
     pairs: list[tuple[Path, Path]] = []
     for img in sorted(p.raw_images.rglob("*.jpg")):
-        label = p.tagged_labels / f"{img.stem}.txt"
+        label = p.label_file(img)
         if label.exists() and label.stat().st_size > 0:
             pairs.append((img, label))
 
@@ -117,8 +119,13 @@ def build_dataset(project: Project, val_split: float = 0.15, seed: int = 42) -> 
 
     for i, (img, lbl) in enumerate(pairs):
         split = "val" if i in val_set else "train"
-        shutil.copy2(img, ds / "images" / split / img.name)
-        shutil.copy2(lbl, ds / "labels" / split / lbl.name)
+        # YOLO pairs image↔label BY FILENAME, so the image must be copied
+        # under the same unique stem as its label.  Copying img.name would
+        # (a) mismatch the label name and (b) collide when two class folders
+        # contain the same base filename.
+        stem = p.label_stem(img)
+        shutil.copy2(img, ds / "images" / split / f"{stem}{img.suffix}")
+        shutil.copy2(lbl, ds / "labels" / split / f"{stem}.txt")
 
     # write data.yaml
     data_yaml = {

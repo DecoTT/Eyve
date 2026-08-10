@@ -24,6 +24,34 @@ class ProjectPaths:
     def tagged_labels(self) -> Path:
         return self.root / "tagged" / "labels"
 
+    # ── label naming (canonical — BUG-01) ────────────────────────────────────
+    def label_stem(self, img_path: Path) -> str:
+        """
+        Canonical unique stem for an image's label/tagged-copy filename.
+
+        Derived from the image's path relative to raw/images so that the same
+        base name in two class folders never collides:
+
+            raw/images/rayon/img_001.jpg   → "rayon_img_001"
+            raw/images/golpe/img_001.jpg   → "golpe_img_001"
+            raw/images/img_001.jpg         → "img_001"        (root, no class)
+
+        Every producer and consumer of label files MUST go through this
+        function (tagging_screen writes, dataset_builder reads).  Having two
+        conventions is exactly the bug that silently broke training.
+        """
+        img_path = Path(img_path)
+        try:
+            rel = img_path.relative_to(self.raw_images)
+            return str(rel.with_suffix("")).replace("/", "_").replace("\\", "_")
+        except ValueError:
+            # image lives outside raw/images (shouldn't happen in normal flow)
+            return img_path.stem
+
+    def label_file(self, img_path: Path) -> Path:
+        """Canonical label .txt path for an image (see label_stem)."""
+        return self.tagged_labels / f"{self.label_stem(img_path)}.txt"
+
     # ── yolo dataset ─────────────────────────────────────────────────────────
     @property
     def dataset(self) -> Path:
