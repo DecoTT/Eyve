@@ -104,6 +104,9 @@ STRINGS = {
     "tag_no_images": "No captured images found. Go to Capture first.",
     "tag_shortcuts": "Draw box: drag mouse | Keys: 1-9 = select class · S = save · N/P = next/prev · Del = delete box",
     "tag_saved": "Label saved.",
+    "tag_no_frame": "No frame to tag — start the camera or video first.",
+    "tag_draw_box_first": "Draw at least one box before saving.",
+    "tag_vid_paused": "⏸ Paused — draw boxes and press Save",
     "tag_class_stats": "Tagged per class:",
     "tag_progress": "{labeled} / {total} images labeled",
 

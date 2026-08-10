@@ -115,6 +115,13 @@ class TaggingScreen(ctk.CTkFrame):
         self._video_path: Optional[Path] = None
         self._warming = False
         self._anim_step = 0
+        # ── video playback control (pause / seek) ──────────────────────────
+        self._video_paused = False
+        self._seek_target: Optional[int] = None   # frame index requested by slider
+        self._video_pos = 0                       # current frame index (grab thread writes)
+        self._video_total = 0
+        self._video_fps = 30.0
+        self._frame_dirty = False                 # paused: repaint only after a seek
 
         self._build()
         self._load_images()
@@ -244,6 +251,30 @@ class TaggingScreen(ctk.CTkFrame):
             text_color=T.TEXT_DIM, wraplength=160, anchor="w",
         )
 
+        # ── video playback controls (pause + seek slider + time) ───────────
+        # Shown only when source == video.  Pausing freezes the current frame
+        # for annotation; the slider seeks anywhere in the file.
+        self._vid_ctrl = ctk.CTkFrame(self._cam_panel, fg_color="transparent")
+        vc_row = ctk.CTkFrame(self._vid_ctrl, fg_color="transparent")
+        vc_row.pack(fill="x")
+        self._vid_pause_btn = ctk.CTkButton(
+            vc_row, text="⏸", width=36, height=26,
+            fg_color=T.BG_INPUT, font=T.font(T.FONT_SM),
+            command=self._toggle_video_pause,
+        )
+        self._vid_pause_btn.pack(side="left")
+        self._vid_time_lbl = ctk.CTkLabel(
+            vc_row, text="00:00 / 00:00",
+            font=T.font(T.FONT_XS), text_color=T.TEXT_DIM,
+        )
+        self._vid_time_lbl.pack(side="right")
+        self._vid_slider = ctk.CTkSlider(
+            self._vid_ctrl, from_=0, to=1,
+            command=self._on_video_seek,
+        )
+        self._vid_slider.set(0)
+        self._vid_slider.pack(fill="x", pady=(2, 0))
+
         cam_btns = ctk.CTkFrame(self._cam_panel, fg_color="transparent")
         cam_btns.pack(fill="x", pady=2)
         self._cam_start_btn = ctk.CTkButton(
@@ -353,11 +384,13 @@ class TaggingScreen(ctk.CTkFrame):
             self._cam_panel.pack(fill="x", padx=12, pady=(0, 4))
             self._video_btn.pack_forget()
             self._video_path_lbl.pack_forget()
+            self._vid_ctrl.pack_forget()
             # Don't auto-start; user clicks ▶ Iniciar
         else:  # video
             self._cam_panel.pack(fill="x", padx=12, pady=(0, 4))
             self._video_btn.pack(fill="x", pady=(0, 2))
             self._video_path_lbl.pack(anchor="w")
+            self._vid_ctrl.pack(fill="x", pady=(4, 0))
 
     def _browse_video(self) -> None:
         p = filedialog.askopenfilename(
@@ -404,6 +437,17 @@ class TaggingScreen(ctk.CTkFrame):
         self._cap = cap
         self._live_running = True
         self._frozen_frame = None
+        if self._src_var.get() == "video":
+            total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
+            fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
+            self._video_total = max(total, 1)
+            self._video_fps = fps if fps > 0 else 30.0
+            self._video_paused = False
+            self._seek_target = None
+            self._video_pos = 0
+            self._vid_slider.configure(to=max(self._video_total - 1, 1))
+            self._vid_slider.set(0)
+            self._vid_pause_btn.configure(text="⏸")
         self._cam_start_btn.configure(state="disabled")
         self._cam_stop_btn.configure(state="normal")
         self._grab_btn.configure(state="normal")
@@ -415,6 +459,8 @@ class TaggingScreen(ctk.CTkFrame):
     def _stop_live(self) -> None:
         self._live_running = False
         self._warming = False
+        self._video_paused = False
+        self._seek_target = None
         if self._cap:
             self._cap.release()
             self._cap = None
@@ -428,9 +474,32 @@ class TaggingScreen(ctk.CTkFrame):
             self._show_image(self._idx)
 
     def _live_grab_loop(self) -> None:
-        """Background: continuously read frames."""
+        """
+        Background: continuously read frames.
+
+        Video extras (this thread is the ONLY one touching self._cap):
+          - seek: consumes self._seek_target set by the slider and reads one
+            frame there, even while paused (scrub preview);
+          - pause: stops reading, keeping the last frame on screen so the
+            user can draw boxes on it.
+        """
         is_video = self._src_var.get() == "video"
         while self._live_running and self._cap and self._cap.isOpened():
+            if is_video:
+                seek = self._seek_target
+                if seek is not None:
+                    self._seek_target = None
+                    self._cap.set(cv2.CAP_PROP_POS_FRAMES, seek)
+                    ret, frame = self._cap.read()
+                    if ret:
+                        with self._frame_lock:
+                            self._live_frame = frame
+                        self._video_pos = seek
+                        self._frame_dirty = True   # repaint even while paused
+                    continue
+                if self._video_paused:
+                    time.sleep(0.05)
+                    continue
             ret, frame = self._cap.read()
             if not ret:
                 if is_video:
@@ -440,6 +509,7 @@ class TaggingScreen(ctk.CTkFrame):
             with self._frame_lock:
                 self._live_frame = frame
             if is_video:
+                self._video_pos = int(self._cap.get(cv2.CAP_PROP_POS_FRAMES))
                 time.sleep(1 / 30)
 
     def _live_display_loop(self) -> None:
@@ -449,8 +519,23 @@ class TaggingScreen(ctk.CTkFrame):
         if self._frozen_frame is None:
             with self._frame_lock:
                 frame = self._live_frame
-            if frame is not None:
+            # While paused we must NOT repaint every tick — _paint_frame does
+            # delete("all") and would erase the boxes being drawn.  We repaint
+            # only when the grab thread flags a fresh frame (seek preview).
+            if frame is not None and (not self._video_paused or self._frame_dirty):
+                self._frame_dirty = False
                 self._paint_frame(frame)
+        # keep slider/time in sync while playing (diff-guard avoids fighting
+        # the user's drag — we only push when clearly out of sync)
+        if self._src_var.get() == "video" and self._video_total > 1:
+            pos = self._video_pos
+            if self._seek_target is None and abs(self._vid_slider.get() - pos) > 3:
+                self._vid_slider.set(pos)
+            cur_s = pos / self._video_fps
+            tot_s = self._video_total / self._video_fps
+            self._vid_time_lbl.configure(
+                text=f"{int(cur_s//60):02d}:{int(cur_s%60):02d} / "
+                     f"{int(tot_s//60):02d}:{int(tot_s%60):02d}")
         self.after(16, self._live_display_loop)
 
     def _paint_frame(self, frame) -> None:
@@ -467,6 +552,13 @@ class TaggingScreen(ctk.CTkFrame):
             rgb   = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             photo = ImageTk.PhotoImage(Image.fromarray(rgb))
             self._photo = photo
+            # Record geometry so boxes drawn over a paused/live frame convert
+            # correctly to YOLO coords in _save_labels (same fields that
+            # _show_image sets for static images).
+            dh, dw = frame.shape[:2]
+            self._orig_size = (fw, fh)
+            self._display_size = (dw, dh)
+            self._offset = ((cw - dw) // 2, (ch - dh) // 2)
             self._canvas.delete("all")
             self._canvas.create_image(cw // 2, ch // 2, image=photo, anchor="center")
         except Exception:
@@ -490,6 +582,29 @@ class TaggingScreen(ctk.CTkFrame):
                                   font=("Segoe UI", 13), anchor="center")
         self._anim_step += 1
         self.after(200, self._animate_warmup)
+
+    # ── video playback control ────────────────────────────────────────────────
+    def _toggle_video_pause(self) -> None:
+        """⏸/▶: pausing freezes the current frame so it can be annotated."""
+        if not self._live_running or self._src_var.get() != "video":
+            return
+        self._video_paused = not self._video_paused
+        self._vid_pause_btn.configure(text="▶" if self._video_paused else "⏸")
+        if self._video_paused:
+            self._cam_status.configure(text=t("tag_vid_paused"), text_color=T.WARN)
+        else:
+            self._clear_boxes()
+            self._cam_status.configure(text="● En vivo", text_color=T.ACCENT)
+
+    def _on_video_seek(self, value) -> None:
+        """Slider: request a seek (grab thread owns the VideoCapture)."""
+        if not self._live_running or self._src_var.get() != "video":
+            return
+        # New frame → previous annotations no longer apply
+        if self._boxes:
+            self._clear_boxes()
+        self._cancel_draw()
+        self._seek_target = int(float(value))
 
     # ── grab frame ────────────────────────────────────────────────────────────
     def _grab_frame(self) -> None:
@@ -702,8 +817,10 @@ class TaggingScreen(ctk.CTkFrame):
 
     # ── mouse draw ────────────────────────────────────────────────────────────
     def _on_press(self, event) -> None:
-        # Ignore clicks while live feed is running without a frozen frame
-        if self._live_running and self._frozen_frame is None:
+        # Drawing is allowed on: static images, a frozen (grabbed) frame,
+        # or a PAUSED video frame.  Only a moving live feed rejects clicks.
+        if (self._live_running and self._frozen_frame is None
+                and not self._video_paused):
             return
         self._draw_start = (event.x, event.y)
 
@@ -764,14 +881,68 @@ class TaggingScreen(ctk.CTkFrame):
             self._active_rect = None
 
     # ── actions ───────────────────────────────────────────────────────────────
+    def _autograb_current_frame(self) -> bool:
+        """
+        Save the frame currently on screen as a project image and point
+        self._idx at it, WITHOUT clearing the boxes the user already drew.
+
+        Used when Guardar is pressed in camera/video mode with no explicit
+        grab: the visible frame (paused video, or last live frame) becomes
+        the image the annotations are saved against.
+        Returns False (with a user-facing message) when there is nothing
+        valid to save — never a silent no-op.
+        """
+        proj = self._app.get_project()
+        if not proj:
+            self._msg.configure(text="Abre un proyecto primero.", text_color=T.WARN)
+            return False
+        classes = proj.classes
+        if not classes:
+            self._msg.configure(text="Define categorías primero.", text_color=T.WARN)
+            return False
+        with self._frame_lock:
+            frame = self._live_frame
+        if frame is None:
+            self._msg.configure(text=t("tag_no_frame"), text_color=T.WARN)
+            return False
+
+        cls = classes[min(self._selected_class, len(classes) - 1)]
+        dest_dir = proj.paths.raw_class_dir(cls.name)
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        img_path = dest_dir / f"tag_{ts}.jpg"
+        cv2.imwrite(str(img_path), frame)
+
+        self._images.append(img_path)
+        self._idx = len(self._images) - 1
+        # NOTE: no _show_image() here — it would clear the drawn boxes.
+        # _paint_frame already recorded display geometry for _save_labels.
+        return True
+
     def _save(self) -> None:
+        live = self._src_var.get() in ("camera", "video")
+        if live and self._frozen_frame is None:
+            # No explicit grab happened.  Refuse empty saves honestly and
+            # auto-grab the visible frame when there ARE boxes to persist.
+            if not self._boxes:
+                self._msg.configure(text=t("tag_draw_box_first"), text_color=T.WARN)
+                return
+            if not self._autograb_current_frame():
+                return
+        elif not self._images:
+            # Static-image mode with nothing loaded: nothing to save onto.
+            self._msg.configure(text=t("tag_no_frame"), text_color=T.WARN)
+            return
+
         self._save_labels()
         self._msg.configure(text=t("tag_saved"), text_color=T.ACCENT)
         self._update_progress()
-        # After saving in live mode, un-freeze and return to live feed
+        # After saving in live mode, un-freeze / resume so the user can move on
         if self._live_running and self._frozen_frame is not None:
             self._frozen_frame = None
             self._cam_status.configure(text="● En vivo", text_color=T.ACCENT)
+        elif self._live_running and self._video_paused:
+            self._clear_boxes()   # saved — clean canvas for the next frame
 
     def _delete_last(self) -> None:
         if not self._boxes:

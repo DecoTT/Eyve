@@ -104,6 +104,9 @@ STRINGS = {
     "tag_no_images": "No hay imágenes capturadas. Ve a Captura primero.",
     "tag_shortcuts": "Dibuja caja: arrastra el mouse | Teclas: 1-9 = categoría · S = guardar · N/P = sig/ant · Supr = eliminar",
     "tag_saved": "Etiqueta guardada.",
+    "tag_no_frame": "No hay imagen para etiquetar — inicia la cámara o el video.",
+    "tag_draw_box_first": "Dibuja al menos una caja antes de guardar.",
+    "tag_vid_paused": "⏸ Pausado — dibuja cajas y presiona Guardar",
     "tag_class_stats": "Etiquetadas por categoría:",
     "tag_progress": "{labeled} / {total} imágenes etiquetadas",
 
