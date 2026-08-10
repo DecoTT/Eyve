@@ -101,41 +101,42 @@ class TrainManager:
                        total_epochs=cfg.epochs)
 
             from ultralytics import YOLO
-            from ultralytics.utils.callbacks.base import BaseCallback
             from eyve.core.model_manager import local_path_or_name
 
             model_path = local_path_or_name(cfg.base_model)
             log.debug(f"Loading base model: {model_path}")
             model = YOLO(model_path)
 
+            # Ultralytics 8.x callbacks are plain functions — the old
+            # BaseCallback class was removed from the public API (importing
+            # it raised ImportError and killed every training run: BUG-02).
             mgr = self
             epoch_times: list[float] = []
             epoch_start = [time.time()]
 
-            class _EpveCallback(BaseCallback):
-                def on_train_epoch_end(self, trainer):
-                    elapsed = time.time() - start_time
-                    epoch_times.append(time.time() - epoch_start[0])
-                    epoch_start[0] = time.time()
-                    ep = trainer.epoch + 1
-                    total = trainer.epochs
-                    avg_ep = sum(epoch_times) / len(epoch_times) if epoch_times else 1
-                    remaining = avg_ep * (total - ep)
-                    metrics = trainer.metrics or {}
-                    mgr._emit(
-                        epoch=ep,
-                        total_epochs=total,
-                        loss=float(getattr(trainer, "loss", 0) or 0),
-                        map50=float(metrics.get("metrics/mAP50(B)", 0)),
-                        elapsed_s=elapsed,
-                        eta_s=remaining,
-                        status="training",
-                        message=f"Epoch {ep}/{total}",
-                    )
-                    if mgr._stop_flag.is_set():
-                        raise KeyboardInterrupt("Training stopped by user")
+            def _on_epoch_end(trainer):
+                elapsed = time.time() - start_time
+                epoch_times.append(time.time() - epoch_start[0])
+                epoch_start[0] = time.time()
+                ep = trainer.epoch + 1
+                total = trainer.epochs
+                avg_ep = sum(epoch_times) / len(epoch_times) if epoch_times else 1
+                remaining = avg_ep * (total - ep)
+                metrics = trainer.metrics or {}
+                mgr._emit(
+                    epoch=ep,
+                    total_epochs=total,
+                    loss=float(getattr(trainer, "loss", 0) or 0),
+                    map50=float(metrics.get("metrics/mAP50(B)", 0)),
+                    elapsed_s=elapsed,
+                    eta_s=remaining,
+                    status="training",
+                    message=f"Epoch {ep}/{total}",
+                )
+                if mgr._stop_flag.is_set():
+                    raise KeyboardInterrupt("Training stopped by user")
 
-            model.add_callback("on_train_epoch_end", _EpveCallback().on_train_epoch_end)
+            model.add_callback("on_train_epoch_end", _on_epoch_end)
 
             device = cfg.device_arg()
             results = model.train(
@@ -202,4 +203,7 @@ class TrainManager:
             self._emit(status="idle", message="Training stopped.")
         except Exception as e:
             log.error(f"Training error: {e}", exc_info=True)
-            self._emit(status="error", message=str(e))
+            # str(e) alone can be cryptic (an ImportError shows just the
+            # symbol name).  Include the exception type so the UI message
+            # gives the user/support something actionable.
+            self._emit(status="error", message=f"{type(e).__name__}: {e}")

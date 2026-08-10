@@ -5,7 +5,9 @@
 customtkinter>=5.2.0
 
 # Vision & inference
-ultralytics>=8.0.0
+# Pinned to 8.x: the training callback API (add_callback with plain
+# functions) is what train_manager.py targets; 9.x may change it again.
+ultralytics>=8.3,<9
 opencv-python>=4.8.0
 Pillow>=10.0.0
 
