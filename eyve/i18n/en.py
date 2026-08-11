@@ -116,6 +116,10 @@ STRINGS = {
     "prod_mod_method": "Method",
     "prod_mod_ref": "Reference",
     "prod_mod_need_class": "Select the class to inspect first.",
+    "prod_mod_all": "(all)",
+    "prod_draw_line": "✏ Draw finish line",
+    "prod_line_hint": "Drag on the video to draw the finish line",
+    "prod_arc": "Arc",
     "tag_class_stats": "Tagged per class:",
     "tag_progress": "{labeled} / {total} images labeled",
 

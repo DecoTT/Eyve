@@ -33,6 +33,8 @@ class PolarityModule(InspectionModule):
         self._analyzer = PolarityAnalyzer(method="stripe")
         self._reference = "auto"
         self._last: Optional[PolarityResult] = None
+        #: debug image of the most recent analysis (picture-in-picture preview)
+        self.last_debug = None
 
     # ── configuration (called from UI) ────────────────────────────────────
     def set_method(self, method: str) -> None:
@@ -46,10 +48,37 @@ class PolarityModule(InspectionModule):
         elif ref in self._SIDE_TO_QUAD:
             self._analyzer.set_reference(self._SIDE_TO_QUAD[ref])
 
+    def set_arc_thickness(self, value: float) -> None:
+        """Stripe arc thickness (fraction of cap radius sampled at the rim)."""
+        self._analyzer.set_arc_thickness(value)
+
+    @property
+    def arc_thickness(self) -> float:
+        return self._analyzer.arc_thickness
+
     def reset(self) -> None:
         if self._reference == "auto":
             self._analyzer.reset_reference()
         self._last = None
+        self.last_debug = None
+
+    # ── per-track analysis (used with InstanceTracker) ────────────────────
+    def analyze_roi(self, roi) -> Optional[PolarityResult]:
+        """
+        Analyze one ROI directly (per-track path: the production loop calls
+        this ONCE per tracked instance instead of every frame).
+        Stores the debug image for the picture-in-picture preview.
+        """
+        if roi is None:
+            return None
+        try:
+            result = self._analyzer.analyze(roi)
+        except Exception:
+            return None
+        self._last = result
+        if result.debug_img is not None:
+            self.last_debug = result.debug_img
+        return result
 
     @property
     def learning_status(self) -> str:

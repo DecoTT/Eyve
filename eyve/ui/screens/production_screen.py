@@ -25,7 +25,9 @@ from eyve.core import config as _cfg
 from eyve.ui import theme as T
 from eyve.i18n import t
 from eyve.inference.detector import YOLOWorker, VideoSource
-from eyve.modules import PolarityModule
+from eyve.inference.polarity import PolarityAnalyzer
+from eyve.inference.tracker import InstanceTracker, RawDetection
+from eyve.modules import PolarityModule, CountingModule
 from eyve.production.ok_nok_logic import decide, InspectionStatus, InspectionResult
 from eyve.production.production_session import ProductionSession
 from eyve.ui.components.dialogs import show_error
@@ -118,9 +120,19 @@ class ProductionScreen(ctk.CTkFrame):
         self._cam_starting = False     # True while VideoSource.start() is in-flight
         # Video-file source (remote validation without a camera)
         self._prod_video_path: Optional[Path] = None
-        # Inspection modules (Eyve Pro glimpse) — polarity is the first
+        # Persistent instance tracking (ported from 2.0 Persistent_Instance):
+        # stable IDs across frames kill detection flicker; modules process
+        # each instance ONCE instead of every frame.
+        self._tracker = InstanceTracker(modules=["polarity"])
+        # Inspection modules (Eyve Pro)
         self._polarity = PolarityModule()
+        self._counting = CountingModule()
         self._mod_last_status = ""     # cache to avoid configure() every frame
+        self._count_last = ""
+        # canvas→frame mapping for drawing the counting line (set per frame)
+        self._view: Optional[tuple] = None   # (fw, fh, nw, nh, ox, oy)
+        self._meta_drawing = False           # True while user drags the line
+        self._meta_start: Optional[tuple[int, int]] = None
         self._build()
 
         # Space-bar hot-key (bound before auto-start so it's always available)
@@ -160,6 +172,10 @@ class ProductionScreen(ctk.CTkFrame):
 
         self._canvas = tk.Canvas(canvas_frame, bg="#0a0a0a", highlightthickness=0)
         self._canvas.grid(row=0, column=0, sticky="nsew")
+        # finish-line drawing for the Counting module
+        self._canvas.bind("<ButtonPress-1>",   self._meta_press)
+        self._canvas.bind("<B1-Motion>",       self._meta_drag)
+        self._canvas.bind("<ButtonRelease-1>", self._meta_release)
 
         # right panel
         right = ctk.CTkFrame(body, fg_color=T.BG_CARD, corner_radius=10, width=250)
@@ -304,7 +320,7 @@ class ProductionScreen(ctk.CTkFrame):
             row_m, values=list(PolarityModule.METHODS), width=120, height=24,
             fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
             dropdown_fg_color=T.BG_CARD, font=T.font(T.FONT_XS),
-            command=self._polarity.set_method)
+            command=self._on_pol_method_change)
         self._pol_method.pack(side="right")
 
         row_r = ctk.CTkFrame(pol_cfg, fg_color="transparent"); row_r.pack(fill="x", pady=1)
@@ -314,13 +330,62 @@ class ProductionScreen(ctk.CTkFrame):
             row_r, values=list(PolarityModule.REFERENCES), width=120, height=24,
             fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
             dropdown_fg_color=T.BG_CARD, font=T.font(T.FONT_XS),
-            command=self._polarity.set_reference)
+            command=self._on_pol_ref_change)
         self._pol_ref.pack(side="right")
+
+        # arc thickness — on-the-fly tuning for the stripe method
+        row_a = ctk.CTkFrame(pol_cfg, fg_color="transparent"); row_a.pack(fill="x", pady=1)
+        ctk.CTkLabel(row_a, text=t("prod_arc"), width=64, anchor="w",
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
+        self._pol_arc_val = ctk.CTkLabel(row_a, text="15%", width=34,
+                                          font=T.font(T.FONT_XS), text_color=T.TEXT_SEC)
+        self._pol_arc_val.pack(side="right")
+        self._pol_arc = ctk.CTkSlider(row_a, from_=8, to=35, width=86,
+                                       command=self._on_pol_arc_change)
+        self._pol_arc.set(15)
+        self._pol_arc.pack(side="right", padx=4)
 
         self._pol_status = ctk.CTkLabel(parent, text="",
                                          font=T.font(T.FONT_XS), text_color=T.TEXT_DIM,
                                          wraplength=200, anchor="w")
         self._pol_status.pack(padx=12, anchor="w")
+
+        # ── counting module ───────────────────────────────────────────────────
+        self._count_var = ctk.BooleanVar(value=False)
+        ctk.CTkCheckBox(parent, text=self._counting.name,
+                        variable=self._count_var,
+                        font=T.font(T.FONT_XS), text_color=T.TEXT_PRI,
+                        command=self._on_counting_toggle).pack(
+            padx=12, anchor="w", pady=(4, 0))
+
+        cnt_cfg = ctk.CTkFrame(parent, fg_color="transparent")
+        cnt_cfg.pack(fill="x", padx=12, pady=(2, 0))
+        row_cc = ctk.CTkFrame(cnt_cfg, fg_color="transparent"); row_cc.pack(fill="x", pady=1)
+        ctk.CTkLabel(row_cc, text=t("prod_mod_class"), width=64, anchor="w",
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
+        self._count_class = ctk.CTkOptionMenu(
+            row_cc, values=[t("prod_mod_all")] + (cls_names if cls_names != ["—"] else []),
+            width=120, height=24,
+            fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
+            dropdown_fg_color=T.BG_CARD, font=T.font(T.FONT_XS),
+            command=self._on_count_class_change)
+        self._count_class.pack(side="right")
+
+        row_cb = ctk.CTkFrame(cnt_cfg, fg_color="transparent"); row_cb.pack(fill="x", pady=2)
+        self._meta_btn = ctk.CTkButton(
+            row_cb, text=t("prod_draw_line"), height=26,
+            fg_color=T.BG_INPUT, border_width=1, border_color=T.BORDER,
+            font=T.font(T.FONT_XS), command=self._arm_meta_draw)
+        self._meta_btn.pack(side="left", fill="x", expand=True, padx=(0, 4))
+        ctk.CTkButton(row_cb, text="↺", width=28, height=26,
+                      font=T.font(T.FONT_XS), fg_color="transparent",
+                      text_color=T.TEXT_DIM, hover_color=T.BG_INPUT,
+                      command=self._reset_counting).pack(side="right")
+
+        self._count_lbl = ctk.CTkLabel(parent, text="",
+                                        font=T.bold(T.FONT_XS), text_color=T.ACCENT2,
+                                        wraplength=200, anchor="w")
+        self._count_lbl.pack(padx=12, anchor="w")
 
         sep2b = ctk.CTkFrame(parent, height=1, fg_color=T.BORDER)
         sep2b.pack(fill="x", padx=12, pady=4)
@@ -386,6 +451,8 @@ class ProductionScreen(ctk.CTkFrame):
         self.after(0, lambda: self._on_cameras_loaded(labels))
 
     def _on_cameras_loaded(self, labels: list[str]) -> None:
+        if not self.winfo_exists():
+            return
         if not labels:
             labels = ["No cameras found"]
         self._cam_idx.configure(values=labels, state="normal")
@@ -437,6 +504,84 @@ class ProductionScreen(ctk.CTkFrame):
             self._mod_last_status = ""
             self._pol_status.configure(text="")
 
+    def _rearm_polarity(self) -> None:
+        """Re-analyze live tracks after an on-the-fly parameter change."""
+        for tr in self._tracker.get_all():
+            tr._proc_state["polarity"] = "pending"
+
+    def _on_pol_method_change(self, method: str) -> None:
+        self._polarity.set_method(method)
+        self._rearm_polarity()
+
+    def _on_pol_ref_change(self, ref: str) -> None:
+        self._polarity.set_reference(ref)
+        self._rearm_polarity()
+
+    def _on_pol_arc_change(self, val) -> None:
+        v = float(val) / 100.0
+        self._polarity.set_arc_thickness(v)
+        self._pol_arc_val.configure(text=f"{int(float(val))}%")
+        self._rearm_polarity()
+
+    # ── counting module UI ───────────────────────────────────────────────────
+    def _on_counting_toggle(self) -> None:
+        self._counting.enabled = self._count_var.get()
+        if self._counting.enabled and self._counting.line is None:
+            self._count_lbl.configure(text=t("prod_line_hint"), text_color=T.TEXT_DIM)
+        elif not self._counting.enabled:
+            self._count_lbl.configure(text="")
+
+    def _on_count_class_change(self, val: str) -> None:
+        self._counting.target_class = None if val == t("prod_mod_all") else val
+
+    def _reset_counting(self) -> None:
+        self._counting.reset()
+        self._count_last = ""
+        self._count_lbl.configure(text="0", text_color=T.ACCENT2)
+
+    # ── finish-line drawing on the canvas ────────────────────────────────────
+    def _arm_meta_draw(self) -> None:
+        self._meta_drawing = True
+        self._meta_btn.configure(fg_color=T.ACCENT2, text_color="#000")
+        self._count_lbl.configure(text=t("prod_line_hint"), text_color=T.ACCENT2)
+
+    def _meta_press(self, event) -> None:
+        if self._meta_drawing:
+            self._meta_start = (event.x, event.y)
+
+    def _meta_drag(self, event) -> None:
+        if not (self._meta_drawing and self._meta_start):
+            return
+        self._canvas.delete("meta_tmp")
+        self._canvas.create_line(*self._meta_start, event.x, event.y,
+                                 fill="#ffd700", width=2, tags="meta_tmp")
+
+    def _meta_release(self, event) -> None:
+        if not (self._meta_drawing and self._meta_start):
+            return
+        self._canvas.delete("meta_tmp")
+        start, self._meta_start = self._meta_start, None
+        self._meta_drawing = False
+        self._meta_btn.configure(fg_color=T.BG_INPUT, text_color=T.TEXT_PRI)
+        if self._view is None:
+            return
+        fw, fh, nw, nh, ox, oy = self._view
+
+        def to_frame(cx, cy):
+            fx = (cx - ox) * fw / max(nw, 1)
+            fy = (cy - oy) * fh / max(nh, 1)
+            return (int(max(0, min(fw - 1, fx))), int(max(0, min(fh - 1, fy))))
+
+        p1 = to_frame(*start)
+        p2 = to_frame(event.x, event.y)
+        if abs(p1[0] - p2[0]) < 5 and abs(p1[1] - p2[1]) < 5:
+            return   # accidental click, not a line
+        self._counting.line = (*p1, *p2)
+        self._counting.reset()
+        self._count_var.set(True)
+        self._counting.enabled = True
+        self._count_lbl.configure(text="0", text_color=T.ACCENT2)
+
     # ── model loading ─────────────────────────────────────────────────────────
     def _try_autoload_model(self) -> None:
         """Load project model if available, otherwise download yolov8n in bg."""
@@ -474,6 +619,8 @@ class ProductionScreen(ctk.CTkFrame):
 
     def _on_model_ready(self, worker: YOLOWorker, model_path: str) -> None:
         """Main-thread callback: model is loaded and ready."""
+        if not self.winfo_exists():
+            return
         self._worker_loading = False
         self._worker = worker
         name = Path(model_path).name
@@ -499,6 +646,8 @@ class ProductionScreen(ctk.CTkFrame):
                 self._create_session()
 
     def _on_model_error(self, err: str) -> None:
+        if not self.winfo_exists():
+            return
         self._worker_loading = False
         self._model_lbl.configure(
             text=f"Error cargando modelo: {err[:80]}", text_color=T.DANGER)
@@ -584,6 +733,11 @@ class ProductionScreen(ctk.CTkFrame):
 
     def _on_source_ready(self, src: VideoSource, ok: bool) -> None:
         """Main-thread: camera opened (or failed)."""
+        # The screen may have been destroyed while the open thread ran
+        # (navigation / set_project) — touching widgets then raises TclError.
+        if not self.winfo_exists():
+            src.stop()
+            return
         self._warming = False
         self._cam_starting = False
         if not ok:
@@ -619,6 +773,9 @@ class ProductionScreen(ctk.CTkFrame):
         self._cam_starting = False
         self._polarity.reset()
         self._mod_last_status = ""
+        self._tracker.reset()
+        self._counting.reset()
+        self._count_last = ""
         if self._worker:
             self._worker.stop()
         if self._source:
@@ -682,27 +839,74 @@ class ProductionScreen(ctk.CTkFrame):
                     nok_cls = proj.nok_classes if proj else []
                     conf_thresh = self._conf_slider.get() / 100
                     inspection = decide(result.detections, ok_cls, nok_cls, conf_thresh)
-                    annotated = self._annotate(frame, result.detections, inspection)
 
-                    # ── inspection modules (may veto to NOT_OK) ───────────
+                    # ── persistent tracking (kills detection flicker) ─────
+                    raw = [RawDetection(d.class_name, d.confidence,
+                                        int(d.x1), int(d.y1),
+                                        int(d.x2), int(d.y2))
+                           for d in result.detections]
+                    tracks = self._tracker.update(raw, frame)
+                    annotated = self._annotate_tracks(frame, tracks, inspection)
+
+                    # ── polarity: analyze each instance ONCE, verdict is ──
+                    #    sticky for the life of the track (no flicker)
+                    pol_wrong = 0
                     if self._polarity.enabled:
-                        verdict = self._polarity.process(
-                            frame, result.detections, annotated)
-                        if (not verdict.ok
-                                and inspection.status != InspectionStatus.NOT_OK):
+                        for tr in tracks:
+                            if (tr.label == self._polarity.target_class
+                                    and tr.needs_processing("polarity")):
+                                res = self._polarity.analyze_roi(tr.get_roi(frame))
+                                if res is not None:
+                                    tr.set_result("polarity", res)
+                                else:
+                                    tr.skip_module("polarity")
+                        last_lbl = ""
+                        for tr in tracks:
+                            res = tr.get_result("polarity")
+                            if res is None:
+                                continue
+                            PolarityAnalyzer.draw_on_frame(annotated, tr.bbox, res)
+                            if res.quadrant is not None:
+                                last_lbl = (f"#{tr.id} {res.side} "
+                                            f"{res.confidence:.0%}")
+                            if res.is_correct is False:
+                                pol_wrong += 1
+                        if pol_wrong and inspection.status != InspectionStatus.NOT_OK:
                             inspection = InspectionResult(
                                 status=InspectionStatus.NOT_OK,
-                                triggered_by=verdict.triggered_by,
+                                triggered_by=f"polaridad ×{pol_wrong}",
                                 confidence=1.0,
                                 detections=result.detections,
                             )
-                        st = f"{self._polarity.learning_status}   {verdict.label}".strip()
+                        st = f"{self._polarity.learning_status}   {last_lbl}".strip()
                         if st != self._mod_last_status:
                             self._mod_last_status = st
                             self._pol_status.configure(
                                 text=st,
-                                text_color=(T.COLOR_NOK if not verdict.ok
+                                text_color=(T.COLOR_NOK if pol_wrong
                                             else T.TEXT_DIM))
+
+                    # ── counting: instances crossing the finish line ──────
+                    if self._counting.enabled:
+                        self._counting.update_tracks(tracks)
+                        self._counting.draw(annotated)
+                        cs = self._counting.summary()
+                        if cs != self._count_last:
+                            self._count_last = cs
+                            self._count_lbl.configure(text=cs,
+                                                       text_color=T.ACCENT2)
+
+                    # ── polarity preview (picture-in-picture, top-right) ──
+                    if self._polarity.enabled and self._polarity.last_debug is not None:
+                        dbg = self._polarity.last_debug
+                        dh, dw = dbg.shape[:2]
+                        sc = 200.0 / max(dw, dh)
+                        small = cv2.resize(dbg, (max(1, int(dw * sc)),
+                                                 max(1, int(dh * sc))))
+                        sh, sw = small.shape[:2]
+                        fh2, fw2 = annotated.shape[:2]
+                        if sh + 16 < fh2 and sw + 16 < fw2:
+                            annotated[8:8 + sh, fw2 - sw - 8:fw2 - 8] = small
 
                     self._last_result = inspection
                     if self._session:
@@ -724,26 +928,29 @@ class ProductionScreen(ctk.CTkFrame):
         self.after(_loop_delay(), self._loop)
 
     # ── drawing ───────────────────────────────────────────────────────────────
-    def _annotate(self, frame, detections, inspection) -> np.ndarray:
-        out = frame.copy()
-        for det in detections:
-            proj = self._app.get_project()
-            if proj:
-                cls_def = next((c for c in proj.classes if c.name == det.class_name), None)
-                if cls_def:
-                    color_hex = cls_def.color
-                    r = int(color_hex[1:3], 16)
-                    g = int(color_hex[3:5], 16)
-                    b = int(color_hex[5:7], 16)
-                    color = (b, g, r)
-                else:
-                    color = (0, 230, 118)
-            else:
-                color = (0, 230, 118)
+    def _class_color(self, class_name: str) -> tuple:
+        proj = self._app.get_project()
+        if proj:
+            cls_def = next((c for c in proj.classes if c.name == class_name), None)
+            if cls_def:
+                h = cls_def.color
+                return (int(h[5:7], 16), int(h[3:5], 16), int(h[1:3], 16))
+        return (0, 230, 118)
 
-            x1, y1, x2, y2 = int(det.x1), int(det.y1), int(det.x2), int(det.y2)
+    def _annotate_tracks(self, frame, tracks, inspection) -> np.ndarray:
+        """
+        Draw CONFIRMED tracked instances: smoothed bbox + persistent #ID.
+        Tracks replace raw detections here — the smoothing (alpha 0.65) and
+        the 2-frame confirmation are what kill the box/count flicker.
+        """
+        out = frame.copy()
+        for tr in tracks:
+            if not tr.confirmed:
+                continue
+            color = self._class_color(tr.label)
+            x1, y1, x2, y2 = tr.bbox
             cv2.rectangle(out, (x1, y1), (x2, y2), color, 2)
-            label = f"{det.class_name} {det.confidence:.0%}"
+            label = f"#{tr.id} {tr.label} {tr.confidence:.0%}"
             cv2.rectangle(out, (x1, y1 - 18), (x1 + len(label) * 8, y1), color, -1)
             cv2.putText(out, label, (x1 + 2, y1 - 4),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
@@ -761,6 +968,10 @@ class ProductionScreen(ctk.CTkFrame):
                 nw = max(1, int(fw * scale))
                 nh = max(1, int(fh * scale))
                 frame = cv2.resize(frame, (nw, nh), interpolation=cv2.INTER_LINEAR)
+            else:
+                nw, nh = fw, fh
+            # canvas↔frame mapping used by the finish-line drawing
+            self._view = (fw, fh, nw, nh, (cw - nw) // 2, (ch - nh) // 2)
             rgb   = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             photo = ImageTk.PhotoImage(Image.fromarray(rgb))
             self._photo = photo

@@ -116,6 +116,10 @@ STRINGS = {
     "prod_mod_method": "Método",
     "prod_mod_ref": "Referencia",
     "prod_mod_need_class": "Selecciona la clase a inspeccionar primero.",
+    "prod_mod_all": "(todas)",
+    "prod_draw_line": "✏ Dibujar meta",
+    "prod_line_hint": "Arrastra sobre el video para dibujar la meta",
+    "prod_arc": "Arco",
     "tag_class_stats": "Etiquetadas por categoría:",
     "tag_progress": "{labeled} / {total} imágenes etiquetadas",
 
