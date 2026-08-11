@@ -275,7 +275,8 @@ class TaggingScreen(ctk.CTkFrame):
         self._vid_slider.set(0)
         self._vid_slider.pack(fill="x", pady=(2, 0))
 
-        cam_btns = ctk.CTkFrame(self._cam_panel, fg_color="transparent")
+        self._cam_btns = ctk.CTkFrame(self._cam_panel, fg_color="transparent")
+        cam_btns = self._cam_btns
         cam_btns.pack(fill="x", pady=2)
         self._cam_start_btn = ctk.CTkButton(
             cam_btns, text="▶ Iniciar",
@@ -308,7 +309,12 @@ class TaggingScreen(ctk.CTkFrame):
 
         self._cam_panel.pack_forget()   # hidden by default (source = images)
 
-        ctk.CTkFrame(parent, height=1, fg_color=T.BORDER).pack(fill="x", padx=12, pady=4)
+        # Anchor separator: _on_source_change re-packs _cam_panel BEFORE this
+        # widget so the panel returns to its original slot.  A plain pack()
+        # appends it at the BOTTOM of the right panel where the playback
+        # controls get clipped off-screen.
+        self._sep_after_cam = ctk.CTkFrame(parent, height=1, fg_color=T.BORDER)
+        self._sep_after_cam.pack(fill="x", padx=12, pady=4)
 
         # ── class selector ─────────────────────────────────────────────────
         ctk.CTkLabel(parent, text=t("tag_class"),
@@ -381,25 +387,37 @@ class TaggingScreen(ctk.CTkFrame):
             self._frozen_frame = None
             self._load_images()
         elif src == "camera":
-            self._cam_panel.pack(fill="x", padx=12, pady=(0, 4))
+            self._cam_panel.pack(fill="x", padx=12, pady=(0, 4),
+                                 before=self._sep_after_cam)
             self._video_btn.pack_forget()
             self._video_path_lbl.pack_forget()
             self._vid_ctrl.pack_forget()
             # Don't auto-start; user clicks ▶ Iniciar
         else:  # video
-            self._cam_panel.pack(fill="x", padx=12, pady=(0, 4))
-            self._video_btn.pack(fill="x", pady=(0, 2))
-            self._video_path_lbl.pack(anchor="w")
-            self._vid_ctrl.pack(fill="x", pady=(4, 0))
+            self._cam_panel.pack(fill="x", padx=12, pady=(0, 4),
+                                 before=self._sep_after_cam)
+            # Video widgets go ABOVE the Iniciar/Parar row (packing them
+            # after the status label pushed the slider below the window edge)
+            self._video_btn.pack(fill="x", pady=(0, 2), before=self._cam_btns)
+            self._video_path_lbl.pack(anchor="w", before=self._cam_btns)
+            self._vid_ctrl.pack(fill="x", pady=(2, 2), before=self._cam_btns)
 
     def _browse_video(self) -> None:
         p = filedialog.askopenfilename(
             title="Seleccionar Video",
             filetypes=[("Video files", "*.mp4 *.avi *.mov *.mkv *.webm"), ("All", "*.*")]
         )
-        if p:
-            self._video_path = Path(p)
-            self._video_path_lbl.configure(text=p)
+        if not p:
+            return
+        self._video_path = Path(p)
+        self._video_path_lbl.configure(text=p)
+        # Selecting a new file switches playback to it immediately — before,
+        # a video already playing kept running and the new selection appeared
+        # to be ignored (the user had to know to press Parar + Iniciar).
+        if self._src_var.get() == "video":
+            if self._live_running:
+                self._stop_live()
+            self._start_live()
 
     # ── live camera / video ───────────────────────────────────────────────────
     def _start_live(self) -> None:

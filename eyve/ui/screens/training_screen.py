@@ -39,6 +39,18 @@ class TrainingScreen(ctk.CTkFrame):
         self._build()
         self._check_dataset()
 
+    # ── lifecycle (navigation) ────────────────────────────────────────────────
+    def on_show(self) -> None:
+        """
+        Re-validate the dataset every time the user navigates here.
+
+        Screens are cached by app._navigate(); without this, the label count
+        shown was frozen at whatever it was when the screen was FIRST built —
+        e.g. 'no labeled images' from before the user tagged anything.
+        """
+        if not (self._manager and self._manager.is_running()):
+            self._check_dataset()
+
     # ── layout ────────────────────────────────────────────────────────────────
     def _build(self) -> None:
         self.grid_rowconfigure(1, weight=1)
