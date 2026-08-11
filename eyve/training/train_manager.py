@@ -123,10 +123,15 @@ class TrainManager:
                 avg_ep = sum(epoch_times) / len(epoch_times) if epoch_times else 1
                 remaining = avg_ep * (total - ep)
                 metrics = trainer.metrics or {}
+                raw_loss = getattr(trainer, "loss", 0)
+                try:
+                    raw_loss = float(raw_loss.detach())   # tensor with grad
+                except AttributeError:
+                    raw_loss = float(raw_loss or 0)
                 mgr._emit(
                     epoch=ep,
                     total_epochs=total,
-                    loss=float(getattr(trainer, "loss", 0) or 0),
+                    loss=raw_loss,
                     map50=float(metrics.get("metrics/mAP50(B)", 0)),
                     elapsed_s=elapsed,
                     eta_s=remaining,
