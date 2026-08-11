@@ -84,7 +84,7 @@ echo.
 echo  Creating run.bat launcher...
 (
     echo @echo off
-    echo cd /d "%~dp0"
+    echo cd /d "%%~dp0"
     echo call .venv\Scripts\activate.bat
     echo python -m eyve.main
 ) > run.bat
