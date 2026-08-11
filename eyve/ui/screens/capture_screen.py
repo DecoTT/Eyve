@@ -226,7 +226,7 @@ class CaptureScreen(ctk.CTkFrame):
         ctk.CTkLabel(self._cam_row, text=t("cap_camera_id"),
                      font=T.font(T.FONT_XS), text_color=T.TEXT_SEC).pack(anchor="w")
         self._cam_idx = ctk.CTkOptionMenu(
-            self._cam_row, values=["⟳  Loading cameras…"],
+            self._cam_row, values=[t("cam_loading")],
             fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
             dropdown_fg_color=T.BG_CARD,
             font=T.font(T.FONT_XS),
@@ -235,7 +235,7 @@ class CaptureScreen(ctk.CTkFrame):
         )
         self._cam_idx.pack(fill="x")
         ctk.CTkButton(
-            self._cam_row, text="⟳ Refresh cameras",
+            self._cam_row, text=t("cap_refresh_cams"),
             font=T.font(T.FONT_XS), height=24, fg_color="transparent",
             text_color=T.TEXT_DIM, hover_color=T.BG_INPUT,
             command=self._refresh_cameras,
@@ -246,7 +246,7 @@ class CaptureScreen(ctk.CTkFrame):
         # resolution selector
         res_row = ctk.CTkFrame(parent, fg_color="transparent")
         res_row.pack(fill="x", padx=12, pady=(0, 6))
-        ctk.CTkLabel(res_row, text="Resolución",
+        ctk.CTkLabel(res_row, text=t("cap_resolution"),
                      font=T.font(T.FONT_XS), text_color=T.TEXT_SEC).pack(anchor="w")
         _RES_OPTS = ["Auto HD", "1920×1080", "1280×720", "640×480"]
         self._res_menu = ctk.CTkOptionMenu(
@@ -291,7 +291,7 @@ class CaptureScreen(ctk.CTkFrame):
         self._cap_btn.pack(fill="x", padx=12, pady=4)
 
         # record button
-        self._rec_btn = ctk.CTkButton(parent, text="⏺  Record",
+        self._rec_btn = ctk.CTkButton(parent, text=t("cap_record"),
                                        fg_color=T.DANGER, text_color="#fff",
                                        height=44, font=T.bold(T.FONT_MD),
                                        state="disabled", command=self._toggle_record)
@@ -303,7 +303,7 @@ class CaptureScreen(ctk.CTkFrame):
 
         # Shown only after a recording is saved
         self._open_folder_btn = ctk.CTkButton(
-            parent, text="📂 Abrir carpeta",
+            parent, text=t("cap_open_folder"),
             font=T.font(T.FONT_XS), height=22,
             fg_color="transparent", text_color=T.ACCENT2,
             hover_color=T.BG_INPUT,
@@ -344,12 +344,14 @@ class CaptureScreen(ctk.CTkFrame):
 
     def _on_cameras_loaded(self, labels: list[str]) -> None:
         """Main thread: update dropdown once enumeration completes."""
+        if not self.winfo_exists():
+            return
         if not labels:
-            labels = ["No cameras found"]
+            labels = [t("cam_none")]
         self._cam_idx.configure(values=labels, state="normal")
         self._cam_idx.set(labels[0])
         # Kick off pre-warm for the first camera immediately
-        if labels and labels[0] != "No cameras found":
+        if labels and labels[0] != t("cam_none"):
             self._start_prewarm(label_to_index(labels[0]))
 
     def _on_cam_selection_change(self, label: str) -> None:
@@ -433,14 +435,14 @@ class CaptureScreen(ctk.CTkFrame):
         )
         self._canvas.create_text(
             cw // 2, ch // 2 + 20,
-            text="Opening camera…", fill=T.TEXT_SEC,
+            text=t("cap_opening_cam"), fill=T.TEXT_SEC,
             font=("Segoe UI", 13), anchor="center",
         )
         self._anim_step += 1
         self.after(200, self._animate_warmup)
 
     def _refresh_cameras(self) -> None:
-        self._cam_idx.configure(values=["⟳  Refreshing…"], state="disabled")
+        self._cam_idx.configure(values=[t("cam_refreshing")], state="disabled")
         threading.Thread(target=self._load_cameras_bg, daemon=True).start()
 
     def _refresh_classes(self) -> None:
@@ -496,13 +498,13 @@ class CaptureScreen(ctk.CTkFrame):
             if self._prewarm_idx == idx:
                 # Prewarm in progress — hook into it instead of opening a 2nd time
                 self._start_btn.configure(state="disabled")
-                self._status.configure(text="⏳ Opening camera…", text_color=T.TEXT_SEC)
+                self._status.configure(text="⏳ " + t("cap_opening_cam"), text_color=T.TEXT_SEC)
                 self._prewarm_pending = True
                 return
 
         # No prewarm available — open in background
         self._start_btn.configure(state="disabled")
-        self._status.configure(text="⏳ Opening camera…", text_color=T.TEXT_SEC)
+        self._status.configure(text="⏳ " + t("cap_opening_cam"), text_color=T.TEXT_SEC)
 
         def _open_bg() -> None:
             cap = _open_camera(idx) if is_camera else cv2.VideoCapture(idx)
@@ -776,7 +778,7 @@ class CaptureScreen(ctk.CTkFrame):
         with self._frame_lock:
             frame = self._last_frame
         if frame is None:
-            self._status.configure(text="No frame yet — wait for live feed", text_color=T.WARN)
+            self._status.configure(text=t("cap_no_frame_yet"), text_color=T.WARN)
             return
         h, w = frame.shape[:2]
 
@@ -807,7 +809,7 @@ class CaptureScreen(ctk.CTkFrame):
             (w, h),
         )
         if not writer.isOpened():
-            self._status.configure(text="Could not create video file", text_color=T.DANGER)
+            self._status.configure(text=t("cap_rec_file_error"), text_color=T.DANGER)
             return
 
         # Flush any leftover frames from a previous recording
@@ -830,9 +832,9 @@ class CaptureScreen(ctk.CTkFrame):
         )
         self._rec_writer_thread.start()
 
-        self._rec_btn.configure(text="⏹  Stop & Save", fg_color="#8B0000")
+        self._rec_btn.configure(text=t("cap_stop_save"), fg_color="#8B0000")
         self._rec_lbl.configure(text="● REC  0s")
-        self._status.configure(text="Recording…", text_color=T.DANGER)
+        self._status.configure(text=t("cap_recording"), text_color=T.DANGER)
         self._update_rec_timer()
 
     def _stop_recording(self) -> None:
@@ -872,7 +874,7 @@ class CaptureScreen(ctk.CTkFrame):
         if writer:
             writer.release()
 
-        self._rec_btn.configure(text="⏺  Record", fg_color=T.DANGER)
+        self._rec_btn.configure(text=t("cap_record"), fg_color=T.DANGER)
         self._rec_lbl.configure(text="")
         if saved and frames > 0:
             self._last_rec_dir = saved.parent
@@ -935,7 +937,8 @@ class CaptureScreen(ctk.CTkFrame):
         if self._source_var.get() != "camera":
             return
         label = self._cam_idx.get()
-        if label and "Loading" not in label and "⟳" not in label and "found" not in label:
+        # "⟳ …" = still enumerating; t("cam_none") = nothing to open
+        if label and not label.startswith("⟳") and label != t("cam_none"):
             self._start_prewarm(label_to_index(label))
 
     def on_close(self) -> None:

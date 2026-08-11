@@ -46,7 +46,7 @@ class SettingsPopup(ctk.CTkToplevel):
         PX = 24  # horizontal padding constant
 
         # ── header ────────────────────────────────────────────────────────────
-        ctk.CTkLabel(self, text="⚙  Settings",
+        ctk.CTkLabel(self, text=t("set_title"),
                      font=T.bold(T.FONT_LG), text_color=T.ACCENT).pack(pady=(18, 4))
         self._sep()
 
@@ -192,7 +192,7 @@ class SettingsPopup(ctk.CTkToplevel):
         ctk.CTkLabel(self, text=f"Eyve  v{__version__}",
                      font=T.bold(T.FONT_SM), text_color=T.TEXT_PRI).pack(
             anchor="center", pady=(0, 2))
-        ctk.CTkLabel(self, text="Local-first visual inspection platform",
+        ctk.CTkLabel(self, text=t("set_tagline"),
                      font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(
             anchor="center", pady=(0, 6))
 
@@ -230,7 +230,7 @@ class SettingsPopup(ctk.CTkToplevel):
     # ── performance section ───────────────────────────────────────────────────
     def _build_performance_section(self, PX: int) -> None:
         # Always bilingual for clarity
-        ctk.CTkLabel(self, text="Rendimiento / Performance",
+        ctk.CTkLabel(self, text=t("set_perf"),
                      font=T.bold(T.FONT_SM), text_color=T.TEXT_SEC).pack(
             anchor="w", padx=PX, pady=(10, 2))
 
@@ -279,14 +279,14 @@ class SettingsPopup(ctk.CTkToplevel):
 
     # ── models section (compact) ──────────────────────────────────────────────
     def _build_models_section(self, PX: int) -> None:
-        ctk.CTkLabel(self, text="Models & Offline Mode",
+        ctk.CTkLabel(self, text=t("set_models_title"),
                      font=T.bold(T.FONT_SM), text_color=T.TEXT_SEC).pack(
             anchor="w", padx=PX, pady=(10, 4))
 
         # offline toggle row
         off_row = ctk.CTkFrame(self, fg_color="transparent")
         off_row.pack(fill="x", padx=PX, pady=(0, 2))
-        ctk.CTkLabel(off_row, text="Offline mode",
+        ctk.CTkLabel(off_row, text=t("set_offline"),
                      font=T.font(T.FONT_SM), text_color=T.TEXT_PRI).pack(side="left")
         self._offline_var = ctk.BooleanVar(value=bool(config.get("offline_mode", False)))
         ctk.CTkSwitch(
@@ -310,7 +310,7 @@ class SettingsPopup(ctk.CTkToplevel):
 
         # "Manage Models" button opens full dialog
         ctk.CTkButton(
-            self, text="⬇  Manage downloaded models",
+            self, text=t("set_manage_models"),
             font=T.font(T.FONT_XS), height=28,
             fg_color=T.BG_INPUT, border_width=1, border_color=T.BORDER,
             text_color=T.TEXT_SEC,
@@ -325,7 +325,7 @@ class SettingsPopup(ctk.CTkToplevel):
     def _refresh_offline_warn(self) -> None:
         if config.get("offline_mode", False) and not any(mm.is_downloaded(n) for n in mm.MODELS):
             self._offline_warn.configure(
-                text="⚠  No models downloaded yet. Open Manage Models to download one.")
+                text=t("set_no_models"))
         else:
             self._offline_warn.configure(text="")
 
@@ -389,11 +389,11 @@ class ModelManagerDialog(ctk.CTkToplevel):
     def _build(self) -> None:
         PX = 20
 
-        ctk.CTkLabel(self, text="Download YOLO Base Models",
+        ctk.CTkLabel(self, text=t("mm_title"),
                      font=T.bold(T.FONT_MD), text_color=T.ACCENT).pack(pady=(16, 2))
         ctk.CTkLabel(
             self,
-            text="Models are stored in  " + str(mm.models_dir()),
+            text=t("mm_stored_in", path=str(mm.models_dir())),
             font=T.font(T.FONT_XS), text_color=T.TEXT_DIM,
         ).pack(pady=(0, 10))
 
@@ -401,7 +401,7 @@ class ModelManagerDialog(ctk.CTkToplevel):
         sel_row = ctk.CTkFrame(self, fg_color="transparent")
         sel_row.pack(fill="x", padx=PX, pady=(0, 6))
 
-        ctk.CTkLabel(sel_row, text="Model:",
+        ctk.CTkLabel(sel_row, text=t("mm_model"),
                      font=T.font(T.FONT_SM), text_color=T.TEXT_SEC).pack(side="left", padx=(0, 8))
 
         # Build dropdown labels: "YOLOv8 Nano (★)  —  6 MB  ✓" etc.
@@ -443,7 +443,7 @@ class ModelManagerDialog(ctk.CTkToplevel):
         btn_row.pack(fill="x", padx=PX, pady=(0, 16))
 
         self._dl_btn = ctk.CTkButton(
-            btn_row, text="⬇  Download",
+            btn_row, text=t("mm_download"),
             fg_color=T.ACCENT, text_color="#000",
             font=T.bold(T.FONT_SM), height=36, width=160,
             command=self._download,
@@ -451,7 +451,7 @@ class ModelManagerDialog(ctk.CTkToplevel):
         self._dl_btn.pack(side="left", padx=(0, 8))
 
         ctk.CTkButton(
-            btn_row, text="Close",
+            btn_row, text=t("mm_close"),
             fg_color=T.BG_INPUT, height=36, width=80,
             font=T.font(T.FONT_SM),
             command=self.destroy,
@@ -482,13 +482,13 @@ class ModelManagerDialog(ctk.CTkToplevel):
         self._info_lbl.configure(
             text=f"{info['size']}  ·  {info['desc']}")
         if downloaded:
-            self._status_lbl.configure(text="✓  Already downloaded — ready for offline use",
+            self._status_lbl.configure(text=t("mm_ready_offline"),
                                         text_color=T.COLOR_OK)
-            self._dl_btn.configure(text="✓  Downloaded", state="disabled",
+            self._dl_btn.configure(text=t("mm_downloaded"), state="disabled",
                                     fg_color=T.BG_INPUT, text_color=T.TEXT_DIM)
         else:
-            self._status_lbl.configure(text="✗  Not downloaded", text_color=T.TEXT_DIM)
-            self._dl_btn.configure(text="⬇  Download", state="normal",
+            self._status_lbl.configure(text=t("mm_not_downloaded"), text_color=T.TEXT_DIM)
+            self._dl_btn.configure(text=t("mm_download"), state="normal",
                                     fg_color=T.ACCENT, text_color="#000")
         self._prog.pack_forget()
 
@@ -503,8 +503,8 @@ class ModelManagerDialog(ctk.CTkToplevel):
     def _download(self) -> None:
         name = self._selected_name()
 
-        self._dl_btn.configure(state="disabled", text="⏳ Downloading…")
-        self._status_lbl.configure(text="Downloading…", text_color=T.TEXT_SEC)
+        self._dl_btn.configure(state="disabled", text=t("mm_downloading"))
+        self._status_lbl.configure(text=t("mm_downloading"), text_color=T.TEXT_SEC)
         self._prog.set(0)
         self._prog.pack(fill="x", padx=12, pady=(0, 8))
 
@@ -528,7 +528,7 @@ class ModelManagerDialog(ctk.CTkToplevel):
                 else:
                     self._status_lbl.configure(
                         text=f"✗  Failed: {msg}", text_color=T.DANGER)
-                    self._dl_btn.configure(state="normal", text="⬇  Retry",
+                    self._dl_btn.configure(state="normal", text=t("mm_retry"),
                                             fg_color=T.DANGER, text_color="#fff")
             self.after(0, _ui)
 

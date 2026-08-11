@@ -395,11 +395,11 @@ class _CameraTestDialog(ctk.CTkToplevel):
             return
         if self._prewarm_idx == idx:
             # Still warming — hook into it
-            self._status.configure(text="⏳ Opening camera…", text_color=T.TEXT_SEC)
+            self._status.configure(text="⏳ " + t("cap_opening_cam"), text_color=T.TEXT_SEC)
             self._prewarm_pending = True
             return
 
-        self._status.configure(text="⏳ Opening camera…", text_color=T.TEXT_SEC)
+        self._status.configure(text="⏳ " + t("cap_opening_cam"), text_color=T.TEXT_SEC)
 
         def _open_bg() -> None:
             cap = _open_camera(idx)

@@ -246,7 +246,7 @@ class ProductionScreen(ctk.CTkFrame):
         ctk.CTkLabel(cam_row, text=t("cap_camera_id"),
                      font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(anchor="w")
         self._cam_idx = ctk.CTkOptionMenu(
-            cam_row, values=["⟳  Loading…"],
+            cam_row, values=[t("cam_loading")],
             fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
             dropdown_fg_color=T.BG_CARD,
             font=T.font(T.FONT_XS),
@@ -454,7 +454,7 @@ class ProductionScreen(ctk.CTkFrame):
         if not self.winfo_exists():
             return
         if not labels:
-            labels = ["No cameras found"]
+            labels = [t("cam_none")]
         self._cam_idx.configure(values=labels, state="normal")
         self._cam_idx.set(labels[0])
 
@@ -593,7 +593,7 @@ class ProductionScreen(ctk.CTkFrame):
                 return
         # Fallback: auto-download YOLO nano (general-purpose preview)
         self._model_lbl.configure(
-            text="⟳  Descargando yolov8n.pt…", text_color=T.WARN)
+            text=t("prod_downloading_generic"), text_color=T.WARN)
         self._start_model_load("yolov8n.pt")
 
     def _start_model_load(self, model_path: str) -> None:
@@ -650,7 +650,7 @@ class ProductionScreen(ctk.CTkFrame):
             return
         self._worker_loading = False
         self._model_lbl.configure(
-            text=f"Error cargando modelo: {err[:80]}", text_color=T.DANGER)
+            text=t("prod_model_error", err=err[:80]), text_color=T.DANGER)
 
     def _load_model(self) -> None:
         """Manual model load via file dialog."""
@@ -660,7 +660,7 @@ class ProductionScreen(ctk.CTkFrame):
         )
         if not path:
             return
-        self._model_lbl.configure(text="⟳  Cargando…", text_color=T.TEXT_DIM)
+        self._model_lbl.configure(text=t("prod_loading_model"), text_color=T.TEXT_DIM)
         self._start_model_load(path)
 
     # ── session helpers ───────────────────────────────────────────────────────
@@ -690,10 +690,12 @@ class ProductionScreen(ctk.CTkFrame):
             if self._prod_video_path and self._prod_video_path.exists():
                 self._start()
             return
-        # Wait until cameras are enumerated
+        # Wait until cameras are enumerated ("⟳ …" = still loading)
         cam_val = self._cam_idx.get()
-        if "Loading" in cam_val or "⟳" in cam_val:
+        if cam_val.startswith("⟳"):
             self.after(300, self._auto_start_preview)
+            return
+        if cam_val == t("cam_none"):
             return
         self._start()
 
@@ -749,7 +751,7 @@ class ProductionScreen(ctk.CTkFrame):
                 text=t("prod_start"), fg_color=T.ACCENT, text_color="#000")
             self._pause_btn.configure(state="disabled")
             self._model_lbl.configure(
-                text="⚠  Cámara no disponible — reintentando…",
+                text=t("prod_cam_retry"),
                 text_color=T.WARN)
             self.after(1500, self._auto_start_preview)
             return
@@ -801,7 +803,7 @@ class ProductionScreen(ctk.CTkFrame):
         self._canvas.create_text(cw // 2, ch // 2 - 24, text=spin,
                                   fill=T.ACCENT, font=("Segoe UI", 36), anchor="center")
         self._canvas.create_text(cw // 2, ch // 2 + 20,
-                                  text="Conectando cámara…", fill=T.TEXT_SEC,
+                                  text=t("prod_connecting_cam"), fill=T.TEXT_SEC,
                                   font=("Segoe UI", 13), anchor="center")
         self._spin_step += 1
         self.after(200, self._animate_warmup)

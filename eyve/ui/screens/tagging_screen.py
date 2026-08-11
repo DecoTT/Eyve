@@ -227,7 +227,7 @@ class TaggingScreen(ctk.CTkFrame):
 
     def _build_right(self, parent) -> None:
         # ── source selector ────────────────────────────────────────────────
-        src_lbl = ctk.CTkLabel(parent, text="Fuente",
+        src_lbl = ctk.CTkLabel(parent, text=t("tag_source"),
                                 font=T.bold(T.FONT_SM), text_color=T.TEXT_PRI)
         src_lbl.pack(pady=(14, 4), padx=12)
 
@@ -235,18 +235,18 @@ class TaggingScreen(ctk.CTkFrame):
 
         row1 = ctk.CTkFrame(parent, fg_color="transparent")
         row1.pack(fill="x", padx=12, pady=2)
-        ctk.CTkRadioButton(row1, text="Imágenes",
+        ctk.CTkRadioButton(row1, text=t("tag_source_images"),
                            variable=self._src_var, value="images",
                            font=T.font(T.FONT_XS),
                            command=self._on_source_change).pack(side="left")
-        ctk.CTkRadioButton(row1, text="Cámara",
+        ctk.CTkRadioButton(row1, text=t("cap_source_camera"),
                            variable=self._src_var, value="camera",
                            font=T.font(T.FONT_XS),
                            command=self._on_source_change).pack(side="left", padx=8)
 
         row2 = ctk.CTkFrame(parent, fg_color="transparent")
         row2.pack(fill="x", padx=12, pady=(0, 6))
-        ctk.CTkRadioButton(row2, text="Video",
+        ctk.CTkRadioButton(row2, text=t("cap_source_video"),
                            variable=self._src_var, value="video",
                            font=T.font(T.FONT_XS),
                            command=self._on_source_change).pack(side="left")
@@ -260,7 +260,7 @@ class TaggingScreen(ctk.CTkFrame):
         ctk.CTkLabel(self._cam_panel, text=t("cap_camera_id"),
                      font=T.font(T.FONT_XS), text_color=T.TEXT_SEC).pack(anchor="w")
         self._cam_idx = ctk.CTkOptionMenu(
-            self._cam_panel, values=["⟳  Cargando…"],
+            self._cam_panel, values=[t("cam_loading")],
             fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
             dropdown_fg_color=T.BG_CARD,
             font=T.font(T.FONT_XS), state="disabled",
@@ -269,7 +269,7 @@ class TaggingScreen(ctk.CTkFrame):
         threading.Thread(target=self._load_cameras_bg, daemon=True).start()
 
         self._video_btn = ctk.CTkButton(
-            self._cam_panel, text="Seleccionar Video…",
+            self._cam_panel, text=t("prod_select_video"),
             fg_color=T.BG_INPUT, height=28, font=T.font(T.FONT_XS),
             command=self._browse_video,
         )
@@ -285,13 +285,13 @@ class TaggingScreen(ctk.CTkFrame):
         cam_btns = self._cam_btns
         cam_btns.pack(fill="x", pady=2)
         self._cam_start_btn = ctk.CTkButton(
-            cam_btns, text="▶ Iniciar",
+            cam_btns, text=t("tag_start"),
             fg_color=T.ACCENT, text_color="#000", height=30,
             font=T.bold(T.FONT_XS), command=self._start_live,
         )
         self._cam_start_btn.pack(side="left", fill="x", expand=True, padx=(0, 4))
         self._cam_stop_btn = ctk.CTkButton(
-            cam_btns, text="■ Parar",
+            cam_btns, text=t("tag_stop"),
             fg_color=T.BG_INPUT, height=30,
             font=T.font(T.FONT_XS), state="disabled",
             command=self._stop_live,
@@ -379,8 +379,10 @@ class TaggingScreen(ctk.CTkFrame):
         self.after(0, lambda: self._on_cameras_loaded(labels))
 
     def _on_cameras_loaded(self, labels: list[str]) -> None:
+        if not self.winfo_exists():
+            return
         if not labels:
-            labels = ["No cameras found"]
+            labels = [t("cam_none")]
         self._cam_idx.configure(values=labels, state="normal")
         self._cam_idx.set(labels[0])
 
@@ -429,12 +431,14 @@ class TaggingScreen(ctk.CTkFrame):
         src = self._src_var.get()
         if src == "camera":
             label = self._cam_idx.get()
-            if "Loading" in label or "found" in label:
+            # latent bug fixed: the old guard checked for "Loading" while the
+            # placeholder said "Cargando" — it never matched.
+            if label.startswith("⟳") or label == t("cam_none"):
                 return
             idx = label_to_index(label)
             if idx < 0:
                 return
-            self._cam_status.configure(text="⟳ Abriendo cámara…", text_color=T.TEXT_SEC)
+            self._cam_status.configure(text="⟳ " + t("cap_opening_cam"), text_color=T.TEXT_SEC)
             self._warming = True
             self._anim_step = 0
             self._animate_warmup()
@@ -444,11 +448,11 @@ class TaggingScreen(ctk.CTkFrame):
             threading.Thread(target=_bg, daemon=True).start()
         else:  # video
             if not self._video_path or not self._video_path.exists():
-                self._cam_status.configure(text="Selecciona un video primero.", text_color=T.WARN)
+                self._cam_status.configure(text=t("tag_select_video_first"), text_color=T.WARN)
                 return
             cap = cv2.VideoCapture(str(self._video_path))
             if not cap.isOpened():
-                self._cam_status.configure(text="No se pudo abrir el video.", text_color=T.DANGER)
+                self._cam_status.configure(text=t("tag_video_open_error"), text_color=T.DANGER)
                 return
             self._on_cap_ready(cap)
 
@@ -475,7 +479,7 @@ class TaggingScreen(ctk.CTkFrame):
         self._cam_start_btn.configure(state="disabled")
         self._cam_stop_btn.configure(state="normal")
         self._grab_btn.configure(state="normal")
-        self._cam_status.configure(text="● En vivo", text_color=T.ACCENT)
+        self._cam_status.configure(text=t("tag_live"), text_color=T.ACCENT)
         self._live_thread = threading.Thread(target=self._live_grab_loop, daemon=True)
         self._live_thread.start()
         self._live_display_loop()
@@ -603,7 +607,7 @@ class TaggingScreen(ctk.CTkFrame):
         self._canvas.create_text(cw // 2, ch // 2 - 24, text=spin,
                                   fill=T.ACCENT, font=("Segoe UI", 36), anchor="center")
         self._canvas.create_text(cw // 2, ch // 2 + 20,
-                                  text="Abriendo cámara…", fill=T.TEXT_SEC,
+                                  text=t("cap_opening_cam"), fill=T.TEXT_SEC,
                                   font=("Segoe UI", 13), anchor="center")
         self._anim_step += 1
         self.after(200, self._animate_warmup)
@@ -619,7 +623,7 @@ class TaggingScreen(ctk.CTkFrame):
             self._cam_status.configure(text=t("tag_vid_paused"), text_color=T.WARN)
         else:
             self._clear_boxes()
-            self._cam_status.configure(text="● En vivo", text_color=T.ACCENT)
+            self._cam_status.configure(text=t("tag_live"), text_color=T.ACCENT)
 
     def _on_video_seek(self, value) -> None:
         """Slider: request a seek (grab thread owns the VideoCapture)."""
@@ -658,7 +662,7 @@ class TaggingScreen(ctk.CTkFrame):
         if self._frozen_frame is not None:
             # Un-freeze: go back to live feed
             self._frozen_frame = None
-            self._cam_status.configure(text="● En vivo", text_color=T.ACCENT)
+            self._cam_status.configure(text=t("tag_live"), text_color=T.ACCENT)
         else:
             self._cancel_draw()
 
@@ -897,11 +901,11 @@ class TaggingScreen(ctk.CTkFrame):
         """
         proj = self._app.get_project()
         if not proj:
-            self._msg.configure(text="Abre un proyecto primero.", text_color=T.WARN)
+            self._msg.configure(text=t("tag_open_project_first"), text_color=T.WARN)
             return False
         classes = proj.classes
         if not classes:
-            self._msg.configure(text="Define categorías primero.", text_color=T.WARN)
+            self._msg.configure(text=t("tag_define_classes_first"), text_color=T.WARN)
             return False
         if frame is None:
             self._msg.configure(text=t("tag_no_frame"), text_color=T.WARN)
@@ -947,7 +951,7 @@ class TaggingScreen(ctk.CTkFrame):
             self._frozen_frame = None
             self._clear_boxes()
             if self._live_running and not self._video_paused:
-                self._cam_status.configure(text="● En vivo", text_color=T.ACCENT)
+                self._cam_status.configure(text=t("tag_live"), text_color=T.ACCENT)
 
     def _delete_last(self) -> None:
         if not self._boxes:
