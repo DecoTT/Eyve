@@ -156,11 +156,38 @@ class TaggingScreen(ctk.CTkFrame):
         canvas_frame.grid(row=0, column=0, sticky="nsew")
         canvas_frame.grid_propagate(False)
         canvas_frame.grid_rowconfigure(0, weight=1)
+        canvas_frame.grid_rowconfigure(1, weight=0)
         canvas_frame.grid_columnconfigure(0, weight=1)
 
         self._canvas = tk.Canvas(canvas_frame, bg="#0a0a0a", cursor="crosshair",
                                   highlightthickness=0)
         self._canvas.grid(row=0, column=0, sticky="nsew")
+
+        # ── video playback bar (VLC-style, under the player) ───────────────
+        # Full-width: [⏸/▶]  [──────slider──────]  [00:05 / 01:23]
+        # Shown only while a video source is live; pause freezes the frame
+        # for tagging, the slider seeks anywhere in the file.
+        self._playbar = ctk.CTkFrame(canvas_frame, fg_color="#141414",
+                                      corner_radius=0, height=44)
+        self._vid_pause_btn = ctk.CTkButton(
+            self._playbar, text="⏸", width=44, height=30,
+            fg_color=T.BG_INPUT, font=T.bold(T.FONT_MD),
+            command=self._toggle_video_pause,
+        )
+        self._vid_pause_btn.pack(side="left", padx=(10, 8), pady=7)
+        self._vid_time_lbl = ctk.CTkLabel(
+            self._playbar, text="00:00 / 00:00",
+            font=T.font(T.FONT_SM), text_color=T.TEXT_SEC, width=110,
+        )
+        self._vid_time_lbl.pack(side="right", padx=(8, 12))
+        self._vid_slider = ctk.CTkSlider(
+            self._playbar, from_=0, to=1,
+            command=self._on_video_seek,
+        )
+        self._vid_slider.set(0)
+        self._vid_slider.pack(side="left", fill="x", expand=True, pady=7)
+        self._playbar.grid(row=1, column=0, sticky="ew")
+        self._playbar.grid_remove()   # hidden until a video starts
         self._canvas.bind("<ButtonPress-1>",   self._on_press)
         self._canvas.bind("<B1-Motion>",        self._on_drag)
         self._canvas.bind("<ButtonRelease-1>",  self._on_release)
@@ -251,29 +278,8 @@ class TaggingScreen(ctk.CTkFrame):
             text_color=T.TEXT_DIM, wraplength=160, anchor="w",
         )
 
-        # ── video playback controls (pause + seek slider + time) ───────────
-        # Shown only when source == video.  Pausing freezes the current frame
-        # for annotation; the slider seeks anywhere in the file.
-        self._vid_ctrl = ctk.CTkFrame(self._cam_panel, fg_color="transparent")
-        vc_row = ctk.CTkFrame(self._vid_ctrl, fg_color="transparent")
-        vc_row.pack(fill="x")
-        self._vid_pause_btn = ctk.CTkButton(
-            vc_row, text="⏸", width=36, height=26,
-            fg_color=T.BG_INPUT, font=T.font(T.FONT_SM),
-            command=self._toggle_video_pause,
-        )
-        self._vid_pause_btn.pack(side="left")
-        self._vid_time_lbl = ctk.CTkLabel(
-            vc_row, text="00:00 / 00:00",
-            font=T.font(T.FONT_XS), text_color=T.TEXT_DIM,
-        )
-        self._vid_time_lbl.pack(side="right")
-        self._vid_slider = ctk.CTkSlider(
-            self._vid_ctrl, from_=0, to=1,
-            command=self._on_video_seek,
-        )
-        self._vid_slider.set(0)
-        self._vid_slider.pack(fill="x", pady=(2, 0))
+        # (video playback controls live in self._playbar under the canvas —
+        #  built in _build(); nothing to add here)
 
         self._cam_btns = ctk.CTkFrame(self._cam_panel, fg_color="transparent")
         cam_btns = self._cam_btns
@@ -391,16 +397,15 @@ class TaggingScreen(ctk.CTkFrame):
                                  before=self._sep_after_cam)
             self._video_btn.pack_forget()
             self._video_path_lbl.pack_forget()
-            self._vid_ctrl.pack_forget()
+            self._playbar.grid_remove()
             # Don't auto-start; user clicks ▶ Iniciar
         else:  # video
             self._cam_panel.pack(fill="x", padx=12, pady=(0, 4),
                                  before=self._sep_after_cam)
             # Video widgets go ABOVE the Iniciar/Parar row (packing them
-            # after the status label pushed the slider below the window edge)
+            # after the status label pushed them below the window edge)
             self._video_btn.pack(fill="x", pady=(0, 2), before=self._cam_btns)
             self._video_path_lbl.pack(anchor="w", before=self._cam_btns)
-            self._vid_ctrl.pack(fill="x", pady=(2, 2), before=self._cam_btns)
 
     def _browse_video(self) -> None:
         p = filedialog.askopenfilename(
@@ -466,6 +471,7 @@ class TaggingScreen(ctk.CTkFrame):
             self._vid_slider.configure(to=max(self._video_total - 1, 1))
             self._vid_slider.set(0)
             self._vid_pause_btn.configure(text="⏸")
+            self._playbar.grid()   # show VLC-style bar under the player
         self._cam_start_btn.configure(state="disabled")
         self._cam_stop_btn.configure(state="normal")
         self._grab_btn.configure(state="normal")
@@ -479,6 +485,7 @@ class TaggingScreen(ctk.CTkFrame):
         self._warming = False
         self._video_paused = False
         self._seek_target = None
+        self._playbar.grid_remove()
         if self._cap:
             self._cap.release()
             self._cap = None
