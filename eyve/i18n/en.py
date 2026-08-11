@@ -107,6 +107,8 @@ STRINGS = {
     "tag_no_frame": "No frame to tag — start the camera or video first.",
     "tag_draw_box_first": "Draw at least one box before saving.",
     "tag_vid_paused": "⏸ Paused — draw boxes and press Save",
+    "tag_frozen_hint": "❚❚ Frozen — draw boxes and press Save [S]",
+    "tag_grab_btn": "📷 Freeze & Tag  [G]",
     "tag_class_stats": "Tagged per class:",
     "tag_progress": "{labeled} / {total} images labeled",
 

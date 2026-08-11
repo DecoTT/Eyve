@@ -107,6 +107,8 @@ STRINGS = {
     "tag_no_frame": "No hay imagen para etiquetar — inicia la cámara o el video.",
     "tag_draw_box_first": "Dibuja al menos una caja antes de guardar.",
     "tag_vid_paused": "⏸ Pausado — dibuja cajas y presiona Guardar",
+    "tag_frozen_hint": "❚❚ Congelado — dibuja cajas y presiona Guardar [S]",
+    "tag_grab_btn": "📷 Congelar y Etiquetar  [G]",
     "tag_class_stats": "Etiquetadas por categoría:",
     "tag_progress": "{labeled} / {total} imágenes etiquetadas",
 

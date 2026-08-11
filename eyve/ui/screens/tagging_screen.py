@@ -294,7 +294,7 @@ class TaggingScreen(ctk.CTkFrame):
 
         self._grab_btn = ctk.CTkButton(
             self._cam_panel,
-            text="📷 Capturar y Etiquetar  [G]",
+            text=t("tag_grab_btn"),
             fg_color=T.ACCENT2, text_color="#000",
             height=36, font=T.bold(T.FONT_SM),
             state="disabled", command=self._grab_frame,
@@ -627,45 +627,25 @@ class TaggingScreen(ctk.CTkFrame):
     # ── grab frame ────────────────────────────────────────────────────────────
     def _grab_frame(self) -> None:
         """
-        Freeze the current live frame, save it to the project, and enter
-        annotation mode.  Hotkey: G
+        Freeze the current live frame for annotation.  Hotkey: G
+
+        NOTHING is written to disk here — the jpg + labels are saved together
+        when the user presses Guardar.  Grabbing repeatedly just refreshes
+        the freeze to the latest frame, so skimming through a video with G
+        never leaves orphan untagged images in the project (the bug this
+        replaces: every grab wrote a jpg immediately, tagged or not).
+        Escape discards the freeze.
         """
         if not self._live_running:
             return
-        proj = self._app.get_project()
-        if not proj:
-            self._cam_status.configure(text="Abre un proyecto primero.", text_color=T.WARN)
-            return
-        # Get selected class (for saving into the right folder)
-        classes = proj.classes if proj else []
-        if not classes:
-            self._cam_status.configure(text="Define categorías primero.", text_color=T.WARN)
-            return
-        cls = classes[min(self._selected_class, len(classes) - 1)]
-
         with self._frame_lock:
             frame = self._live_frame
         if frame is None:
             return
-
         self._frozen_frame = frame.copy()
-
-        # Save frame to project raw images
-        dest_dir = proj.paths.raw_class_dir(cls.name)
-        dest_dir.mkdir(parents=True, exist_ok=True)
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-        img_path = dest_dir / f"tag_{ts}.jpg"
-        cv2.imwrite(str(img_path), frame)
-
-        # Add to image list and jump to it
-        self._images.append(img_path)
-        new_idx = len(self._images) - 1
-        self._cam_status.configure(
-            text=f"✓ Frame guardado · dibuja cajas y presiona S",
-            text_color=T.ACCENT,
-        )
-        self._update_progress()
-        self._show_image(new_idx)
+        self._clear_boxes()
+        self._paint_frame(self._frozen_frame)   # also records geometry for save
+        self._cam_status.configure(text=t("tag_frozen_hint"), text_color=T.ACCENT)
 
     def _escape_action(self) -> None:
         if self._frozen_frame is not None:
@@ -899,16 +879,14 @@ class TaggingScreen(ctk.CTkFrame):
             self._active_rect = None
 
     # ── actions ───────────────────────────────────────────────────────────────
-    def _autograb_current_frame(self) -> bool:
+    def _write_grab(self, frame) -> bool:
         """
-        Save the frame currently on screen as a project image and point
-        self._idx at it, WITHOUT clearing the boxes the user already drew.
+        Write *frame* to the project as a new image and point self._idx at it,
+        WITHOUT clearing the boxes the user already drew.
 
-        Used when Guardar is pressed in camera/video mode with no explicit
-        grab: the visible frame (paused video, or last live frame) becomes
-        the image the annotations are saved against.
-        Returns False (with a user-facing message) when there is nothing
-        valid to save — never a silent no-op.
+        This is the ONLY place live/video frames touch the disk — always
+        together with their labels (from _save), never as orphans.
+        Returns False (with a user-facing message) when saving isn't possible.
         """
         proj = self._app.get_project()
         if not proj:
@@ -918,8 +896,6 @@ class TaggingScreen(ctk.CTkFrame):
         if not classes:
             self._msg.configure(text="Define categorías primero.", text_color=T.WARN)
             return False
-        with self._frame_lock:
-            frame = self._live_frame
         if frame is None:
             self._msg.configure(text=t("tag_no_frame"), text_color=T.WARN)
             return False
@@ -939,13 +915,17 @@ class TaggingScreen(ctk.CTkFrame):
 
     def _save(self) -> None:
         live = self._src_var.get() in ("camera", "video")
-        if live and self._frozen_frame is None:
-            # No explicit grab happened.  Refuse empty saves honestly and
-            # auto-grab the visible frame when there ARE boxes to persist.
+        if live:
+            # Frame + labels are written together, exactly once, on Guardar.
             if not self._boxes:
                 self._msg.configure(text=t("tag_draw_box_first"), text_color=T.WARN)
                 return
-            if not self._autograb_current_frame():
+            if self._frozen_frame is not None:
+                frame = self._frozen_frame
+            else:
+                with self._frame_lock:
+                    frame = self._live_frame
+            if not self._write_grab(frame):
                 return
         elif not self._images:
             # Static-image mode with nothing loaded: nothing to save onto.
@@ -955,12 +935,12 @@ class TaggingScreen(ctk.CTkFrame):
         self._save_labels()
         self._msg.configure(text=t("tag_saved"), text_color=T.ACCENT)
         self._update_progress()
-        # After saving in live mode, un-freeze / resume so the user can move on
-        if self._live_running and self._frozen_frame is not None:
+        # After saving in live mode: un-freeze and clean up for the next frame
+        if live:
             self._frozen_frame = None
-            self._cam_status.configure(text="● En vivo", text_color=T.ACCENT)
-        elif self._live_running and self._video_paused:
-            self._clear_boxes()   # saved — clean canvas for the next frame
+            self._clear_boxes()
+            if self._live_running and not self._video_paused:
+                self._cam_status.configure(text="● En vivo", text_color=T.ACCENT)
 
     def _delete_last(self) -> None:
         if not self._boxes:
