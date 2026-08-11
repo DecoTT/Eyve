@@ -25,7 +25,8 @@ from eyve.core import config as _cfg
 from eyve.ui import theme as T
 from eyve.i18n import t
 from eyve.inference.detector import YOLOWorker, VideoSource
-from eyve.production.ok_nok_logic import decide, InspectionStatus
+from eyve.modules import PolarityModule
+from eyve.production.ok_nok_logic import decide, InspectionStatus, InspectionResult
 from eyve.production.production_session import ProductionSession
 from eyve.ui.components.dialogs import show_error
 from eyve.camera.camera_enum import get_camera_labels, label_to_index
@@ -115,6 +116,11 @@ class ProductionScreen(ctk.CTkFrame):
         self._spin_step = 0            # spinner animation step
         self._warming = False          # True while camera is opening
         self._cam_starting = False     # True while VideoSource.start() is in-flight
+        # Video-file source (remote validation without a camera)
+        self._prod_video_path: Optional[Path] = None
+        # Inspection modules (Eyve Pro glimpse) — polarity is the first
+        self._polarity = PolarityModule()
+        self._mod_last_status = ""     # cache to avoid configure() every frame
         self._build()
 
         # Space-bar hot-key (bound before auto-start so it's always available)
@@ -205,6 +211,19 @@ class ProductionScreen(ctk.CTkFrame):
         sep = ctk.CTkFrame(parent, height=1, fg_color=T.BORDER)
         sep.pack(fill="x", padx=12, pady=4)
 
+        # ── source: camera or video file ──────────────────────────────────────
+        src_row = ctk.CTkFrame(parent, fg_color="transparent")
+        src_row.pack(fill="x", padx=12, pady=(4, 0))
+        self._prod_src_var = ctk.StringVar(value="camera")
+        ctk.CTkRadioButton(src_row, text=t("cap_source_camera"),
+                           variable=self._prod_src_var, value="camera",
+                           font=T.font(T.FONT_XS),
+                           command=self._on_prod_source_change).pack(side="left")
+        ctk.CTkRadioButton(src_row, text=t("cap_source_video"),
+                           variable=self._prod_src_var, value="video",
+                           font=T.font(T.FONT_XS),
+                           command=self._on_prod_source_change).pack(side="left", padx=10)
+
         # ── camera / conf ─────────────────────────────────────────────────────
         cam_row = ctk.CTkFrame(parent, fg_color="transparent")
         cam_row.pack(fill="x", padx=12, pady=4)
@@ -218,9 +237,25 @@ class ProductionScreen(ctk.CTkFrame):
             state="disabled",
         )
         self._cam_idx.pack(fill="x")
+        self._cam_row = cam_row
         threading.Thread(target=self._load_cameras_bg, daemon=True).start()
 
+        # video-file picker (hidden while source == camera)
+        self._vid_row = ctk.CTkFrame(parent, fg_color="transparent")
+        self._prod_vid_btn = ctk.CTkButton(
+            self._vid_row, text=t("prod_select_video"),
+            fg_color=T.BG_INPUT, height=28, font=T.font(T.FONT_XS),
+            command=self._browse_prod_video,
+        )
+        self._prod_vid_btn.pack(fill="x")
+        self._prod_vid_lbl = ctk.CTkLabel(
+            self._vid_row, text="", font=T.font(T.FONT_XS),
+            text_color=T.TEXT_DIM, wraplength=200, anchor="w",
+        )
+        self._prod_vid_lbl.pack(anchor="w")
+
         conf_row = ctk.CTkFrame(parent, fg_color="transparent")
+        self._conf_row = conf_row   # anchor for packing the video picker above
         conf_row.pack(fill="x", padx=12, pady=4)
         ctk.CTkLabel(conf_row, text="Conf %",
                      font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
@@ -234,6 +269,61 @@ class ProductionScreen(ctk.CTkFrame):
 
         sep2 = ctk.CTkFrame(parent, height=1, fg_color=T.BORDER)
         sep2.pack(fill="x", padx=12, pady=4)
+
+        # ── inspection modules (Eyve Pro glimpse) ─────────────────────────────
+        ctk.CTkLabel(parent, text=t("prod_modules"),
+                     font=T.bold(T.FONT_SM), text_color=T.TEXT_SEC).pack(
+            padx=12, anchor="w")
+
+        self._pol_var = ctk.BooleanVar(value=False)
+        ctk.CTkCheckBox(parent, text=self._polarity.name,
+                        variable=self._pol_var,
+                        font=T.font(T.FONT_XS), text_color=T.TEXT_PRI,
+                        command=self._on_polarity_toggle).pack(
+            padx=12, anchor="w", pady=(2, 0))
+
+        pol_cfg = ctk.CTkFrame(parent, fg_color="transparent")
+        pol_cfg.pack(fill="x", padx=12, pady=(2, 2))
+
+        proj = self._app.get_project()
+        cls_names = [c.name for c in proj.classes] if proj and proj.classes else ["—"]
+        row_c = ctk.CTkFrame(pol_cfg, fg_color="transparent"); row_c.pack(fill="x", pady=1)
+        ctk.CTkLabel(row_c, text=t("prod_mod_class"), width=64, anchor="w",
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
+        self._pol_class = ctk.CTkOptionMenu(
+            row_c, values=cls_names, width=120, height=24,
+            fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
+            dropdown_fg_color=T.BG_CARD, font=T.font(T.FONT_XS),
+            command=lambda v: setattr(self._polarity, "target_class", v))
+        self._pol_class.pack(side="right")
+
+        row_m = ctk.CTkFrame(pol_cfg, fg_color="transparent"); row_m.pack(fill="x", pady=1)
+        ctk.CTkLabel(row_m, text=t("prod_mod_method"), width=64, anchor="w",
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
+        self._pol_method = ctk.CTkOptionMenu(
+            row_m, values=list(PolarityModule.METHODS), width=120, height=24,
+            fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
+            dropdown_fg_color=T.BG_CARD, font=T.font(T.FONT_XS),
+            command=self._polarity.set_method)
+        self._pol_method.pack(side="right")
+
+        row_r = ctk.CTkFrame(pol_cfg, fg_color="transparent"); row_r.pack(fill="x", pady=1)
+        ctk.CTkLabel(row_r, text=t("prod_mod_ref"), width=64, anchor="w",
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
+        self._pol_ref = ctk.CTkOptionMenu(
+            row_r, values=list(PolarityModule.REFERENCES), width=120, height=24,
+            fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
+            dropdown_fg_color=T.BG_CARD, font=T.font(T.FONT_XS),
+            command=self._polarity.set_reference)
+        self._pol_ref.pack(side="right")
+
+        self._pol_status = ctk.CTkLabel(parent, text="",
+                                         font=T.font(T.FONT_XS), text_color=T.TEXT_DIM,
+                                         wraplength=200, anchor="w")
+        self._pol_status.pack(padx=12, anchor="w")
+
+        sep2b = ctk.CTkFrame(parent, height=1, fg_color=T.BORDER)
+        sep2b.pack(fill="x", padx=12, pady=4)
 
         # ── options ───────────────────────────────────────────────────────────
         self._save_nok_var = ctk.BooleanVar(value=True)
@@ -300,6 +390,52 @@ class ProductionScreen(ctk.CTkFrame):
             labels = ["No cameras found"]
         self._cam_idx.configure(values=labels, state="normal")
         self._cam_idx.set(labels[0])
+
+    # ── source selector (camera / video file) ────────────────────────────────
+    def _on_prod_source_change(self) -> None:
+        if self._running or self._cam_starting:
+            self._stop()
+        if self._prod_src_var.get() == "video":
+            self._cam_row.pack_forget()
+            self._vid_row.pack(fill="x", padx=12, pady=4, before=self._conf_row)
+        else:
+            self._vid_row.pack_forget()
+            self._cam_row.pack(fill="x", padx=12, pady=4, before=self._conf_row)
+            self.after(100, self._auto_start_preview)
+
+    def _browse_prod_video(self) -> None:
+        path = filedialog.askopenfilename(
+            title=t("prod_select_video"),
+            filetypes=[("Video files", "*.mp4 *.avi *.mov *.mkv *.webm"), ("All", "*.*")]
+        )
+        if not path:
+            return
+        self._prod_video_path = Path(path)
+        self._prod_vid_lbl.configure(text=path, text_color=T.TEXT_DIM)
+        # switch playback to the selected file immediately
+        if self._running or self._cam_starting:
+            self._stop()
+        self._start()
+
+    # ── polarity module UI ───────────────────────────────────────────────────
+    def _on_polarity_toggle(self) -> None:
+        if self._pol_var.get():
+            cls = self._pol_class.get()
+            if not cls or cls == "—":
+                self._pol_var.set(False)
+                self._pol_status.configure(text=t("prod_mod_need_class"),
+                                            text_color=T.WARN)
+                return
+            self._polarity.target_class = cls
+            self._polarity.set_method(self._pol_method.get())
+            self._polarity.set_reference(self._pol_ref.get())
+            self._polarity.enabled = True
+            self._pol_status.configure(text=self._polarity.learning_status,
+                                        text_color=T.TEXT_DIM)
+        else:
+            self._polarity.enabled = False
+            self._mod_last_status = ""
+            self._pol_status.configure(text="")
 
     # ── model loading ─────────────────────────────────────────────────────────
     def _try_autoload_model(self) -> None:
@@ -400,6 +536,11 @@ class ProductionScreen(ctk.CTkFrame):
         """
         if self._running or self._cam_starting:
             return   # already live or open in-flight
+        if self._prod_src_var.get() == "video":
+            # video mode: only auto-start when a file is already selected
+            if self._prod_video_path and self._prod_video_path.exists():
+                self._start()
+            return
         # Wait until cameras are enumerated
         cam_val = self._cam_idx.get()
         if "Loading" in cam_val or "⟳" in cam_val:
@@ -417,15 +558,25 @@ class ProductionScreen(ctk.CTkFrame):
     def _start(self) -> None:
         if self._running or self._cam_starting:
             return   # already live or open in-flight — ignore duplicate call
+
+        # Resolve source: camera index or video file path (remote validation)
+        if self._prod_src_var.get() == "video":
+            if not (self._prod_video_path and self._prod_video_path.exists()):
+                self._prod_vid_lbl.configure(text=t("prod_video_missing"),
+                                              text_color=T.WARN)
+                return
+            source: int | str = str(self._prod_video_path)
+        else:
+            source = label_to_index(self._cam_idx.get())
+
         self._cam_starting = True
-        idx = label_to_index(self._cam_idx.get())
         # Show opening animation on canvas
         self._warming = True
         self._spin_step = 0
         self._animate_warmup()
 
         def _open_bg():
-            src = VideoSource(idx)
+            src = VideoSource(source)
             ok = src.start()
             self.after(0, lambda: self._on_source_ready(src, ok))
 
@@ -466,6 +617,8 @@ class ProductionScreen(ctk.CTkFrame):
         self._paused = False
         self._warming = False
         self._cam_starting = False
+        self._polarity.reset()
+        self._mod_last_status = ""
         if self._worker:
             self._worker.stop()
         if self._source:
@@ -529,6 +682,28 @@ class ProductionScreen(ctk.CTkFrame):
                     nok_cls = proj.nok_classes if proj else []
                     conf_thresh = self._conf_slider.get() / 100
                     inspection = decide(result.detections, ok_cls, nok_cls, conf_thresh)
+                    annotated = self._annotate(frame, result.detections, inspection)
+
+                    # ── inspection modules (may veto to NOT_OK) ───────────
+                    if self._polarity.enabled:
+                        verdict = self._polarity.process(
+                            frame, result.detections, annotated)
+                        if (not verdict.ok
+                                and inspection.status != InspectionStatus.NOT_OK):
+                            inspection = InspectionResult(
+                                status=InspectionStatus.NOT_OK,
+                                triggered_by=verdict.triggered_by,
+                                confidence=1.0,
+                                detections=result.detections,
+                            )
+                        st = f"{self._polarity.learning_status}   {verdict.label}".strip()
+                        if st != self._mod_last_status:
+                            self._mod_last_status = st
+                            self._pol_status.configure(
+                                text=st,
+                                text_color=(T.COLOR_NOK if not verdict.ok
+                                            else T.TEXT_DIM))
+
                     self._last_result = inspection
                     if self._session:
                         self._session.record(
@@ -536,7 +711,6 @@ class ProductionScreen(ctk.CTkFrame):
                             frame if inspection.status == InspectionStatus.NOT_OK else None,
                         )
                         self._update_counts()
-                    annotated = self._annotate(frame, result.detections, inspection)
                     self._update_canvas(annotated)
                     self._update_status(inspection)
                 else:

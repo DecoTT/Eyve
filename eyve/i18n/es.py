@@ -109,6 +109,13 @@ STRINGS = {
     "tag_vid_paused": "⏸ Pausado — dibuja cajas y presiona Guardar",
     "tag_frozen_hint": "❚❚ Congelado — dibuja cajas y presiona Guardar [S]",
     "tag_grab_btn": "📷 Congelar y Etiquetar  [G]",
+    "prod_select_video": "Seleccionar Video…",
+    "prod_video_missing": "Selecciona un archivo de video primero.",
+    "prod_modules": "Módulos (Pro)",
+    "prod_mod_class": "Clase",
+    "prod_mod_method": "Método",
+    "prod_mod_ref": "Referencia",
+    "prod_mod_need_class": "Selecciona la clase a inspeccionar primero.",
     "tag_class_stats": "Etiquetadas por categoría:",
     "tag_progress": "{labeled} / {total} imágenes etiquetadas",
 

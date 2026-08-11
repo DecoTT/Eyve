@@ -109,6 +109,13 @@ STRINGS = {
     "tag_vid_paused": "⏸ Paused — draw boxes and press Save",
     "tag_frozen_hint": "❚❚ Frozen — draw boxes and press Save [S]",
     "tag_grab_btn": "📷 Freeze & Tag  [G]",
+    "prod_select_video": "Select Video…",
+    "prod_video_missing": "Select a video file first.",
+    "prod_modules": "Modules (Pro)",
+    "prod_mod_class": "Class",
+    "prod_mod_method": "Method",
+    "prod_mod_ref": "Reference",
+    "prod_mod_need_class": "Select the class to inspect first.",
     "tag_class_stats": "Tagged per class:",
     "tag_progress": "{labeled} / {total} images labeled",
 

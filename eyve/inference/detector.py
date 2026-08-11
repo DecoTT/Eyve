@@ -192,12 +192,22 @@ class VideoSource:
             return self._frame.copy() if self._frame is not None else None
 
     def _loop(self) -> None:
+        # Video files must be paced to their native FPS — reading flat-out
+        # would play them at CPU speed.  Cameras self-throttle in cap.read().
+        is_file = isinstance(self._source, str)
+        delay = 0.0
+        if is_file and self._cap is not None:
+            fps = self._cap.get(cv2.CAP_PROP_FPS) or 30.0
+            delay = 1.0 / (fps if fps > 0 else 30.0)
         while self._running and self._cap and self._cap.isOpened():
             ret, frame = self._cap.read()
             if ret:
                 with self._lock:
                     self._frame = frame
+                if delay:
+                    time.sleep(delay)
             else:
-                if hasattr(self._source, '__len__') or isinstance(self._source, str):
+                if is_file:
+                    # loop the file endlessly (validation playback)
                     self._cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
                 time.sleep(0.01)
