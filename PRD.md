@@ -952,8 +952,8 @@ Leyenda: ✅ funciona · ⚠️ funciona con problemas · ❌ roto
 | Home | ✅ | Crear/abrir/recientes. Falta default de ubicación (§5.1) |
 | Categorías | ✅ | CRUD, kind ok/nok/ignore, color |
 | Captura | ✅ | Cámara + video, auto-start, grabación en thread aparte |
-| Etiquetado | ⚠️ | Funciona; las etiquetas que escribe no las lee el entrenamiento (BUG-01) |
-| Entrenamiento | ❌ | Rompe al arrancar (BUG-02) |
+| Etiquetado | ✅ | BUG-01 cerrado; playbar de video (pausa/seek), congelar sin huérfanas |
+| Entrenamiento | ✅ | BUG-02 cerrado; E2E validado 2026-08-10: mAP50 0.865 con 40 imgs reales |
 | Producción | ✅ | Auto-start, genérico de arranque, OK/NOK, contadores |
 | Enumeración de cámaras | ✅ | MFEnumDeviceSources — orden correcto, 0 ms |
 | Licencias | ⚠️ | Funciona; falta decisión sobre el secret (§14.1) |
