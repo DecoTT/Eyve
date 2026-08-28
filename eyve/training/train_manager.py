@@ -168,6 +168,15 @@ class TrainManager:
             last_dst = models_dir / "last.pt"
             if best_src.exists():
                 import shutil
+                # Preserve the previous model before overwriting — without
+                # this there is no way back if the new training came out
+                # worse (PRD §10.2).  best.pt stays as "the active one".
+                if best_dst.exists():
+                    stamp = datetime.now().strftime("%Y%m%d_%H%M")
+                    backup = models_dir / f"best_{stamp}.pt"
+                    if not backup.exists():
+                        shutil.copy2(best_dst, backup)
+                        log.info(f"Previous model preserved as {backup.name}")
                 shutil.copy2(best_src, best_dst)
             if last_src.exists():
                 import shutil

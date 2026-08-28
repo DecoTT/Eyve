@@ -993,8 +993,15 @@ class TaggingScreen(ctk.CTkFrame):
         total = len(self._images)
         labeled = 0
         for img in self._images:
-            if proj.paths.label_file(img).exists():
-                labeled += 1
+            lf = proj.paths.label_file(img)
+            # An EMPTY .txt means "seen, no boxes drawn" — navigating with
+            # N/P auto-saves those.  Counting them as labeled is what made
+            # the header say 71/71 while the dataset only had 40 real pairs.
+            try:
+                if lf.exists() and lf.stat().st_size > 0:
+                    labeled += 1
+            except OSError:
+                pass
         self._progress_lbl.configure(
             text=t("tag_progress", labeled=labeled, total=total))
         if proj.classes:

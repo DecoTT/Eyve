@@ -44,9 +44,10 @@ copy "%SOURCE_DIR%\requirements.txt"        "%DIST_DIR%\" >nul
 copy "%SOURCE_DIR%\LICENSE"                 "%DIST_DIR%\" >nul 2>&1
 copy "%SOURCE_DIR%\THIRD_PARTY_NOTICES.md"  "%DIST_DIR%\" >nul 2>&1
 
-:: Copy installer scripts from Release/
-copy "%~dp0setup.bat" "%DIST_DIR%\setup.bat" >nul
-copy "%~dp0run.bat"   "%DIST_DIR%\run.bat"   >nul
+:: Copy installer scripts + tester README from Release/
+copy "%~dp0setup.bat"  "%DIST_DIR%\setup.bat"  >nul
+copy "%~dp0run.bat"    "%DIST_DIR%\run.bat"    >nul
+copy "%~dp0README.md"  "%DIST_DIR%\README.md"  >nul
 
 :: Create empty projects folder
 mkdir "%DIST_DIR%\projects"
@@ -64,6 +65,13 @@ if errorlevel 1 (
 ) else (
     echo  ZIP created: %ZIP_OUT%
 )
+
+:: SHA-256 for the download page (SmartScreen mitigation — README tells
+:: testers how to verify the ZIP they downloaded matches this hash)
+echo.
+echo  SHA-256:
+powershell -NoProfile -Command ^
+  "(Get-FileHash '%ZIP_OUT%' -Algorithm SHA256).Hash"
 
 echo.
 echo  ----------------------------------------------------

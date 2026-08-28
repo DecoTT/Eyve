@@ -624,11 +624,22 @@ class ProductionScreen(ctk.CTkFrame):
         self._worker_loading = False
         self._worker = worker
         name = Path(model_path).name
-        self._model_lbl.configure(
-            text=t("prod_model_loaded", name=name), text_color=T.ACCENT)
-        # Warn if class mismatch with project
+        # A bare "yolov8n.pt" means the COCO fallback, not a project model —
+        # it must be clearly labeled as generic (PRD §11.1: the generic stays,
+        # what's forbidden is using it silently).
         proj = self._app.get_project()
-        if proj:
+        is_generic = (name == "yolov8n.pt"
+                      and not (proj and proj.active_model
+                               and Path(proj.active_model).exists()))
+        if is_generic:
+            self._model_lbl.configure(
+                text=t("prod_generic_model"), text_color=T.WARN)
+        else:
+            self._model_lbl.configure(
+                text=t("prod_model_loaded", name=name), text_color=T.ACCENT)
+        # Warn if class mismatch with project (skip for the generic model —
+        # COCO never matches user classes; the generic label already says it)
+        if proj and not is_generic:
             model_cls = set(worker.class_names)
             proj_cls  = set(proj.class_names)
             if model_cls != proj_cls:

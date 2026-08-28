@@ -140,7 +140,10 @@ class HomeScreen(ctk.CTkFrame):
         self.wait_window(dialog)
 
     def _open_project(self) -> None:
-        folder = filedialog.askdirectory(title=t("home_open_project"))
+        default_dir = Path.home() / "Documents" / "Eyve Projects"
+        folder = filedialog.askdirectory(
+            title=t("home_open_project"),
+            initialdir=str(default_dir) if default_dir.exists() else str(Path.home()))
         if not folder:
             return
         self._load_path(Path(folder))
@@ -249,7 +252,9 @@ class _NewProjectDialog(ctk.CTkToplevel):
         ))
 
     def _browse(self) -> None:
-        folder = filedialog.askdirectory()
+        current = Path(self._folder.get().strip() or Path.home())
+        folder = filedialog.askdirectory(
+            initialdir=str(current) if current.exists() else str(Path.home()))
         if folder:
             self._folder.delete(0, "end")
             self._folder.insert(0, folder)

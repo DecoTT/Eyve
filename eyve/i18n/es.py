@@ -165,6 +165,7 @@ STRINGS = {
     "mm_not_downloaded": "✗  No descargado",
     "mm_downloading": "⏳ Descargando…",
     "mm_retry": "⬇  Reintentar",
+    "prod_generic_model": "⚠  yolov8n (genérico — demo)\nEste proyecto aún no tiene un modelo entrenado.",
     "tag_class_stats": "Etiquetadas por categoría:",
     "tag_progress": "{labeled} / {total} imágenes etiquetadas",
 

@@ -10,27 +10,67 @@ echo.
 
 cd /d "%~dp0"
 
-:: Check Python
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo  [ERROR] Python not found.
+:: ── Check Python (install it automatically if missing) ──────────────────────
+call :find_python
+if defined PY goto :python_ok
+
+echo  Python was not found on this computer.
+echo.
+echo  Eyve needs Python 3.12 to run. It can be installed automatically
+echo  (about 30 MB, takes 1-2 minutes).
+echo.
+set /p INSTALLPY=  Install Python now? [Y/n]:
+if /i "%INSTALLPY%"=="n" (
     echo.
-    echo  Please install Python 3.10 or newer from:
+    echo  Cancelled. You can install Python manually from:
     echo    https://www.python.org/downloads/
-    echo.
-    echo  IMPORTANT: check "Add Python to PATH" during installation.
-    echo.
+    echo  Remember to check "Add Python to PATH" during installation.
     pause
     exit /b 1
 )
 
-for /f "tokens=2" %%v in ('python --version 2^>^&1') do set PYVER=%%v
+:: winget ships with Windows 10 21H2+ and Windows 11
+where winget >nul 2>&1
+if errorlevel 1 goto :no_winget
+
+echo.
+echo  Installing Python 3.12 via winget...
+winget install -e --id Python.Python.3.12 --scope machine --accept-source-agreements --accept-package-agreements
+if errorlevel 1 goto :no_winget
+
+:: winget updates the PATH of NEW processes only — find the fresh install
+call :find_python
+if defined PY goto :python_ok
+echo.
+echo  Python was installed but is not visible in this window yet.
+echo  Close this window and run setup.bat again to continue.
+echo.
+pause
+exit /b 0
+
+:no_winget
+echo.
+echo  [ERROR] Could not install Python automatically.
+echo.
+echo  Please install it manually from:
+echo    https://www.python.org/downloads/
+echo.
+echo  IMPORTANT: check "Add Python to PATH" during installation,
+echo  then run setup.bat again.
+echo.
+start https://www.python.org/downloads/
+pause
+exit /b 1
+
+:python_ok
+for /f "tokens=2" %%v in ('"%PY%" --version 2^>^&1') do set PYVER=%%v
 echo  Found Python %PYVER%
 
-python -c "import sys; exit(0 if sys.version_info >= (3,10) else 1)" 2>nul
+"%PY%" -c "import sys; exit(0 if sys.version_info >= (3,10) else 1)" 2>nul
 if errorlevel 1 (
     echo  [ERROR] Python 3.10 or newer required. Found %PYVER%.
     echo  Download: https://www.python.org/downloads/
+    start https://www.python.org/downloads/
     pause
     exit /b 1
 )
@@ -39,7 +79,7 @@ if errorlevel 1 (
 echo.
 echo  [1/4] Creating virtual environment...
 if not exist ".venv" (
-    python -m venv .venv
+    "%PY%" -m venv .venv
     if errorlevel 1 (
         echo  [ERROR] Failed to create virtual environment.
         pause
@@ -103,3 +143,29 @@ echo   Models download on first use (~15 MB).
 echo  ============================================
 echo.
 pause
+exit /b 0
+
+
+:: ── Subroutine: locate a usable Python ──────────────────────────────────────
+:: Sets PY to the interpreter path, or leaves it undefined.
+:: The py launcher is checked first: it finds installs that are NOT on PATH,
+:: which is the most common state after a winget/Store install.
+:find_python
+set "PY="
+:: Resolve to a real executable path (never "py -3": quoting a two-token
+:: value breaks every "%PY%" call site).
+for /f "delims=" %%P in ('py -3 -c "import sys;print(sys.executable)" 2^>nul') do set "PY=%%P"
+if defined PY exit /b 0
+for /f "delims=" %%P in ('python -c "import sys;print(sys.executable if sys.version_info>=(3,10) else '''')" 2^>nul') do set "PY=%%P"
+if defined PY exit /b 0
+for %%D in (
+    "%LocalAppData%\Programs\Python\Python313\python.exe"
+    "%LocalAppData%\Programs\Python\Python312\python.exe"
+    "%LocalAppData%\Programs\Python\Python311\python.exe"
+    "%ProgramFiles%\Python313\python.exe"
+    "%ProgramFiles%\Python312\python.exe"
+    "%ProgramFiles%\Python311\python.exe"
+) do (
+    if exist %%D (set "PY=%%~D" & exit /b 0)
+)
+exit /b 1
