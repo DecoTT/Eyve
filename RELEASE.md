@@ -11,9 +11,9 @@
 
 | Qué | Valor |
 |---|---|
-| Repo público | `https://github.com/DecoTT/eyve` *(crear en el paso 3; si se llama distinto, cambia las dos URLs de abajo)* |
+| Repo público | `https://github.com/DecoTT/Eyve` *(existente; el prototipo 2025 vive en la rama `prototype-2025`)* |
 | Asset del release | `Eyve-2.1-setup.zip` (el ZIP de `Release\build_release.ps1`, renombrado) |
-| URL fija de descarga | `https://github.com/DecoTT/eyve/releases/latest/download/Eyve-2.1-setup.zip` |
+| URL fija de descarga | `https://github.com/DecoTT/Eyve/releases/latest/download/Eyve-2.1-setup.zip` |
 | Checksum | `SHA256SUMS.txt` junto al asset |
 | Tag | `v2.1.0` (= `eyve/__init__.py: __version__`) |
 
@@ -45,11 +45,11 @@ cd "D:\Desarrollo\Claude Code\Eyve\2.1-dev\Release"
 ## 3. Publicar en GitHub
 
 - [x] Auditoría del historial (18-sep): sin claves privadas. El único secret que aparece es el HMAC de la licencia **vieja**, retirado en `ad9057f` al migrar a JWT EdDSA — la app ya no acepta nada firmado con él. La clave Supabase del historial es `role: anon` (pública por diseño). `yolov8n.pt` (6 MB, peso público de Ultralytics) y `HANDOFF_FABLE.md` (notas internas, sin secretos) siguen en commits viejos; no vale la pena reescribir el historial por ellos.
-- [ ] Crear el repo público `DecoTT/eyve` (AGPL-3.0; `LICENSE` y `THIRD_PARTY_NOTICES.md` ya están). Rama principal `main` (ya renombrada localmente).
-- [ ] `git remote add origin https://github.com/DecoTT/eyve.git && git push -u origin main`
-- [ ] `git tag -a v2.1.0 -m "Eyve 2.1.0" && git push origin v2.1.0`
-- [ ] Release en GitHub: título `Eyve 2.1.0`, notas (qué hay: proyectos, etiquetado, entrenamiento local, producción con conteo; licencias por honor; requisitos: Windows 10/11 64-bit, 8 GB RAM, cámara USB), assets: `Eyve-2.1-setup.zip` + `SHA256SUMS.txt`. **No** marcar como pre-release (si no, `latest` no lo toma).
-- [ ] Verificar que la URL fija descarga: `curl -sIL https://github.com/DecoTT/eyve/releases/latest/download/Eyve-2.1-setup.zip | grep -i "^HTTP\|location"` → termina en 200.
+- [x] Repo público: se reutilizó **`DecoTT/Eyve`** (ya existía con el prototipo de 2025). El prototipo quedó intacto en la rama `prototype-2025`; `main` se reemplazó con Eyve 2.1 (force push, 18-sep-2026). GitHub no distingue mayúsculas: `DecoTT/eyve` y `DecoTT/Eyve` son el mismo repo.
+- [x] `origin` = `https://github.com/DecoTT/Eyve.git`, `main` subido (`86fdbee`).
+- [x] Tag `v2.1.0` subido.
+- [x] Release **Eyve 2.1.0** publicado con `gh release create --latest` (no pre-release, no draft), assets `Eyve-2.1-setup.zip` (180 192 B) + `SHA256SUMS.txt`: <https://github.com/DecoTT/Eyve/releases/tag/v2.1.0>
+- [x] URL fija verificada (18-sep): `https://github.com/DecoTT/Eyve/releases/latest/download/Eyve-2.1-setup.zip` → 302 → 302 → **200**; el archivo descargado coincide byte a byte con `SHA256SUMS.txt` (`8060b705…7758`).
 
 ## 4. Prender la descarga en la tienda (sbcsuite)
 
