@@ -1,22 +1,27 @@
 # Eyve 2.1 — Python dependencies
 # Install with: pip install -r requirements.txt
+#
+# Upper bounds = next MAJOR after the versions the 2.1 release was validated
+# with (2026-09: customtkinter 6.0, opencv 5.0, numpy 2.5, Pillow 12.3,
+# ultralytics 8.4).  A tester must get the same majors we tested, not
+# whatever shipped last week.  Bump deliberately, after re-running the E2E.
 
 # UI
-customtkinter>=5.2.0
+customtkinter>=5.2,<7
 
 # Vision & inference
-# Pinned to 8.x: the training callback API (add_callback with plain
-# functions) is what train_manager.py targets; 9.x may change it again.
+# ultralytics pinned to 8.x: the training callback API (add_callback with
+# plain functions) is what train_manager.py targets; 9.x may change it again.
 ultralytics>=8.3,<9
-opencv-python>=4.8.0
-Pillow>=10.0.0
+opencv-python>=4.8,<6
+Pillow>=10.0,<13
 
 # Licencia (JWT EdDSA firmado por sbcsuite; verificación sin red)
-PyJWT[crypto]>=2.8
+PyJWT[crypto]>=2.8,<3
 
 # Data
-numpy>=1.24.0
-PyYAML>=6.0
+numpy>=1.24,<3
+PyYAML>=6.0,<7
 
 # Training (YOLO uses torch — install GPU version manually if needed)
 # torch torchvision torchaudio are installed by ultralytics automatically,

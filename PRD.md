@@ -619,7 +619,7 @@ Eyve debe:
 - evitar cierres inesperados;
 - permitir reportar bugs con información suficiente.
 
-Log principal: `eyve_run.log`
+Log principal: `%USERPROFILE%\.eyve\eyve_run.log` (rotativo, 2 MB × 3; incluye excepciones no capturadas de Tk)
 
 ---
 

@@ -1,0 +1,12 @@
+# Windows batch files MUST be CRLF: cmd.exe's parser misreads labels,
+# for/f and ( ) blocks with LF-only endings ("La sintaxis del comando no
+# es correcta") and aborts before any pause. Enforced on checkout here and
+# validated again by Release/build_release.ps1 before packaging.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Everything else: LF in the repo, native on checkout
+*.py   text eol=lf
+*.md   text eol=lf
+*.txt  text eol=lf
+*.ps1  text eol=crlf

@@ -131,9 +131,17 @@ además incluye soporte. Estilo WinRAR: nada se bloquea nunca.
 Esta es una beta: **los reportes de errores son parte del objetivo**. Si algo falla:
 
 1. Anota qué estabas haciendo cuando pasó.
-2. Adjunta el archivo `eyve_run.log` (está en la carpeta de Eyve).
+2. Adjunta el archivo de log. Pega esto en la barra del Explorador para llegar:
+   ```
+   %USERPROFILE%\.eyve
+   ```
+   y adjunta `eyve_run.log` (incluye los errores aunque la ventana se haya cerrado).
 3. Si hay algo visible en pantalla, una captura ayuda mucho.
 4. Menciona tu Windows (10 u 11) y si tienes GPU NVIDIA.
+
+Si `setup.bat` o `run.bat` se cierran solos sin dejarte leer nada: abre una
+consola (`Win + R` → `cmd`), arrastra el `.bat` a la ventana y presiona Enter —
+así el mensaje de error se queda en pantalla.
 
 Envíalo al equipo de Eyve o abre un issue en el repositorio.
 

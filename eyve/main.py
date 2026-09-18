@@ -9,9 +9,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 def main() -> None:
     from eyve.core import config
+    from eyve.core.logger import log, install_excepthook, APP_LOG_FILE
     from eyve.i18n import set_language
-    from eyve.ui.app import EyveApp
+    from eyve import __version__
 
+    install_excepthook()
+    log.info(f"Eyve {__version__} starting  (log: {APP_LOG_FILE})")
+
+    from eyve.ui.app import EyveApp
     set_language(config.get("language", "en"))
     app = EyveApp()
     app.mainloop()

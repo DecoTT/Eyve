@@ -62,7 +62,7 @@ Trabajo    D:\Desarrollo\Claude Code\Eyve\2.1-dev   ← aquí
 Respaldo   D:\Desarrollo\Claude Code\Eyve\2.1       ← no tocar
 venv       .venv\Scripts\python.exe  (Python 3.12.9)
 Correr     run.bat   o   python -m eyve.main
-Log        eyve_run.log
+Log        %USERPROFILE%\.eyve\eyve_run.log
 Instalado  ultralytics 8.4.49, opencv-python, customtkinter, torch
 Cámara     Logitech HD Pro Webcam C920 (índice 0)
 ```

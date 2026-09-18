@@ -4,13 +4,13 @@ title Eyve 2.1 Beta - Setup
 
 echo.
 echo  +-----------------------------------------+
-echo  |   Eyve 2.1 Beta  -  Visual Inspection   |
+echo  ^|   Eyve 2.1 Beta  -  Visual Inspection   ^|
 echo  +-----------------------------------------+
 echo.
 
 cd /d "%~dp0"
 
-:: ── Check Python (install it automatically if missing) ──────────────────────
+:: --- Check Python (install it automatically if missing) ---------------------
 call :find_python
 if defined PY goto :python_ok
 
@@ -38,7 +38,7 @@ echo  Installing Python 3.12 via winget...
 winget install -e --id Python.Python.3.12 --scope machine --accept-source-agreements --accept-package-agreements
 if errorlevel 1 goto :no_winget
 
-:: winget updates the PATH of NEW processes only — find the fresh install
+:: winget updates the PATH of NEW processes only - find the fresh install
 call :find_python
 if defined PY goto :python_ok
 echo.
@@ -146,7 +146,7 @@ pause
 exit /b 0
 
 
-:: ── Subroutine: locate a usable Python ──────────────────────────────────────
+:: --- Subroutine: locate a usable Python -------------------------------------
 :: Sets PY to the interpreter path, or leaves it undefined.
 :: The py launcher is checked first: it finds installs that are NOT on PATH,
 :: which is the most common state after a winget/Store install.
@@ -156,7 +156,10 @@ set "PY="
 :: value breaks every "%PY%" call site).
 for /f "delims=" %%P in ('py -3 -c "import sys;print(sys.executable)" 2^>nul') do set "PY=%%P"
 if defined PY exit /b 0
-for /f "delims=" %%P in ('python -c "import sys;print(sys.executable if sys.version_info>=(3,10) else '''')" 2^>nul') do set "PY=%%P"
+python -c "import sys; sys.exit(0 if sys.version_info >= (3,10) else 1)" >nul 2>&1
+if not errorlevel 1 (
+    for /f "delims=" %%P in ('python -c "import sys;print(sys.executable)" 2^>nul') do set "PY=%%P"
+)
 if defined PY exit /b 0
 for %%D in (
     "%LocalAppData%\Programs\Python\Python313\python.exe"

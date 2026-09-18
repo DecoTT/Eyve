@@ -69,6 +69,47 @@ $projects = Join-Path $DistDir "projects"
 New-Item -ItemType Directory -Path $projects -Force | Out-Null
 Set-Content -Path (Join-Path $projects ".gitkeep") -Value "" -Encoding ascii
 
+# -- validar los .bat ANTES de empaquetar -------------------------------------
+# Historial real: (1) LF en vez de CRLF -> 'La sintaxis del comando no es
+# correcta' y la ventana se cierra antes de cualquier pause; (2) un '|' sin
+# escapar en el banner ASCII -> cmd lo lee como pipe y aborta. Ninguno de los
+# dos se ve en el editor. Se validan aqui y el build FALLA si algo no cuadra.
+Write-Host ""
+Write-Host "  Validando .bat..."
+$batProblems = 0
+foreach ($bat in Get-ChildItem $DistDir -Filter *.bat) {
+    $bytes = [System.IO.File]::ReadAllBytes($bat.FullName)
+    $text  = [System.Text.Encoding]::ASCII.GetString($bytes)
+    $lf = 0; $crlf = 0
+    for ($i = 0; $i -lt $bytes.Length; $i++) {
+        if ($bytes[$i] -eq 0x0A) { $lf++; if ($i -gt 0 -and $bytes[$i-1] -eq 0x0D) { $crlf++ } }
+    }
+    $nonAscii = ($bytes | Where-Object { $_ -gt 0x7F }).Count
+    $issues = @()
+    if ($lf -ne $crlf)    { $issues += "finales de linea LF ($($lf-$crlf) sin CR) - cmd se descarrila" }
+    if ($nonAscii -gt 0)  { $issues += "$nonAscii bytes no-ASCII - codepage impredecible en la PC del tester" }
+    # echo con | < > & sin ^ delante = operador de cmd dentro de un texto
+    $n = 0
+    foreach ($line in ($text -split "`r`n")) {
+        $n++
+        if ($line -match '^\s*echo(\s|\.)(.*)$') {
+            $payload = $Matches[2]
+            if ($payload -match '(?<!\^)[|<>&]') { $issues += "linea ${n}: echo con operador sin escapar -> $($line.Trim())" }
+        }
+    }
+    if ($issues.Count -eq 0) {
+        Write-Host "    OK    $($bat.Name)" -ForegroundColor Green
+    } else {
+        foreach ($m in $issues) { Write-Host "    FALLA $($bat.Name): $m" -ForegroundColor Red }
+        $batProblems += $issues.Count
+    }
+}
+if ($batProblems -gt 0) {
+    Write-Host ""
+    Write-Host "  Build abortado: $batProblems problema(s) en archivos .bat" -ForegroundColor Red
+    exit 1
+}
+
 # -- ZIP ----------------------------------------------------------------------
 Write-Host ""
 Write-Host "  Creating $DistName.zip..."
