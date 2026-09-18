@@ -930,6 +930,14 @@ Lecciones del desarrollo de 2.1. Documentadas para no repetir los mismos errores
   segunda renegociación de +1.4 s y deja la cámara en mal estado.
 - **DSHOW libera de forma asíncrona:** `cap.release()` regresa de inmediato pero el filter
   graph sigue desmontándose 200-500 ms. Requiere reintentos al reabrir entre pantallas.
+- **NUNCA `cap.release()` de un DSHOW en el hilo de Tk:** OpenCV llama `CoUninitialize()`
+  en el hilo que libera. Hacerlo en main mata el apartment COM del `filedialog` y todo
+  `askopenfilename` posterior falla con *"CoInitialize has not been called"*. El grab
+  thread es dueño del capture y lo libera al salir; caps sin loop → `release_async()`.
+  Verificado empíricamente (`camera/release.py` documenta la prueba).
+- **`destroy()` no desregistra hotkeys del toplevel:** los `bind(add=True)` sobreviven a la
+  pantalla y el handler obsoleto ejecuta lógica real con estado viejo antes de reventar.
+  Siempre `on_close()` antes de `destroy()` (`app._teardown_screen`) + `guard_hotkey`.
 
 **Interfaz (Tkinter / CustomTkinter)**
 
