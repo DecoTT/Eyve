@@ -37,6 +37,8 @@ from eyve.ui import theme as T
 from eyve.i18n import t
 from eyve.ui.components.dialogs import show_error
 from eyve.camera.camera_enum import get_camera_labels, label_to_index, label_to_device
+from eyve.camera.release import release_async
+from eyve.ui.hotkeys import guard_hotkey
 
 if TYPE_CHECKING:
     from eyve.ui.app import EyveApp
@@ -333,8 +335,8 @@ class CaptureScreen(ctk.CTkFrame):
         # bind_all is blocked by CustomTkinter — bind to the real Tk toplevel instead
         top = self.winfo_toplevel()
         self._hotkey_ids = [
-            top.bind("<c>", lambda e: self._capture(), add=True),
-            top.bind("<C>", lambda e: self._capture(), add=True),
+            top.bind("<c>", guard_hotkey(self, lambda e: self._capture()), add=True),
+            top.bind("<C>", guard_hotkey(self, lambda e: self._capture()), add=True),
         ]
 
     def _load_cameras_bg(self) -> None:
@@ -374,7 +376,7 @@ class CaptureScreen(ctk.CTkFrame):
         self._prewarm_pending = False
         self._warming = False
         if self._prewarm_cap is not None:
-            self._prewarm_cap.release()
+            release_async(self._prewarm_cap)   # never on the Tk thread (COM)
             self._prewarm_cap = None
         self._prewarm_idx = idx
 
@@ -395,7 +397,7 @@ class CaptureScreen(ctk.CTkFrame):
         from eyve.core.logger import log
         self._warming = False   # stop spinner regardless of outcome
         if self._prewarm_idx != idx:
-            cap.release()   # user switched camera while we were warming
+            release_async(cap)   # user switched camera while we were warming
             return
         if self._prewarm_pending:
             # Start was clicked while the camera was still warming — use it now
@@ -409,7 +411,7 @@ class CaptureScreen(ctk.CTkFrame):
             log.debug(f"  Camera {idx} pre-warmed ✓ — auto-starting preview")
             self._on_camera_ready(cap)   # auto-start live preview, no click needed
         else:
-            cap.release()   # camera already active (user was very fast)
+            release_async(cap)   # camera already active (user was very fast)
 
     # ── canvas loading animation ──────────────────────────────────────────────
     _SPINNER = ["◐", "◓", "◑", "◒"]
@@ -556,7 +558,7 @@ class CaptureScreen(ctk.CTkFrame):
     def _on_camera_ready(self, cap: cv2.VideoCapture) -> None:
         """Called on the main thread once the camera has been opened in background."""
         if not cap.isOpened():
-            cap.release()
+            release_async(cap)
             self._status.configure(text=t("cap_no_camera"), text_color=T.DANGER)
             self._start_btn.configure(state="normal")
             return
@@ -581,9 +583,13 @@ class CaptureScreen(ctk.CTkFrame):
         self._running = False
         self._prewarm_pending = False
         self._stop_recording()          # finalize any active recording
-        if self._cap:
-            self._cap.release()
-            self._cap = None
+        # The grab thread owns the capture and releases it on exit.  We only
+        # drop our reference.  Releasing here (Tk main thread) would call
+        # CoUninitialize() on main via DSHOW and break every file dialog
+        # afterwards — see eyve/camera/release.py.
+        cap, self._cap = self._cap, None
+        if cap is not None and not (self._thread and self._thread.is_alive()):
+            release_async(cap)      # edge: capture without a live grab loop
         self._start_btn.configure(state="normal")
         self._stop_btn.configure(state="disabled")
         self._cap_btn.configure(state="disabled")
@@ -607,26 +613,36 @@ class CaptureScreen(ctk.CTkFrame):
         disk or codec never throttles the preview or capture FPS.
         """
         is_video = self._source_var.get() == "video"
-        while self._running and self._cap and self._cap.isOpened():
-            ret, frame = self._cap.read()
-            if not ret:
+        # This thread OWNS the capture: local ref, released on exit (COM-safe).
+        cap = self._cap
+        if cap is None:
+            return
+        try:
+            while self._running and cap.isOpened():
+                ret, frame = cap.read()
+                if not ret:
+                    if is_video:
+                        cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                        continue
+                    break
+                with self._frame_lock:
+                    self._latest_frame = frame
+                    self._last_frame   = frame   # for still capture
+                # Camera FPS counter (rolling window)
+                self._cam_fps_times.append(time.monotonic())
+                # Push to recording queue — never block the camera loop
+                if self._recording:
+                    try:
+                        self._rec_queue.put_nowait(frame.copy())
+                    except queue.Full:
+                        pass   # encoder is behind — drop this frame silently
                 if is_video:
-                    self._cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                    continue
-                break
-            with self._frame_lock:
-                self._latest_frame = frame
-                self._last_frame   = frame   # for still capture
-            # Camera FPS counter (rolling window)
-            self._cam_fps_times.append(time.monotonic())
-            # Push to recording queue — never block the camera loop
-            if self._recording:
-                try:
-                    self._rec_queue.put_nowait(frame.copy())
-                except queue.Full:
-                    pass   # encoder is behind — drop this frame silently
-            if is_video:
-                time.sleep(1 / 30)
+                    time.sleep(1 / 30)
+        finally:
+            try:
+                cap.release()   # on the grab thread, never on Tk's
+            except Exception:
+                pass
 
     # ── recording writer loop (dedicated thread) ──────────────────────────────
     def _record_writer_loop(self) -> None:
@@ -922,7 +938,7 @@ class CaptureScreen(ctk.CTkFrame):
         self._stop()
         # Release any camera that finished warming while we weren't watching.
         if self._prewarm_cap is not None:
-            self._prewarm_cap.release()
+            release_async(self._prewarm_cap)
             self._prewarm_cap = None
         self._prewarm_idx = -1
         self._warming = False
@@ -954,5 +970,5 @@ class CaptureScreen(ctk.CTkFrame):
         self._stop()
         # Release pre-warmed cap if the screen is torn down before Start is clicked
         if self._prewarm_cap is not None:
-            self._prewarm_cap.release()
+            release_async(self._prewarm_cap)
             self._prewarm_cap = None

@@ -19,6 +19,7 @@ from eyve.core.project_manager import (
     create_project, load_project, validate_name,
 )
 from eyve.ui.components.dialogs import show_error, show_info
+from eyve.camera.release import release_async
 from eyve.camera.camera_enum import get_camera_labels, label_to_index
 from eyve.ui.screens.capture_screen import _open_camera
 
@@ -360,7 +361,7 @@ class _CameraTestDialog(ctk.CTkToplevel):
             return  # already warming or warmed — don't open a second time
         self._prewarm_pending = False
         if self._prewarm_cap is not None:
-            self._prewarm_cap.release()
+            release_async(self._prewarm_cap)
             self._prewarm_cap = None
         self._prewarm_idx = idx
 
@@ -372,7 +373,7 @@ class _CameraTestDialog(ctk.CTkToplevel):
 
     def _on_prewarm_ready(self, idx: int, cap: cv2.VideoCapture) -> None:
         if self._prewarm_idx != idx:
-            cap.release()
+            release_async(cap)
             return
         if self._prewarm_pending:
             self._prewarm_pending = False
@@ -381,7 +382,7 @@ class _CameraTestDialog(ctk.CTkToplevel):
         elif not self._running:
             self._prewarm_cap = cap
         else:
-            cap.release()
+            release_async(cap)
 
     def _refresh_cam_test(self) -> None:
         self._cam_idx.configure(values=["⟳  Refreshing…"], state="disabled")
@@ -414,7 +415,7 @@ class _CameraTestDialog(ctk.CTkToplevel):
 
     def _on_camera_ready(self, cap: cv2.VideoCapture) -> None:
         if not cap.isOpened():
-            cap.release()
+            release_async(cap)
             self._status.configure(text=t("cap_no_camera"), text_color=T.DANGER)
             return
         self._cap = cap
@@ -427,12 +428,23 @@ class _CameraTestDialog(ctk.CTkToplevel):
         self._display_loop()
 
     def _grab_loop(self) -> None:
-        while self._running and self._cap and self._cap.isOpened():
-            ret, frame = self._cap.read()
-            if not ret:
-                break
-            with self._frame_lock:
-                self._latest_frame = frame
+        # This thread OWNS the capture: released here, never on Tk's thread
+        # (DSHOW CoUninitialize on main breaks file dialogs — camera/release.py)
+        cap = self._cap
+        if cap is None:
+            return
+        try:
+            while self._running and cap.isOpened():
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                with self._frame_lock:
+                    self._latest_frame = frame
+        finally:
+            try:
+                cap.release()
+            except Exception:
+                pass
 
     def _display_loop(self) -> None:
         if not self._running:
@@ -463,14 +475,14 @@ class _CameraTestDialog(ctk.CTkToplevel):
 
     def _stop(self) -> None:
         self._running = False
-        if self._cap:
-            self._cap.release()
-            self._cap = None
+        cap, self._cap = self._cap, None
+        if cap is not None and not (self._thread and self._thread.is_alive()):
+            release_async(cap)
         self._fps_lbl.configure(text="")
 
     def _on_close(self) -> None:
         self._stop()
         if self._prewarm_cap is not None:
-            self._prewarm_cap.release()
+            release_async(self._prewarm_cap)
             self._prewarm_cap = None
         self.destroy()

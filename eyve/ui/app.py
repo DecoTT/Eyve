@@ -113,6 +113,38 @@ class EyveApp(ctk.CTk):
             raise ValueError(f"Unknown screen key: {key}")
         return cls(self.content, app=self)
 
+    # ── screen teardown ──────────────────────────────────────────────────────
+    def _teardown_screen(self, screen) -> None:
+        """
+        Destroy a cached screen PROPERLY.
+
+        A bare destroy() leaves the screen's toplevel hotkey bindings alive
+        (they were registered with bind(add=True) on the root) pointing at
+        dead widgets.  Seen in the field after re-opening a project: every
+        keypress ran the STALE instance's handler too.  That is worse than
+        the TclError noise it produces — the stale handler executes real
+        logic with obsolete state (e.g. _save_labels() against its old
+        _idx/_boxes, overwriting someone else's label file) before it dies
+        touching a destroyed widget.
+        on_close() unbinds hotkeys and releases cameras/threads first.
+        """
+        try:
+            if hasattr(screen, "on_hide") and screen.winfo_ismapped():
+                screen.on_hide()
+        except Exception:
+            log.debug("on_hide failed during teardown", exc_info=True)
+        try:
+            if hasattr(screen, "on_close"):
+                screen.on_close()
+        except Exception:
+            log.debug("on_close failed during teardown", exc_info=True)
+        screen.destroy()
+
+    def _teardown_all_screens(self) -> None:
+        for s in list(self._screens.values()):
+            self._teardown_screen(s)
+        self._screens.clear()
+
     # ── project helpers ──────────────────────────────────────────────────────
     def set_project(self, project: Project) -> None:
         self._project = project
@@ -121,7 +153,7 @@ class EyveApp(ctk.CTk):
         for key in ("nav_classes", "nav_capture", "nav_tagging",
                     "nav_training", "nav_production"):
             if key in self._screens:
-                self._screens[key].destroy()
+                self._teardown_screen(self._screens[key])
                 del self._screens[key]
         log.info(f"App: project set to {project.name}")
 
@@ -136,9 +168,7 @@ class EyveApp(ctk.CTk):
         set_language(lang)
         config.set("language", lang)
         self.sidebar.refresh_labels()
-        for s in self._screens.values():
-            s.destroy()
-        self._screens.clear()
+        self._teardown_all_screens()
         self._navigate("nav_home")
 
     # ── theme ─────────────────────────────────────────────────────────────────
@@ -160,9 +190,7 @@ class EyveApp(ctk.CTk):
             self.status_bar.set_project(self._project.name)
         self._check_license()
         # rebuild screens
-        for s in self._screens.values():
-            s.destroy()
-        self._screens.clear()
+        self._teardown_all_screens()
         self._navigate("nav_home")
 
     # ── license ──────────────────────────────────────────────────────────────

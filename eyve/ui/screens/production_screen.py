@@ -32,6 +32,7 @@ from eyve.production.ok_nok_logic import decide, InspectionStatus, InspectionRes
 from eyve.production.production_session import ProductionSession
 from eyve.ui.components.dialogs import show_error
 from eyve.camera.camera_enum import get_camera_labels, label_to_index
+from eyve.ui.hotkeys import guard_hotkey
 
 if TYPE_CHECKING:
     from eyve.ui.app import EyveApp
@@ -137,7 +138,8 @@ class ProductionScreen(ctk.CTkFrame):
 
         # Space-bar hot-key (bound before auto-start so it's always available)
         top = self.winfo_toplevel()
-        self._hotkey_ids = [top.bind("<space>", lambda e: self._space_action(), add=True)]
+        self._hotkey_ids = [top.bind(
+            "<space>", guard_hotkey(self, lambda e: self._space_action()), add=True)]
 
         # Model load happens once at creation time (background thread).
         # Camera auto-start is handled by on_show() so it fires exactly once

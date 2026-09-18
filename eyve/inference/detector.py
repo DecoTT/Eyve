@@ -182,32 +182,51 @@ class VideoSource:
         return True
 
     def stop(self) -> None:
+        """
+        Stop the grab loop.  The capture is released BY THE LOOP THREAD on
+        its way out — never here.  stop() is called from the Tk main thread,
+        and releasing a DSHOW capture there calls CoUninitialize() on main,
+        which kills Tk's COM apartment (every file dialog afterwards fails
+        with "CoInitialize has not been called").  See eyve/camera/release.py.
+        """
         self._running = False
-        if self._cap:
-            self._cap.release()
-            self._cap = None
+        t = self._thread
+        if t is not None and t.is_alive() and threading.current_thread() is not t:
+            t.join(timeout=3.0)   # read() returns within a frame period
+        self._thread = None
+        self._cap = None
 
     def read(self) -> Optional[np.ndarray]:
         with self._lock:
             return self._frame.copy() if self._frame is not None else None
 
     def _loop(self) -> None:
+        # This thread OWNS the capture: local reference, released on exit.
+        cap = self._cap
+        if cap is None:
+            return
         # Video files must be paced to their native FPS — reading flat-out
         # would play them at CPU speed.  Cameras self-throttle in cap.read().
         is_file = isinstance(self._source, str)
         delay = 0.0
-        if is_file and self._cap is not None:
-            fps = self._cap.get(cv2.CAP_PROP_FPS) or 30.0
+        if is_file:
+            fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
             delay = 1.0 / (fps if fps > 0 else 30.0)
-        while self._running and self._cap and self._cap.isOpened():
-            ret, frame = self._cap.read()
-            if ret:
-                with self._lock:
-                    self._frame = frame
-                if delay:
-                    time.sleep(delay)
-            else:
-                if is_file:
-                    # loop the file endlessly (validation playback)
-                    self._cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                time.sleep(0.01)
+        try:
+            while self._running and cap.isOpened():
+                ret, frame = cap.read()
+                if ret:
+                    with self._lock:
+                        self._frame = frame
+                    if delay:
+                        time.sleep(delay)
+                else:
+                    if is_file:
+                        # loop the file endlessly (validation playback)
+                        cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    time.sleep(0.01)
+        finally:
+            try:
+                cap.release()   # on THIS thread — COM-safe
+            except Exception:
+                pass

@@ -34,6 +34,8 @@ from eyve.ui import theme as T
 from eyve.i18n import t
 from eyve.ui.components.dialogs import show_error
 from eyve.camera.camera_enum import get_camera_labels, label_to_index
+from eyve.camera.release import release_async
+from eyve.ui.hotkeys import guard_hotkey
 
 if TYPE_CHECKING:
     from eyve.ui.app import EyveApp
@@ -209,7 +211,7 @@ class TaggingScreen(ctk.CTkFrame):
         self._hotkey_ids: list[tuple[str, str]] = []
 
         def _hk(seq: str, fn) -> None:
-            bid = top.bind(seq, fn, add=True)
+            bid = top.bind(seq, guard_hotkey(self, fn), add=True)
             self._hotkey_ids.append((seq, bid))
 
         _hk("<n>",      lambda e: self._next())
@@ -490,9 +492,12 @@ class TaggingScreen(ctk.CTkFrame):
         self._video_paused = False
         self._seek_target = None
         self._playbar.grid_remove()
-        if self._cap:
-            self._cap.release()
-            self._cap = None
+        # The grab thread owns the capture and releases it on exit.  Never
+        # release here on the Tk thread: DSHOW's CoUninitialize() would kill
+        # the COM apartment behind every file dialog (eyve/camera/release.py).
+        cap, self._cap = self._cap, None
+        if cap is not None and not (self._live_thread and self._live_thread.is_alive()):
+            release_async(cap)
         self._frozen_frame = None
         self._cam_start_btn.configure(state="normal")
         self._cam_stop_btn.configure(state="disabled")
@@ -513,33 +518,43 @@ class TaggingScreen(ctk.CTkFrame):
             user can draw boxes on it.
         """
         is_video = self._src_var.get() == "video"
-        while self._live_running and self._cap and self._cap.isOpened():
-            if is_video:
-                seek = self._seek_target
-                if seek is not None:
-                    self._seek_target = None
-                    self._cap.set(cv2.CAP_PROP_POS_FRAMES, seek)
-                    ret, frame = self._cap.read()
-                    if ret:
-                        with self._frame_lock:
-                            self._live_frame = frame
-                        self._video_pos = seek
-                        self._frame_dirty = True   # repaint even while paused
-                    continue
-                if self._video_paused:
-                    time.sleep(0.05)
-                    continue
-            ret, frame = self._cap.read()
-            if not ret:
+        # This thread OWNS the capture: local ref, released on exit (COM-safe).
+        cap = self._cap
+        if cap is None:
+            return
+        try:
+            while self._live_running and cap.isOpened():
                 if is_video:
-                    self._cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                    continue
-                break
-            with self._frame_lock:
-                self._live_frame = frame
-            if is_video:
-                self._video_pos = int(self._cap.get(cv2.CAP_PROP_POS_FRAMES))
-                time.sleep(1 / 30)
+                    seek = self._seek_target
+                    if seek is not None:
+                        self._seek_target = None
+                        cap.set(cv2.CAP_PROP_POS_FRAMES, seek)
+                        ret, frame = cap.read()
+                        if ret:
+                            with self._frame_lock:
+                                self._live_frame = frame
+                            self._video_pos = seek
+                            self._frame_dirty = True   # repaint even while paused
+                        continue
+                    if self._video_paused:
+                        time.sleep(0.05)
+                        continue
+                ret, frame = cap.read()
+                if not ret:
+                    if is_video:
+                        cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                        continue
+                    break
+                with self._frame_lock:
+                    self._live_frame = frame
+                if is_video:
+                    self._video_pos = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
+                    time.sleep(1 / 30)
+        finally:
+            try:
+                cap.release()   # on the grab thread, never on Tk's
+            except Exception:
+                pass
 
     def _live_display_loop(self) -> None:
         """Main thread: paint latest live frame (unless frozen for annotation)."""
