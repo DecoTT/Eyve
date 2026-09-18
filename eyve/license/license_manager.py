@@ -1,193 +1,415 @@
 """
-License manager — 30-day trial + HMAC-signed device-bound keys with expiry.
+License manager — Eyve 2.1 · contrato con sbcsuite (docs/licencias-eyve.md).
 
-State stored in ~/.eyve/license.json
-Status values: "trial" | "expired" | "activated" | "license_expired"
+La llave es un JWT firmado con EdDSA (Ed25519) que emite la tienda
+(sbcsuite.com.mx). Lleva dentro todo lo que Eyve necesita para decidir SIN RED:
+nivel, titular, emisión y vencimiento. Se verifica aquí con la clave pública
+embebida; el servidor es *aditivo*: registra el equipo, cuenta hasta tres y
+entrega renovaciones. Si no hay red, Eyve corre igual.
 
-Key format:  EYVE-XXXX-XXXX-XXXX-XXXX
-             \\___hmac_sig_12___/ \\exp/
-  - Groups 1-3 (12 hex chars): first 6 bytes of HMAC-SHA256(SECRET, fp|expiry)
-  - Group 4   (4  hex chars):  days since 2025-01-01 encoded as 16-bit hex
+Regla de la casa: POR HONOR. NADA BLOQUEA.
+  - Sin llave              -> Eyve Free.
+  - Llave falsa            -> aviso claro, sigue en Free.
+  - Llave vencida          -> sigue con el nivel que trae y avisa en cada arranque.
+  - Sin cupo (4.º equipo)  -> aviso con la lista de equipos, sigue funcionando.
+  - Sin red                -> se guarda y se reintenta al siguiente arranque.
 
-Generation:  tools/gen_license.py <device_id> <YYYY-MM-DD>
-Validation:  fully offline — no network calls needed.
+Archivos (junto al config de la app, ~/.eyve/):
+  licencia.jwt   la llave tal cual se pegó (una sola; pegar otra la reemplaza)
+  licencia.json  estado local: activación pendiente, último check-in, lo que
+                 contestó el servidor la última vez (equipos, estado real)
 
-AGPL note: This is part of the official build experience.
-Users who build from source may modify or remove this — that is permitted
-under AGPL-3.0. Do not add anti-circumvention language here.
+AGPL note: this is part of the official build experience. Users who build
+from source may modify or remove this — that is permitted under AGPL-3.0.
 """
 from __future__ import annotations
+
 import hashlib
-import hmac as _hmac_mod
 import json
-from datetime import date, datetime, timedelta
+import platform
+import threading
+import urllib.error
+import urllib.request
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Callable, Optional
 
-_LICENSE_FILE = Path.home() / ".eyve" / "license.json"
-_TRIAL_DAYS   = 30
-_EPOCH        = date(2025, 1, 1)   # day-counter base
+import jwt
+from jwt.algorithms import OKPAlgorithm
 
-# HMAC secret — change before release; keep identical in gen_license.py
-_SECRET = b"Eyve-SBC-K9mN-pQrS-tUvW-2025"
+from eyve import __version__ as EYVE_VERSION
+
+# ── contrato ──────────────────────────────────────────────────────────────────
+
+ISSUER = "sbcgroup.com.mx/eyve"
+# Clave PÚBLICA de firma (supabase/functions/_shared/eyve-public.jwk.json).
+# La privada sólo existe en el servidor.
+PUBLIC_JWK = {
+    "kty": "OKP", "crv": "Ed25519", "alg": "EdDSA", "kid": "eyve-lic-2026-09",
+    "x": "aCG1V9fOCcbprd2YnSKGqT6nT1mPbDvN7yv6-qrsO50",
+}
+SUPABASE_URL = "https://dmwcaohtaftbvmixbplr.supabase.co"
+# Anon key del proyecto: pública por diseño (la misma que usa la tienda).
+ANON_KEY = (
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+    "eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtd2Nhb2h0YWZ0YnZtaXhicGxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMjM0NzUsImV4cCI6MjA3MTg5OTQ3NX0."
+    "7y2BoM5laL9gRdgaH8YyiXiSDnVKjKQKYCN_5SEjfj0"
+)
+URL_CUENTA_LICENCIAS = "https://sbcsuite.com.mx/store/cuenta/licencias"
+URL_COMPRAR = "https://sbcgroup.com.mx/prueba-eyve/"
+
+NIVELES = ("free", "estudiante", "normal", "pro")
+NIVEL_LABEL = {"free": "Free", "estudiante": "Estudiante", "normal": "Normal", "pro": "Pro"}
+MAX_EQUIPOS_DEFAULT = 3
+CHECKIN_CADA = timedelta(days=7)
+_HTTP_TIMEOUT = 8
+
+_APP_DIR = Path.home() / ".eyve"
+_KEY_FILE = _APP_DIR / "licencia.jwt"
+_STATE_FILE = _APP_DIR / "licencia.json"
+
+_PUB = OKPAlgorithm.from_jwk(json.dumps(PUBLIC_JWK))
 
 
-# ── key generation (also used by gen_license.py) ──────────────────────────────
+class LlaveInvalida(Exception):
+    """Firma falsa, emisor equivocado o formato roto. NO es 'vencida'."""
 
-def make_key(fingerprint: str, expiry_date: str) -> str:
+
+# ── la llave ──────────────────────────────────────────────────────────────────
+
+@dataclass
+class Licencia:
+    llave: str
+    nivel: str
+    sub: str                 # correo del titular
+    jti: str                 # id en la base de sbcsuite
+    exp: datetime
+    iat: Optional[datetime]
+    nombre: str = ""
+    maxeq: int = MAX_EQUIPOS_DEFAULT
+
+    @property
+    def vencida(self) -> bool:
+        return datetime.now(timezone.utc) > self.exp
+
+    @property
+    def vence_str(self) -> str:
+        return self.exp.astimezone().strftime("%Y-%m-%d")
+
+    @property
+    def titular(self) -> str:
+        return self.nombre or self.sub
+
+
+def leer_llave(llave: str) -> Licencia:
     """
-    Generate a license key.
-
-    fingerprint  — device ID, e.g. "A1B2-C3D4-E5F6"
-    expiry_date  — "YYYYMMDD"
-
-    Returns "EYVE-XXXX-XXXX-XXXX-XXXX"
+    Verifica firma + emisor SIN RED y devuelve los claims.
+    Lanza LlaveInvalida si la firma es falsa. Una llave vencida se devuelve
+    igual (con .vencida = True): por honor, no se degrada.
     """
-    fp_clean = fingerprint.replace("-", "").upper()
-    message  = f"{fp_clean}|{expiry_date}".encode()
-    sig      = _hmac_mod.new(_SECRET, message, hashlib.sha256).hexdigest().upper()
-
-    exp      = date(int(expiry_date[:4]), int(expiry_date[4:6]), int(expiry_date[6:8]))
-    exp_hex  = f"{(exp - _EPOCH).days:04X}"
-
-    h = sig[:12]
-    return f"EYVE-{h[:4]}-{h[4:8]}-{h[8:12]}-{exp_hex}"
-
-
-def _parse_key(key: str) -> tuple[bool, str, str]:
-    """
-    Parse and validate key structure.
-    Returns (ok, hmac_part_12, expiry_YYYYMMDD).
-    """
-    key   = key.strip().upper().replace(" ", "")
-    parts = key.split("-")
-    if len(parts) != 5 or parts[0] != "EYVE":
-        return False, "", ""
-    if not all(len(p) == 4 for p in parts[1:]):
-        return False, "", ""
+    llave = (llave or "").strip()
+    if not llave:
+        raise LlaveInvalida("empty")
     try:
-        int(parts[1] + parts[2] + parts[3], 16)   # must be valid hex
-        days     = int(parts[4], 16)
-        exp_date = _EPOCH + timedelta(days=days)
-        expiry   = exp_date.strftime("%Y%m%d")
-    except (ValueError, OverflowError):
-        return False, "", ""
-    return True, parts[1] + parts[2] + parts[3], expiry
+        claims = jwt.decode(
+            llave, key=_PUB, algorithms=["EdDSA"], issuer=ISSUER,
+            options={"verify_exp": False, "require": ["exp", "sub", "jti", "iss"]},
+        )
+    except jwt.PyJWTError as e:
+        raise LlaveInvalida(str(e)) from e
+    nivel = str(claims.get("nivel", "")).lower()
+    if nivel not in NIVELES:
+        raise LlaveInvalida(f"nivel desconocido: {nivel!r}")
+    iat = claims.get("iat")
+    return Licencia(
+        llave=llave, nivel=nivel, sub=str(claims["sub"]), jti=str(claims["jti"]),
+        exp=datetime.fromtimestamp(int(claims["exp"]), tz=timezone.utc),
+        iat=datetime.fromtimestamp(int(iat), tz=timezone.utc) if iat else None,
+        nombre=str(claims.get("nombre") or ""),
+        maxeq=int(claims.get("maxeq") or MAX_EQUIPOS_DEFAULT),
+    )
 
 
-def validate_key(fingerprint: str, key: str) -> tuple[bool, str]:
-    """
-    Verify key against device fingerprint.
-    Returns (valid: bool, message: str).
-    message on success = expiry "YYYYMMDD"; on failure = error description.
-    """
-    ok, hmac_part, expiry = _parse_key(key)
-    if not ok:
-        return False, "Invalid key format"
+# ── el equipo ─────────────────────────────────────────────────────────────────
 
-    # Check expiry
-    exp_date = date(int(expiry[:4]), int(expiry[4:6]), int(expiry[6:8]))
-    if exp_date < date.today():
-        return False, f"Key expired on {exp_date.strftime('%Y-%m-%d')}"
-
-    # Verify HMAC
-    fp_clean = fingerprint.replace("-", "").upper()
-    message  = f"{fp_clean}|{expiry}".encode()
-    expected = _hmac_mod.new(_SECRET, message, hashlib.sha256).hexdigest().upper()[:12]
-
-    if not _hmac_mod.compare_digest(hmac_part, expected):
-        return False, "Key does not match this device"
-
-    return True, expiry
-
-
-# ── persistence helpers ────────────────────────────────────────────────────────
-
-def _load() -> dict:
-    if _LICENSE_FILE.exists():
+def _machine_id() -> str:
+    """Id de máquina que no cambia entre arranques. MachineGuid en Windows."""
+    if platform.system() == "Windows":
         try:
-            with open(_LICENSE_FILE, encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                                r"SOFTWARE\Microsoft\Cryptography",
+                                0, winreg.KEY_READ | winreg.KEY_WOW64_64KEY) as k:
+                return str(winreg.QueryValueEx(k, "MachineGuid")[0])
+        except OSError:
             pass
-    return {}
+    for p in ("/etc/machine-id", "/var/lib/dbus/machine-id"):
+        try:
+            return Path(p).read_text().strip()
+        except OSError:
+            pass
+    return str(uuid.getnode())
 
 
-def _save(data: dict) -> None:
-    _LICENSE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(_LICENSE_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
+def hash_equipo() -> str:
+    """sha256 hex (64 chars) del id de máquina. Es lo que identifica al equipo
+    en sbcsuite para liberarlo después: no debe cambiar entre arranques."""
+    return hashlib.sha256(f"{_machine_id()}|eyve".encode()).hexdigest()
 
 
-# ── manager ────────────────────────────────────────────────────────────────────
+def nombre_equipo() -> str:
+    return (platform.node() or "equipo")[:120]
+
+
+# ── estado local ──────────────────────────────────────────────────────────────
+
+@dataclass
+class EstadoServidor:
+    """Lo último que contestó sbcsuite. Informativo: nunca decide si Eyve corre."""
+    estado: str = ""                 # vigente · vencida · revocada · pendiente
+    equipos_activos: int = 0
+    max_equipos: int = MAX_EQUIPOS_DEFAULT
+    motivo: str = ""                 # sin_cupo · llave_invalida · no_registrada · sin_red · ...
+    mensaje: str = ""
+    equipos: list = field(default_factory=list)
+    consultado_en: str = ""          # ISO
+
+
+def _load_json(p: Path) -> dict:
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def _save_json(p: Path, data: dict) -> None:
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+
 
 class LicenseManager:
+    """
+    Una sola llave activa. Lectura barata: se puede instanciar donde haga falta.
+    Las llamadas de red van en `activar_online` / `checkin`, pensadas para
+    correr en hilo; nunca hay que esperarlas para arrancar.
+    """
+
     def __init__(self) -> None:
-        self._data = _load()
-        if "first_run" not in self._data:
-            self._data["first_run"] = date.today().isoformat()
-            _save(self._data)
+        self._state: dict = _load_json(_STATE_FILE)
+        self.licencia: Optional[Licencia] = None
+        self.error_llave: str = ""       # llave guardada pero inválida
+        self._cargar_llave()
+
+    # ── carga / guardado ─────────────────────────────────────────────────────
+
+    def _cargar_llave(self) -> None:
+        self.licencia, self.error_llave = None, ""
+        if not _KEY_FILE.exists():
+            return
+        try:
+            self.licencia = leer_llave(_KEY_FILE.read_text(encoding="utf-8"))
+        except LlaveInvalida as e:
+            self.error_llave = str(e)
+
+    def _save_state(self) -> None:
+        _save_json(_STATE_FILE, self._state)
+
+    # ── lo que Eyve consulta ─────────────────────────────────────────────────
+
+    @property
+    def nivel(self) -> str:
+        """Nivel efectivo. Sin llave o llave falsa → free. Vencida → el que trae."""
+        return self.licencia.nivel if self.licencia else "free"
+
+    @property
+    def nivel_label(self) -> str:
+        return NIVEL_LABEL[self.nivel]
 
     def status(self) -> str:
-        """Return 'trial' | 'expired' | 'activated' | 'license_expired'."""
-        if self._data.get("activated"):
-            # Check if the stored license key has expired
-            expiry_str = self._data.get("expiry")
-            if expiry_str:
-                try:
-                    exp = date(int(expiry_str[:4]),
-                               int(expiry_str[4:6]),
-                               int(expiry_str[6:8]))
-                    if exp < date.today():
-                        return "license_expired"
-                except (ValueError, TypeError):
-                    pass
-            return "activated"
-        days = self.days_remaining()
-        return "trial" if days > 0 else "expired"
+        """'sin_llave' | 'invalida' | 'vigente' | 'vencida'"""
+        if self.licencia is None:
+            return "invalida" if self.error_llave else "sin_llave"
+        return "vencida" if self.licencia.vencida else "vigente"
 
-    def days_remaining(self) -> int:
-        first   = date.fromisoformat(self._data.get("first_run", date.today().isoformat()))
-        elapsed = (date.today() - first).days
-        return max(0, _TRIAL_DAYS - elapsed)
+    def es_pro(self) -> bool:
+        return self.nivel == "pro"
 
-    def expiry_date(self) -> str:
-        """Return license expiry as 'YYYY-MM-DD', or '' if not activated."""
-        raw = self._data.get("expiry", "")
-        if len(raw) == 8:
-            return f"{raw[:4]}-{raw[4:6]}-{raw[6:8]}"
-        return ""
+    def permite_checks_avanzados(self) -> bool:
+        """Módulos de check de SBC (polaridad, flujo, serigrafía, patrones): Pro.
+        Free: detección, conteo y log. Estudiante/Normal: plataforma abierta."""
+        return self.nivel == "pro"
 
-    def activate(self, key: str) -> tuple[bool, str]:
+    @property
+    def servidor(self) -> EstadoServidor:
+        d = self._state.get("servidor") or {}
+        return EstadoServidor(**{k: d[k] for k in EstadoServidor.__dataclass_fields__ if k in d})
+
+    @property
+    def activacion_pendiente(self) -> bool:
+        return bool(self.licencia) and bool(self._state.get("pendiente_activar"))
+
+    @property
+    def ultimo_checkin(self) -> Optional[datetime]:
+        raw = self._state.get("ultimo_checkin")
+        try:
+            return datetime.fromisoformat(raw) if raw else None
+        except ValueError:
+            return None
+
+    def resumen(self) -> str:
+        """Una línea para la barra de estado."""
+        lic = self.licencia
+        if lic is None:
+            return "Eyve Free"
+        s = f"Eyve {NIVEL_LABEL[lic.nivel]} · {lic.titular}"
+        if lic.vencida:
+            s += f" · vencida {lic.vence_str}"
+        return s
+
+    # ── pegar / quitar llave ─────────────────────────────────────────────────
+
+    def guardar_llave(self, llave: str) -> Licencia:
         """
-        Validate and activate a license key.
-        Returns (success: bool, message: str).
+        Verifica sin red y guarda. Reemplaza la anterior. Lanza LlaveInvalida.
+        Deja la activación pendiente: llama a `activar_online` (en hilo) después.
         """
-        fp = device_fingerprint()
-        ok, result = validate_key(fp, key)
-        if ok:
-            self._data["activated"]    = True
-            self._data["key"]          = key.strip().upper()
-            self._data["expiry"]       = result          # "YYYYMMDD"
-            self._data["activated_at"] = datetime.now().isoformat()
-            _save(self._data)
-            return True, result
-        return False, result
+        lic = leer_llave(llave)
+        _APP_DIR.mkdir(parents=True, exist_ok=True)
+        _KEY_FILE.write_text(lic.llave, encoding="utf-8")
+        # Llave nueva: el estado del servidor de la anterior ya no aplica.
+        self._state = {"pendiente_activar": True, "guardada_en": _now_iso()}
+        self._save_state()
+        self._cargar_llave()
+        return lic
 
-    def deactivate(self) -> None:
-        for k in ("activated", "key", "expiry", "activated_at"):
-            self._data.pop(k, None)
-        _save(self._data)
+    def quitar_llave(self) -> None:
+        try:
+            _KEY_FILE.unlink()
+        except OSError:
+            pass
+        self._state = {}
+        self._save_state()
+        self._cargar_llave()
+
+    # ── red ──────────────────────────────────────────────────────────────────
+
+    def _post(self, fn: str, body: dict) -> tuple[int, dict]:
+        req = urllib.request.Request(
+            f"{SUPABASE_URL}/functions/v1/{fn}",
+            data=json.dumps(body).encode("utf-8"), method="POST",
+            headers={"Content-Type": "application/json", "apikey": ANON_KEY,
+                     "Authorization": f"Bearer {ANON_KEY}",
+                     "User-Agent": f"Eyve/{EYVE_VERSION}"},
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=_HTTP_TIMEOUT) as r:
+                return r.status, json.loads(r.read().decode("utf-8") or "{}")
+        except urllib.error.HTTPError as e:
+            try:
+                return e.code, json.loads(e.read().decode("utf-8") or "{}")
+            except ValueError:
+                return e.code, {}
+        except (urllib.error.URLError, OSError, ValueError) as e:
+            raise ConnectionError(str(e)) from e
+
+    def _guardar_respuesta(self, code: int, j: dict, *, checkin: bool) -> EstadoServidor:
+        srv = EstadoServidor(
+            estado=str(j.get("estado", "")),
+            equipos_activos=int(j.get("equipos_activos") or 0),
+            max_equipos=int(j.get("max_equipos") or (self.licencia.maxeq if self.licencia else MAX_EQUIPOS_DEFAULT)),
+            motivo="" if j.get("ok") else str(j.get("motivo") or f"http_{code}"),
+            mensaje=str(j.get("mensaje") or ""),
+            equipos=list(j.get("equipos") or []),
+            consultado_en=_now_iso(),
+        )
+        self._state["servidor"] = srv.__dict__
+        if j.get("ok"):
+            self._state["pendiente_activar"] = False
+            self._state["ultimo_checkin"] = _now_iso()
+        elif srv.motivo in ("sin_cupo", "llave_invalida", "no_registrada"):
+            # Respuesta definitiva: no tiene caso reintentar en cada arranque.
+            self._state["pendiente_activar"] = False
+        self._save_state()
+        return srv
+
+    def activar_online(self) -> EstadoServidor:
+        """
+        POST licencia-activar. Registra este equipo (o cuenta como check-in si
+        ya estaba). Lanza ConnectionError si no hay red: el llamador decide
+        (normalmente: nada, se reintenta al siguiente arranque).
+        """
+        if not self.licencia:
+            raise RuntimeError("sin llave")
+        code, j = self._post("licencia-activar", {
+            "llave": self.licencia.llave, "hash_equipo": hash_equipo(),
+            "nombre_equipo": nombre_equipo(), "version_eyve": EYVE_VERSION,
+        })
+        return self._guardar_respuesta(code, j, checkin=False)
+
+    def checkin(self) -> EstadoServidor:
+        """
+        POST licencia-estado. Actualiza último check-in, trae el estado real y,
+        si hay `llave_nueva` (renovación), la guarda en lugar de la actual.
+        """
+        if not self.licencia:
+            raise RuntimeError("sin llave")
+        code, j = self._post("licencia-estado", {
+            "llave": self.licencia.llave, "hash_equipo": hash_equipo(),
+            "version_eyve": EYVE_VERSION,
+        })
+        srv = self._guardar_respuesta(code, j, checkin=True)
+        nueva = j.get("llave_nueva")
+        if j.get("ok") and nueva:
+            try:
+                lic = leer_llave(nueva)
+                _KEY_FILE.write_text(lic.llave, encoding="utf-8")
+                self._state["renovada_en"] = _now_iso()
+                # El equipo ya está registrado bajo la anterior; la nueva se
+                # activa en el siguiente arranque con red.
+                self._state["pendiente_activar"] = True
+                self._save_state()
+                self._cargar_llave()
+            except LlaveInvalida:
+                pass
+        return srv
+
+    def comprobar(self) -> EstadoServidor:
+        """Lo que hace el botón 'Comprobar ahora' y el arranque con red."""
+        return self.activar_online() if self.activacion_pendiente else self.checkin()
+
+    def toca_checkin(self) -> bool:
+        if not self.licencia:
+            return False
+        if self.activacion_pendiente:
+            return True
+        last = self.ultimo_checkin
+        return last is None or datetime.now(timezone.utc) - last >= CHECKIN_CADA
+
+    def comprobar_en_hilo(self, on_done: Optional[Callable[[Optional[EstadoServidor], Optional[str]], None]] = None,
+                          solo_si_toca: bool = False) -> None:
+        """
+        Corre `comprobar()` en un hilo daemon. Nunca se espera. `on_done(srv, error)`
+        se llama desde el hilo: si toca UI, el llamador lo manda a `after()`.
+        """
+        if not self.licencia or (solo_si_toca and not self.toca_checkin()):
+            return
+
+        def run() -> None:
+            try:
+                srv = self.comprobar()
+                if on_done:
+                    on_done(srv, None)
+            except ConnectionError as e:
+                if on_done:
+                    on_done(None, f"sin_red: {e}")
+            except Exception as e:  # noqa: BLE001 — nunca tumbar la app por esto
+                if on_done:
+                    on_done(None, str(e))
+
+        threading.Thread(target=run, name="eyve-licencia", daemon=True).start()
 
 
-# ── device fingerprint ─────────────────────────────────────────────────────────
-
-def device_fingerprint() -> str:
-    """
-    Return a stable hardware-bound ID formatted as XXXX-XXXX-XXXX.
-    Based on MAC address + hostname — stable unless hardware changes.
-    """
-    import uuid
-    import platform
-    raw    = f"{uuid.getnode()}-{platform.node()}-eyve"
-    digest = hashlib.sha256(raw.encode()).hexdigest().upper()
-    return f"{digest[:4]}-{digest[4:8]}-{digest[8:12]}"
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()

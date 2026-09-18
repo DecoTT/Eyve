@@ -392,25 +392,30 @@ principal.
 
 ## 14. Licencia y modelo de distribución
 
-**Decisión: opción (b) — nag honesto tipo WinRAR.**
+**Decisión (18-sep-2026): licencias de sbcsuite, por honor. Nada bloquea.**
 
-Eyve 2.1 se publica bajo **AGPL-3.0**. El gestor de licencias se mantiene, pero:
+Eyve 2.1 se publica bajo **AGPL-3.0**. La llave la emite la tienda
+(`sbcsuite.com.mx`) y es un **JWT firmado con EdDSA** (contrato en
+`qr-lead-connect/docs/licencias-eyve.md`). Módulo: `eyve/license/license_manager.py`.
 
-- **nunca bloquea funcionalidad**;
-- al terminar el periodo de trial muestra un recordatorio no intrusivo;
-- el usuario puede seguir utilizando Eyve indefinidamente;
-- la llave comercial elimina el recordatorio y habilita soporte.
+- La llave lleva dentro nivel, titular, emisión y vencimiento; Eyve la verifica
+  **sin red** con la clave pública embebida (`PyJWT[crypto]`).
+- Sin llave → **Free** (detección, conteo y log). Estudiante / Normal → plataforma
+  abierta. **Pro** → módulos de check de SBC (polaridad, flujo, serigrafía, patrones).
+  En producción se requiere Pro; los demás corren igual y solo ven el aviso.
+- Llave falsa → aviso, sigue en Free. Llave vencida → sigue con su nivel y avisa
+  en cada arranque. Sin cupo (4.º equipo) → aviso con la lista, sigue funcionando.
+- Con red: `licencia-activar` al pegar (registra el equipo, máx. 3) y
+  `licencia-estado` como mucho una vez por semana, en hilo, sin esperar; si el
+  servidor manda `llave_nueva` (renovación) se guarda sola.
+- Archivos: `~/.eyve/licencia.jwt` (la llave) y `~/.eyve/licencia.json` (estado).
+- `hash_equipo` = sha256(MachineGuid); es lo que el usuario libera desde
+  `https://sbcsuite.com.mx/store/cuenta/licencias`.
+- UI: diálogo "Licencia" (Settings → Licencia…, o clic en la barra de estado).
 
-Esto debe decirse **desde el README y desde la primera pantalla**, no descubrirse el día 31.
-
-### 14.1 Pendiente antes de publicar
-
-El secret HMAC de desarrollo está hoy en el repositorio y se distribuye dentro del ZIP
-(`license_manager.py:31`). Para el release público hay que:
-
-- rotar el secret y sacarlo del build distribuido, **o**
-- aceptar explícitamente que en el build AGPL las llaves son verificables por cualquiera
-  (coherente con software libre — pero debe ser una decisión consciente, no un descuido).
+El esquema anterior (trial de 30 días + llaves `EYVE-XXXX` con HMAC) se retiró;
+`tools/gen_license.py` ya no existe. Las llaves las emite el servidor (automático
+al pagar / pedido Free, o manual desde el admin de la tienda).
 
 ---
 
@@ -723,7 +728,7 @@ Hasta que esta prueba funcione de forma repetible, Eyve 2.1 no está listo para 
 - [ ] README de instalación (incluye aviso de SmartScreen y hash SHA-256)
 - [ ] Guía rápida de primer proyecto
 - [ ] Proceso sencillo para reportar bugs
-- [ ] Declarar política de licencia/nag desde el README (§14)
+- [ ] Declarar política de licencia (por honor, niveles) desde el README (§14)
 
 ---
 
@@ -956,7 +961,7 @@ Leyenda: ✅ funciona · ⚠️ funciona con problemas · ❌ roto
 | Entrenamiento | ✅ | BUG-02 cerrado; E2E validado 2026-08-10: mAP50 0.865 con 40 imgs reales |
 | Producción | ✅ | Auto-start, genérico de arranque, OK/NOK, contadores |
 | Enumeración de cámaras | ✅ | MFEnumDeviceSources — orden correcto, 0 ms |
-| Licencias | ⚠️ | Funciona; falta decisión sobre el secret (§14.1) |
+| Licencias | ✅ | JWT de sbcsuite, verificación offline, activar/check-in, puerta por nivel (§14) |
 | i18n | ⚠️ | Sistema completo, pero 41 strings lo evaden (§20.1) |
 | Tema dark/light | ✅ | |
 | Settings | ✅ | Idioma, tema, FPS cap, offline mode, licencia |

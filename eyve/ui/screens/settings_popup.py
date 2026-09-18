@@ -15,7 +15,7 @@ from eyve.i18n import t, get_language, available_languages
 from eyve.core import config
 from eyve.core import model_manager as mm
 from eyve.ui.screens.production_screen import FPS_OPTIONS, FPS_LABELS
-from eyve.license.license_manager import LicenseManager, device_fingerprint
+from eyve.license.license_manager import LicenseManager
 
 if TYPE_CHECKING:
     from eyve.ui.app import EyveApp
@@ -29,7 +29,7 @@ class SettingsPopup(ctk.CTkToplevel):
     def __init__(self, master, app: "EyveApp", **kwargs):
         super().__init__(master, **kwargs)
         self._app = app
-        self._lm = LicenseManager()
+        self._lm = getattr(app, "license", None) or LicenseManager()
         self.title("⚙  Settings")
         self.resizable(False, True)
         self.grab_set()
@@ -102,74 +102,26 @@ class SettingsPopup(ctk.CTkToplevel):
                      font=T.bold(T.FONT_SM), text_color=T.TEXT_SEC).pack(
             anchor="w", padx=PX, pady=(10, 2))
 
-        status = self._lm.status()
-        if status == "activated":
-            exp = self._lm.expiry_date()
-            badge_text  = f"{t('settings_status_active')}  ·  expires {exp}" if exp else t("settings_status_active")
-            badge_color = T.COLOR_OK
-        elif status == "license_expired":
-            badge_text  = f"License expired ({self._lm.expiry_date()}) — please renew"
-            badge_color = T.DANGER
-        elif status == "trial":
-            badge_text  = t("settings_status_trial", days=self._lm.days_remaining())
-            badge_color = T.WARN
+        lic = self._lm.licencia
+        st = self._lm.status()
+        if lic is None:
+            badge_text  = t("lic_invalid_stored") if st == "invalida" else "Eyve Free"
+            badge_color = T.WARN if st == "invalida" else T.TEXT_PRI
         else:
-            badge_text  = t("settings_status_expired")
-            badge_color = T.DANGER
+            badge_text  = f"Eyve {self._lm.nivel_label}  ·  {lic.titular}  ·  {t('lic_vence')} {lic.vence_str}"
+            if lic.vencida:
+                badge_text += f"  ({t('lic_status_expired')})"
+            badge_color = T.WARN if lic.vencida else T.COLOR_OK
 
-        ctk.CTkLabel(self, text=badge_text,
-                     font=T.bold(T.FONT_SM), text_color=badge_color).pack(
-            anchor="w", padx=PX, pady=(0, 6))
-
-        # device ID
-        fp = device_fingerprint()
-        ctk.CTkLabel(self, text=t("settings_device_id"),
-                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(
-            anchor="w", padx=PX)
-
-        fp_row = ctk.CTkFrame(self, fg_color="transparent")
-        fp_row.pack(fill="x", padx=PX, pady=(2, 2))
-        self._fp_entry = ctk.CTkEntry(
-            fp_row, fg_color=T.BG_INPUT, border_color=T.BORDER,
-            font=T.font(T.FONT_SM))
-        self._fp_entry.insert(0, fp)
-        self._fp_entry.configure(state="readonly")
-        self._fp_entry.pack(side="left", fill="x", expand=True, padx=(0, 6))
-        ctk.CTkButton(
-            fp_row, text="⎘", width=30, height=28,
-            fg_color=T.BG_INPUT, border_width=1, border_color=T.BORDER,
-            font=T.font(T.FONT_SM), text_color=T.TEXT_SEC,
-            command=lambda: self._copy(fp),
-        ).pack(side="left")
-
-        ctk.CTkLabel(self, text=t("settings_device_hint"),
-                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM,
-                     wraplength=340).pack(anchor="w", padx=PX, pady=(0, 6))
-
-        # activate section — hidden once activated
-        if status != "activated":
-            ctk.CTkLabel(self, text=t("settings_activate"),
-                         font=T.bold(T.FONT_XS), text_color=T.TEXT_SEC).pack(
-                anchor="w", padx=PX, pady=(4, 2))
-
-            act_row = ctk.CTkFrame(self, fg_color="transparent")
-            act_row.pack(fill="x", padx=PX, pady=(0, 2))
-            self._key_entry = ctk.CTkEntry(
-                act_row, placeholder_text=t("settings_key_hint"),
-                fg_color=T.BG_INPUT, border_color=T.BORDER,
-                font=T.font(T.FONT_SM))
-            self._key_entry.pack(side="left", fill="x", expand=True, padx=(0, 6))
-            ctk.CTkButton(
-                act_row, text=t("settings_activate_btn"),
-                width=80, height=28,
-                fg_color=T.ACCENT, text_color="#000",
-                font=T.bold(T.FONT_XS),
-                command=self._activate,
-            ).pack(side="left")
-
-            self._act_lbl = ctk.CTkLabel(self, text="",
-                                          font=T.font(T.FONT_XS), text_color=T.DANGER)
-            self._act_lbl.pack(anchor="w", padx=PX)
+        lic_row = ctk.CTkFrame(self, fg_color="transparent")
+        lic_row.pack(fill="x", padx=PX, pady=(0, 6))
+        ctk.CTkLabel(lic_row, text=badge_text, font=T.bold(T.FONT_XS),
+                     text_color=badge_color, wraplength=260, justify="left",
+                     anchor="w").pack(side="left", fill="x", expand=True)
+        ctk.CTkButton(lic_row, text=t("settings_license_btn"), width=100, height=28,
+                      fg_color=T.BG_INPUT, border_width=1, border_color=T.BORDER,
+                      text_color=T.TEXT_PRI, font=T.font(T.FONT_XS),
+                      command=self._open_license).pack(side="right")
 
         self._sep()
 
@@ -355,17 +307,9 @@ class SettingsPopup(ctk.CTkToplevel):
         self.destroy()
         self._app.switch_theme(mode)
 
-    def _activate(self) -> None:
-        key = self._key_entry.get().strip()
-        ok, msg = self._lm.activate(key)
-        if ok:
-            exp = f"{msg[:4]}-{msg[4:6]}-{msg[6:8]}"
-            self._act_lbl.configure(
-                text=f"{t('settings_activated_ok')}  (expires {exp})",
-                text_color=T.COLOR_OK)
-            self._key_entry.configure(state="disabled")
-        else:
-            self._act_lbl.configure(text=f"✗  {msg}", text_color=T.DANGER)
+    def _open_license(self) -> None:
+        self.destroy()
+        self._app._show_license_dialog()
 
 
 # ── Model Manager Dialog ───────────────────────────────────────────────────────

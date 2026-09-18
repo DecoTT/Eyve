@@ -166,21 +166,34 @@ class EyveApp(ctk.CTk):
         self._navigate("nav_home")
 
     # ── license ──────────────────────────────────────────────────────────────
+    # Por honor: nada de esto bloquea. Se lee la llave sin red, se pinta el
+    # nivel en la barra y, si toca (activación pendiente o +7 días), se hace
+    # el check-in en un hilo sin esperar la respuesta.
     def _check_license(self) -> None:
         from eyve.license.license_manager import LicenseManager
-        lm = LicenseManager()
-        status = lm.status()
-        if status == "trial":
-            days = lm.days_remaining()
-            self.status_bar.set_license(t("lic_trial_active", days=days))
-        elif status == "expired":
-            self.status_bar.set_license(t("lic_watermark"), warn=True)
-            self.after(1500, self._show_license_reminder)
-        # "activated" → no badge
+        self.license = LicenseManager()
+        self._paint_license()
+        st = self.license.status()
+        if st in ("vencida", "invalida") and not getattr(self, "_lic_warned", False):
+            self._lic_warned = True          # una vez por arranque
+            self.after(1500, self._show_license_dialog)
+        if not getattr(self, "_lic_checked", False):
+            self._lic_checked = True
+            self.license.comprobar_en_hilo(
+                lambda srv, err: self.after(0, self._paint_license), solo_si_toca=True)
 
-    def _show_license_reminder(self) -> None:
+    def _paint_license(self) -> None:
+        lm = self.license
+        text, warn = lm.resumen(), False
+        if lm.status() == "invalida":
+            text, warn = t("lic_invalid_stored"), True
+        elif lm.status() == "vencida" or lm.servidor.motivo == "sin_cupo":
+            warn = True
+        self.status_bar.set_license(text, warn=warn)
+
+    def _show_license_dialog(self) -> None:
         from eyve.ui.screens.license_dialog import LicenseDialog
-        LicenseDialog(self)
+        LicenseDialog(self, lm=self.license, on_change=self._paint_license)
 
     # ── close ────────────────────────────────────────────────────────────────
     def _on_close(self) -> None:

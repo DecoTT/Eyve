@@ -28,6 +28,9 @@ class StatusBar(ctk.CTkFrame):
             font=T.font(T.FONT_XS), text_color=T.WARN, anchor="e"
         )
         self._license_lbl.pack(side="right", padx=4)
+        # click → diálogo de licencia (la app lo expone como _show_license_dialog)
+        self._license_lbl.bind("<Button-1>", lambda e: getattr(master, "_show_license_dialog", lambda: None)())
+        self._license_lbl.configure(cursor="hand2")
 
     def set_project(self, name: str | None) -> None:
         if name:

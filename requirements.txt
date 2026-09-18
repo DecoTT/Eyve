@@ -11,6 +11,9 @@ ultralytics>=8.3,<9
 opencv-python>=4.8.0
 Pillow>=10.0.0
 
+# Licencia (JWT EdDSA firmado por sbcsuite; verificación sin red)
+PyJWT[crypto]>=2.8
+
 # Data
 numpy>=1.24.0
 PyYAML>=6.0

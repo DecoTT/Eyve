@@ -291,12 +291,26 @@ class ProductionScreen(ctk.CTkFrame):
                      font=T.bold(T.FONT_SM), text_color=T.TEXT_SEC).pack(
             padx=12, anchor="w")
 
+        # Puerta por nivel (licencia por honor: es lo único que cambia entre
+        # niveles). Los módulos de check de SBC son Pro; conteo y log son de todos.
+        lm = getattr(self._app, "license", None)
+        self._pro_ok = lm.permite_checks_avanzados() if lm else False
+        if lm and not lm.es_pro():
+            ctk.CTkLabel(parent, text=t("lic_prod_notice", level=lm.nivel_label),
+                         font=T.font(T.FONT_XS), text_color=T.WARN,
+                         wraplength=220, justify="left").pack(padx=12, anchor="w", pady=(0, 4))
+
         self._pol_var = ctk.BooleanVar(value=False)
-        ctk.CTkCheckBox(parent, text=self._polarity.name,
+        self._pol_chk = ctk.CTkCheckBox(parent, text=self._polarity.name,
                         variable=self._pol_var,
                         font=T.font(T.FONT_XS), text_color=T.TEXT_PRI,
-                        command=self._on_polarity_toggle).pack(
-            padx=12, anchor="w", pady=(2, 0))
+                        command=self._on_polarity_toggle)
+        self._pol_chk.pack(padx=12, anchor="w", pady=(2, 0))
+        if not self._pro_ok:
+            self._pol_chk.configure(state="disabled", text=f"{self._polarity.name}  (Pro)")
+            ctk.CTkLabel(parent, text=t("lic_pro_required"),
+                         font=T.font(T.FONT_XS), text_color=T.TEXT_DIM,
+                         wraplength=220, justify="left").pack(padx=12, anchor="w", pady=(0, 2))
 
         pol_cfg = ctk.CTkFrame(parent, fg_color="transparent")
         pol_cfg.pack(fill="x", padx=12, pady=(2, 2))
@@ -486,6 +500,9 @@ class ProductionScreen(ctk.CTkFrame):
 
     # ── polarity module UI ───────────────────────────────────────────────────
     def _on_polarity_toggle(self) -> None:
+        if self._pol_var.get() and not self._pro_ok:
+            self._pol_var.set(False)
+            return
         if self._pol_var.get():
             cls = self._pol_class.get()
             if not cls or cls == "—":
