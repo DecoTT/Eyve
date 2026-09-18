@@ -4,5 +4,12 @@ __pycache__/
 *.log
 projects/
 sessions/
-Release/Eyve_2.1_Beta/
+Release/Eyve_*/
 Release/*.zip
+
+# never ship: model weights (downloaded on first run), internal dev notes, per-user state
+*.pt
+HANDOFF_FABLE.md
+.eyve/
+Release/Eyve-*-setup.zip
+Release/SHA256SUMS.txt

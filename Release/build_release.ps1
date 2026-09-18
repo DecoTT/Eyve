@@ -13,12 +13,17 @@
 #>
 $ErrorActionPreference = "Stop"
 
-$Version   = "2.1_Beta"
+$Version   = "2.1.0"
 $DistName  = "Eyve_$Version"
 $Here      = Split-Path -Parent $MyInvocation.MyCommand.Path
 $SourceDir = Split-Path -Parent $Here
 $DistDir   = Join-Path $Here $DistName
-$ZipOut    = Join-Path $Here "$DistName.zip"
+# Nombre de asset FIJO entre versiones: la tienda (secret EYVE_DOWNLOAD_URL y
+# lib/eyve.ts) apunta a releases/latest/download/Eyve-2.1-setup.zip. Cambiarlo
+# rompe el boton "Descargar" de todos los correos ya enviados. Ver RELEASE.md.
+$AssetName = "Eyve-2.1-setup.zip"
+$ZipOut    = Join-Path $Here $AssetName
+$SumsOut   = Join-Path $Here "SHA256SUMS.txt"
 
 Write-Host ""
 Write-Host "  Building Eyve $Version release package..." -ForegroundColor Cyan
@@ -118,6 +123,10 @@ Compress-Archive -Path (Join-Path $DistDir '*') -DestinationPath $ZipOut -Force
 
 $sizeMb = [math]::Round((Get-Item $ZipOut).Length / 1MB, 2)
 $hash   = (Get-FileHash $ZipOut -Algorithm SHA256).Hash
+# SHA256SUMS.txt en formato sha256sum (hash minusculas, dos espacios, nombre):
+# se sube como segundo asset del release y `sha256sum -c` lo verifica.
+Set-Content -Path $SumsOut -Value ("{0}  {1}" -f $hash.ToLower(), $AssetName) -Encoding ascii -NoNewline
+if ((Get-Item $ZipOut).Length -ge 2GB) { Write-Host "  FALLA: el asset supera el limite de 2 GB de GitHub" -ForegroundColor Red; exit 1 }
 
 # -- verificacion del contenido -----------------------------------------------
 Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -155,12 +164,12 @@ if ($failed -eq 0) {
     Write-Host "   Release con $failed problema(s)" -ForegroundColor Red
 }
 Write-Host ""
-Write-Host "   ZIP      : $ZipOut"
+Write-Host "   Asset    : $ZipOut"
+Write-Host "   Sums     : $SumsOut"
 Write-Host "   Tamano   : $sizeMb MB  ($($entries.Count) archivos)"
 Write-Host "   SHA-256  : $hash"
 Write-Host ""
-Write-Host "   Publica el hash junto a la descarga - el README explica"
-Write-Host "   al tester como verificarlo (mitigacion de SmartScreen)."
+Write-Host "   Sube AMBOS archivos al release v$Version de GitHub (RELEASE.md, paso 3)."
 Write-Host "  ----------------------------------------------------"
 Write-Host ""
 

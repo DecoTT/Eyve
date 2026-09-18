@@ -1,6 +1,6 @@
 STRINGS = {
     # ── App ──────────────────────────────────────────────────────────────────
-    "app_title": "Eyve 2.1 Beta",
+    "app_title": "Eyve 2.1",
     "app_subtitle": "Plataforma de Inspección Visual",
 
     # ── Nav / sidebar ────────────────────────────────────────────────────────

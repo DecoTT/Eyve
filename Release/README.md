@@ -1,4 +1,4 @@
-# Eyve 2.1 Beta
+# Eyve 2.1
 
 **Inspección visual con IA — 100 % local, en tu PC.**
 
@@ -45,7 +45,13 @@ carpeta de Eyve. Puedes verificar que el ZIP es el original comparando su hash
 SHA-256 con el publicado junto a la descarga:
 
 ```powershell
-Get-FileHash Eyve_2.1_Beta.zip -Algorithm SHA256
+Get-FileHash Eyve-2.1-setup.zip -Algorithm SHA256
+```
+
+y compáralo con `SHA256SUMS.txt`, publicado junto al instalador en la misma página de descarga:
+
+```powershell
+https://github.com/DecoTT/eyve/releases/latest
 ```
 
 ---
@@ -117,18 +123,41 @@ Son experimentales y están en evolución. Tu feedback sobre ellos es especialme
 
 ## Licencia
 
-Eyve es software libre bajo **AGPL-3.0**. Puedes usarlo, estudiarlo, modificarlo y
-distribuirlo.
+Eyve es software libre bajo **AGPL-3.0**: puedes usarlo, estudiarlo, modificarlo y
+distribuirlo. El código está en <https://github.com/DecoTT/eyve>.
 
-Después de 30 días verás un recordatorio de licencia. **Eyve sigue funcionando igual,
-sin limitaciones** — el recordatorio solo desaparece con una licencia comercial, que
-además incluye soporte. Estilo WinRAR: nada se bloquea nunca.
+### Niveles
+
+| Nivel | Qué incluye | Cómo se obtiene |
+|---|---|---|
+| **Free** | Detección, conteo y registro de sesiones. Sin llave, sin registro. | Solo instala y usa. |
+| **Estudiante / Normal** | Plataforma completa. | Llave por correo desde <https://sbcgroup.com.mx/prueba-eyve/> |
+| **Pro** | + módulos de inspección SBC (polaridad, flujo, serigrafía, patrones). | Misma tienda, nivel Pro. |
+
+### Activar una llave
+
+1. Abre Eyve → **Settings → Licencia…**
+2. Pega la llave que llegó en tu correo y presiona **Comprobar ahora**.
+3. Debe decir *Equipo registrado 1 de 3*. Listo.
+
+Una llave sirve para **3 equipos**. Para liberar uno (cambiaste de PC, por ejemplo)
+entra a <https://sbcsuite.com.mx/store/cuenta/licencias>.
+
+### Política por honor
+
+Eyve **nunca se bloquea**. Sin llave sigues en Free; una llave vencida conserva su
+nivel y solo avisa al arrancar; un cuarto equipo muestra la lista y sigue
+funcionando. Eyve verifica la llave localmente (sin internet) y hace un check-in
+semanal cuando hay red para recibir renovaciones solas.
+
+Confiamos en que quien saca provecho de Eyve en su planta pague la licencia que le
+corresponde — eso es lo que mantiene el proyecto vivo y abierto.
 
 ---
 
 ## Reportar un problema
 
-Esta es una beta: **los reportes de errores son parte del objetivo**. Si algo falla:
+Los reportes de errores son bienvenidos y se atienden. Si algo falla:
 
 1. Anota qué estabas haciendo cuando pasó.
 2. Adjunta el archivo de log. Pega esto en la barra del Explorador para llegar:

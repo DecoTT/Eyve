@@ -1,10 +1,10 @@
 @echo off
 setlocal EnableDelayedExpansion
-title Eyve 2.1 Beta - Setup
+title Eyve 2.1 - Setup
 
 echo.
 echo  +-----------------------------------------+
-echo  ^|   Eyve 2.1 Beta  -  Visual Inspection   ^|
+echo  ^|      Eyve 2.1  -  Visual Inspection     ^|
 echo  +-----------------------------------------+
 echo.
 
@@ -135,7 +135,7 @@ echo.
 echo  ============================================
 echo   Setup complete!
 echo.
-echo   To launch Eyve 2.1 Beta:
+echo   To launch Eyve 2.1:
 echo     Double-click  run.bat
 echo.
 echo   First launch: open or create a project.

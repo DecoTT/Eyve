@@ -32,9 +32,7 @@ class EyveApp(ctk.CTk):
         from eyve.core.model_manager import apply_offline_env
         apply_offline_env()
         self.configure(fg_color=T.BG_DARK)
-        # "[dev]" marks the development copy — the frozen 2.1 backup shows
-        # the plain title, so it's obvious at a glance which build is running
-        self.title(t("app_title") + "  [dev]")
+        self.title(t("app_title"))
 
         w = config.get("window_width", 1280)
         h = config.get("window_height", 880)   # +10 % vs 800
