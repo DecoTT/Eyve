@@ -196,6 +196,13 @@ STRINGS = {
         "El tiempo de entrenamiento depende de tu hardware, tamaño del dataset, modelo seleccionado y épocas."
     ),
     "train_no_data": "Sin imágenes etiquetadas. Etiqueta imágenes antes de entrenar.",
+    "train_no_new_data": "No hay etiquetas nuevas desde el último entrenamiento. Etiqueta más imágenes o desmarca la casilla.",
+    "train_model_project": "★ Modelo del proyecto (best.pt) — seguir mejorando",
+    "train_model_browse": "Elegir archivo .pt…",
+    "train_only_new_short": "Solo etiquetas nuevas desde el último entrenamiento",
+    "train_only_new": "Solo etiquetas nuevas desde el último entrenamiento ({date})",
+    "train_only_new_warn": "⚠ Entrenar solo con lo nuevo puede hacer que el modelo olvide lo anterior. Úsalo cuando el material previo ya no aplica (cambió la pieza, la cámara o la luz). Para mejorar el mismo modelo, lo normal es entrenar con todo.",
+    "train_dataset_ok_new": "Dataset listo: {n} imágenes nuevas (de {total} etiquetadas), {c} categorías.",
     "train_few_samples": "La categoría '{cls}' solo tiene {n} muestra(s). Los resultados pueden ser débiles.",
     "train_split": "División Train / Val: {train} / {val} imágenes",
     "train_dataset_ok": "Dataset listo: {n} imágenes, {c} categorías.",

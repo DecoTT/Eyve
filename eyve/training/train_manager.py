@@ -20,13 +20,16 @@ from eyve.training.dataset_builder import build_dataset
 
 @dataclass
 class TrainConfig:
-    base_model: str = "yolov8n.pt"   # yolov8n/s/m/l/x.pt
+    base_model: str = "yolov8n.pt"   # stock name (yolov8n/s/m/l.pt) OR absolute path to a .pt
     epochs: int = 50
     imgsz: int = 640
     batch: int = 8
     device: str = "auto"             # "auto" | "cpu" | "0" (cuda)
     conf_default: float = 0.50
     patience: int = 20               # early stopping
+    # Fine-tuning: only labels written/edited after this moment go into the
+    # dataset ("solo etiquetas nuevas desde el último entrenamiento").
+    only_new_since: Optional[datetime] = None
 
     def device_arg(self) -> str:
         if self.device == "auto":
@@ -52,6 +55,15 @@ class TrainProgress:
 
 
 ProgressCallback = Callable[[TrainProgress], None]
+
+
+def last_training_date(project: Project) -> Optional[datetime]:
+    """When the project was last trained (from training_metadata.yaml), or None."""
+    try:
+        meta = yaml.safe_load(project.paths.training_metadata.read_text(encoding="utf-8")) or {}
+        return datetime.fromisoformat(str(meta["date"]))
+    except Exception:
+        return None
 
 
 class TrainManager:
@@ -95,7 +107,7 @@ class TrainManager:
         try:
             self._emit(status="preparing", message="Preparing dataset…", epoch=0)
 
-            yaml_path = build_dataset(self._project)
+            yaml_path = build_dataset(self._project, since=cfg.only_new_since)
 
             self._emit(status="training", message="Starting YOLO training…",
                        total_epochs=cfg.epochs)
@@ -103,7 +115,14 @@ class TrainManager:
             from ultralytics import YOLO
             from eyve.core.model_manager import local_path_or_name
 
-            model_path = local_path_or_name(cfg.base_model)
+            # A path (project best.pt, or any .pt the user picked) is used as-is:
+            # that is how "keep improving the same model" works.  Stock names go
+            # through the offline-aware resolver.
+            base = Path(cfg.base_model)
+            if base.is_absolute() and base.exists():
+                model_path = str(base)
+            else:
+                model_path = local_path_or_name(cfg.base_model)
             log.debug(f"Loading base model: {model_path}")
             model = YOLO(model_path)
 
@@ -188,6 +207,7 @@ class TrainManager:
                 "dataset": str(yaml_path),
                 "classes": self._project.class_names,
                 "base_model": cfg.base_model,
+                "only_new_since": cfg.only_new_since.isoformat() if cfg.only_new_since else None,
                 "epochs": cfg.epochs,
                 "imgsz": cfg.imgsz,
                 "batch": cfg.batch,

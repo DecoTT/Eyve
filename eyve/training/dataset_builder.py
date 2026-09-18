@@ -11,6 +11,7 @@ from __future__ import annotations
 import random
 import shutil
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -29,10 +30,43 @@ class DatasetValidation:
     labeled_images: int = 0
     train_count: int = 0
     val_count: int = 0
+    total_labeled: int = 0          # unfiltered count (for "N nuevas de M")
     per_class: dict[str, int] = field(default_factory=dict)
 
 
-def validate_dataset(project: Project) -> DatasetValidation:
+def collect_pairs(project: Project, since: Optional[datetime] = None
+                  ) -> tuple[list[tuple[Path, Path]], int]:
+    """
+    Return ([(image, label), ...], total_labeled).
+
+    label_file() is the canonical resolver — the SAME one tagging_screen
+    writes with.  Using img.stem here was BUG-01 (labels never found).
+
+    since: keep only labels written/edited AFTER this moment (label mtime).
+    Used for "solo etiquetas nuevas desde el último entrenamiento": the user
+    keeps improving the project model with fresh material only.  total_labeled
+    is always the unfiltered count so the UI can say "12 nuevas de 71".
+    """
+    p = project.paths
+    cutoff = since.timestamp() if since else None
+    pairs: list[tuple[Path, Path]] = []
+    total = 0
+    for img in sorted(p.raw_images.rglob("*.jpg")):
+        label = p.label_file(img)
+        try:
+            st = label.stat()
+        except OSError:
+            continue
+        if st.st_size <= 0:
+            continue
+        total += 1
+        if cutoff is not None and st.st_mtime <= cutoff:
+            continue
+        pairs.append((img, label))
+    return pairs, total
+
+
+def validate_dataset(project: Project, since: Optional[datetime] = None) -> DatasetValidation:
     result = DatasetValidation()
     p = project.paths
 
@@ -40,20 +74,14 @@ def validate_dataset(project: Project) -> DatasetValidation:
         result.errors.append("train_no_data")
         return result
 
-    # collect paired image+label files
-    # label_file() is the canonical resolver — the SAME one tagging_screen
-    # writes with.  Using img.stem here was BUG-01 (labels never found).
-    pairs: list[tuple[Path, Path]] = []
-    for img in sorted(p.raw_images.rglob("*.jpg")):
-        label = p.label_file(img)
-        if label.exists() and label.stat().st_size > 0:
-            pairs.append((img, label))
+    pairs, total_labeled = collect_pairs(project, since)
 
     result.total_images = sum(1 for _ in p.raw_images.rglob("*.jpg"))
     result.labeled_images = len(pairs)
+    result.total_labeled = total_labeled
 
     if not pairs:
-        result.errors.append("train_no_data")
+        result.errors.append("train_no_new_data" if (since and total_labeled) else "train_no_data")
         return result
 
     # count per class
@@ -87,10 +115,12 @@ def validate_dataset(project: Project) -> DatasetValidation:
     return result
 
 
-def build_dataset(project: Project, val_split: float = 0.15, seed: int = 42) -> Path:
+def build_dataset(project: Project, val_split: float = 0.15, seed: int = 42,
+                  since: Optional[datetime] = None) -> Path:
     """
     Copy tagged images+labels into the YOLO dataset structure.
     Returns the path to data.yaml.
+    since: only labels newer than this (see collect_pairs).
     """
     p = project.paths
     ds = p.dataset
@@ -102,15 +132,10 @@ def build_dataset(project: Project, val_split: float = 0.15, seed: int = 42) -> 
             shutil.rmtree(d)
         d.mkdir(parents=True)
 
-    # collect pairs via the canonical resolver (same as tagging_screen writes)
-    pairs: list[tuple[Path, Path]] = []
-    for img in sorted(p.raw_images.rglob("*.jpg")):
-        label = p.label_file(img)
-        if label.exists() and label.stat().st_size > 0:
-            pairs.append((img, label))
-
+    pairs, _ = collect_pairs(project, since)
     if not pairs:
-        raise ValueError("No labeled images found.")
+        raise ValueError("No labeled images found."
+                         if since is None else "No new labels since last training.")
 
     random.seed(seed)
     random.shuffle(pairs)

@@ -196,6 +196,13 @@ STRINGS = {
         "Training time depends on your hardware, dataset size, selected model and epochs."
     ),
     "train_no_data": "No labeled images found. Tag images before training.",
+    "train_no_new_data": "No new labels since the last training. Label more images or untick the box.",
+    "train_model_project": "★ Project model (best.pt) — keep improving",
+    "train_model_browse": "Choose .pt file…",
+    "train_only_new_short": "Only labels new since last training",
+    "train_only_new": "Only labels new since last training ({date})",
+    "train_only_new_warn": "⚠ Training on new material only can make the model forget what it learned before. Use it when the old material no longer applies (part, camera or lighting changed). To improve the same model, training on everything is the norm.",
+    "train_dataset_ok_new": "Dataset ready: {n} new images (of {total} labeled), {c} classes.",
     "train_few_samples": "Class '{cls}' has only {n} sample(s). Results may be weak.",
     "train_split": "Train / Val split: {train} / {val} images",
     "train_dataset_ok": "Dataset ready: {n} images, {c} classes.",

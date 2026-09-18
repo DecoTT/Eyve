@@ -11,8 +11,11 @@ import customtkinter as ctk
 
 from eyve.ui import theme as T
 from eyve.i18n import t
+from tkinter import filedialog
+
 from eyve.training.dataset_builder import validate_dataset
-from eyve.training.train_manager import TrainConfig, TrainManager, TrainProgress
+from eyve.training.train_manager import (TrainConfig, TrainManager, TrainProgress,
+                                         last_training_date)
 from eyve.training.training_packager import create_package, detect_size_label
 from eyve.ui.components.dialogs import show_error, show_info
 
@@ -108,12 +111,31 @@ class TrainingScreen(ctk.CTkFrame):
             w = widget_fn(settings)
             w.grid(row=r, column=1, sticky="ew", pady=4)
 
-        self._model_var = ctk.StringVar(value="yolov8n.pt")
-        row("train_model_base",
-            lambda p: ctk.CTkOptionMenu(p, variable=self._model_var,
-                                         values=["yolov8n.pt", "yolov8s.pt", "yolov8m.pt", "yolov8l.pt"],
-                                         fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
-                                         dropdown_fg_color=T.BG_CARD), 0)
+        # -- base model: project best.pt (keep improving) / stock / any .pt --
+        # label -> what TrainConfig.base_model receives (stock name or abs path)
+        self._model_choices: dict[str, str] = {}
+        self._model_var = ctk.StringVar()
+        self._model_menu = ctk.CTkOptionMenu(
+            settings, variable=self._model_var, values=["yolov8n.pt"],
+            fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
+            dropdown_fg_color=T.BG_CARD, command=self._on_model_choice)
+        ctk.CTkLabel(settings, text=t("train_model_base"),
+                     font=T.font(T.FONT_SM), text_color=T.TEXT_SEC).grid(
+            row=0, column=0, sticky="w", pady=4, padx=(0, 12))
+        self._model_menu.grid(row=0, column=1, sticky="ew", pady=4)
+        self._refresh_model_choices()
+
+        # -- only new labels since last training (fine-tuning) --------------
+        self._only_new_var = ctk.BooleanVar(value=False)
+        self._only_new_chk = ctk.CTkCheckBox(
+            settings, text=t("train_only_new_short"), variable=self._only_new_var,
+            font=T.font(T.FONT_XS), text_color=T.TEXT_SEC,
+            command=self._check_dataset)
+        self._only_new_chk.grid(row=5, column=0, columnspan=2, sticky="w", pady=(8, 0))
+        self._only_new_note = ctk.CTkLabel(
+            settings, text="", font=T.font(T.FONT_XS), text_color=T.TEXT_DIM,
+            wraplength=320, justify="left")
+        self._only_new_note.grid(row=6, column=0, columnspan=2, sticky="w")
 
         self._epochs = ctk.CTkEntry(settings, fg_color=T.BG_INPUT, border_color=T.BORDER)
         self._epochs.insert(0, "50")
@@ -254,14 +276,87 @@ class TrainingScreen(ctk.CTkFrame):
 
         self._last_pkg: Path | None = None
 
+    # ── base model choices ────────────────────────────────────────────────────
+    _STOCK = ["yolov8n.pt", "yolov8s.pt", "yolov8m.pt", "yolov8l.pt"]
+
+    def _refresh_model_choices(self, keep: str | None = None) -> None:
+        """
+        Rebuild the dropdown.  The project's own best.pt goes FIRST and is
+        the default when it exists — "seguir mejorando el mismo modelo" is
+        the normal second round, not starting from a stock YOLO again.
+        """
+        proj = self._app.get_project()
+        self._model_choices = {}
+        labels: list[str] = []
+        best = proj.paths.best_model if proj else None
+        if best and best.exists():
+            lbl = t("train_model_project")
+            self._model_choices[lbl] = str(best)
+            labels.append(lbl)
+        for name in self._STOCK:
+            self._model_choices[name] = name
+            labels.append(name)
+        browse = t("train_model_browse")
+        self._model_choices[browse] = ""       # sentinel -> file dialog
+        labels.append(browse)
+        self._model_menu.configure(values=labels)
+        self._model_var.set(keep if keep in self._model_choices else labels[0])
+
+    def _on_model_choice(self, label: str) -> None:
+        if self._model_choices.get(label, None) != "":
+            return                              # a real choice
+        # "Elegir archivo .pt..."
+        path = filedialog.askopenfilename(
+            title=t("train_model_browse"),
+            filetypes=[("YOLO model", "*.pt"), ("All", "*.*")])
+        if not path:
+            self._refresh_model_choices()       # back to default
+            return
+        lbl = f"{Path(path).name}  ({Path(path).parent.name})"
+        self._refresh_model_choices()
+        self._model_choices[lbl] = path
+        vals = list(self._model_menu.cget("values"))
+        vals.insert(-1, lbl)                    # before "Elegir..."
+        self._model_menu.configure(values=vals)
+        self._model_var.set(lbl)
+
+    def _selected_base_model(self) -> str:
+        return self._model_choices.get(self._model_var.get(), "yolov8n.pt") or "yolov8n.pt"
+
+    def _since(self):
+        """Cutoff datetime when 'only new labels' is on, else None."""
+        proj = self._app.get_project()
+        if not (proj and self._only_new_var.get()):
+            return None
+        return last_training_date(proj)
+
     # ── helpers ───────────────────────────────────────────────────────────────
     def _check_dataset(self) -> None:
         proj = self._app.get_project()
         if not proj:
             return
-        v = validate_dataset(proj)
+        # the checkbox only makes sense after a first training
+        last = last_training_date(proj)
+        if last is None:
+            self._only_new_var.set(False)
+            self._only_new_chk.configure(state="disabled",
+                                         text=t("train_only_new_short"))
+            self._only_new_note.configure(text="")
+        else:
+            self._only_new_chk.configure(
+                state="normal",
+                text=t("train_only_new", date=last.strftime("%Y-%m-%d %H:%M")))
+            self._only_new_note.configure(
+                text=t("train_only_new_warn") if self._only_new_var.get() else "")
+
+        v = validate_dataset(proj, since=self._since())
         if v.errors:
             self._dataset_lbl.configure(text=t(v.errors[0]), text_color=T.DANGER)
+        elif self._only_new_var.get():
+            self._dataset_lbl.configure(
+                text=t("train_dataset_ok_new", n=v.labeled_images,
+                       total=v.total_labeled, c=len(proj.classes)),
+                text_color=T.ACCENT)
         else:
             self._dataset_lbl.configure(
                 text=t("train_dataset_ok", n=v.labeled_images, c=len(proj.classes)),
@@ -289,13 +384,14 @@ class TrainingScreen(ctk.CTkFrame):
         proj = self._app.get_project()
         if not proj:
             return
-        v = validate_dataset(proj)
+        v = validate_dataset(proj, since=self._since())
         if v.errors:
             show_error(self._app, t(v.errors[0]))
             return
 
         cfg = TrainConfig(
-            base_model=self._model_var.get(),
+            base_model=self._selected_base_model(),
+            only_new_since=self._since(),
             epochs=int(self._epochs.get() or 50),
             imgsz=int(self._imgsz_var.get()),
             batch=int(self._batch_var.get()),
@@ -344,6 +440,10 @@ class TrainingScreen(ctk.CTkFrame):
                 self._log(f"Done. Best model: {p.best_model}")
                 self._start_btn.configure(state="normal")
                 self._stop_btn.configure(state="disabled")
+                # best.pt now exists / is newer: offer it as the base for the
+                # next round and re-read the dataset status (checkbox state)
+                self._refresh_model_choices(keep=t("train_model_project"))
+                self._check_dataset()
             elif p.status == "error":
                 self._prog_bar.stop()
                 self._prog_bar.configure(mode="determinate")
