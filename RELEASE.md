@@ -55,8 +55,8 @@ cd "D:\Desarrollo\Claude Code\Eyve\2.1-dev\Release"
 
 Todo está preparado y apagado; se prende con dos valores iguales:
 
-- [ ] **Secret** `EYVE_DOWNLOAD_URL` = la URL fija, en Supabase Dashboard → Edge Functions → Secrets. La function `licencias-emitir` lo lee al vuelo (no hay que redesplegar): desde ese momento el correo de licencia lleva el botón **Descargar Eyve 2.1** en vez de "se está publicando".
-- [ ] **Front**: `src/modules/store/lib/eyve.ts` → `EYVE_DOWNLOAD_URL = '<la misma URL>'`; PR a `main`, Netlify publica. Con eso aparece el botón en la thank-you (`LicenciasEyve.tsx`) y en `/store/cuenta/licencias`.
+- [x] **Secret** `EYVE_DOWNLOAD_URL` (21-sep) = la URL fija, en Supabase Dashboard → Edge Functions → Secrets. La function `licencias-emitir` lo lee al vuelo (no hay que redesplegar): desde ese momento el correo de licencia lleva el botón **Descargar Eyve 2.1** en vez de "se está publicando".
+- [x] **Front** (PR #27, 21-sep): `src/modules/store/lib/eyve.ts` → `EYVE_DOWNLOAD_URL = '<la misma URL>'`; PR a `main`, Netlify publica. Con eso aparece el botón en la thank-you (`LicenciasEyve.tsx`) y en `/store/cuenta/licencias`.
 - [ ] Probar: pedido Free desde `https://sbcgroup.com.mx/prueba-eyve/` con un correo tuyo → el correo trae botón y la thank-you también. Borrar el pedido de prueba después.
 - [ ] Opcional: en `/prueba-eyve/` (HostGator, fuera del repo) un enlace "¿Ya tienes llave? Descarga Eyve 2.1" al pie, con la misma URL.
 - [ ] Marcar hecho en `qr-lead-connect/docs/licencias-eyve.md` §6 ("Subir el instalador…") y en `ESTADO.md`.
