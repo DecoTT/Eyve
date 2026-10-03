@@ -66,6 +66,11 @@ class EyveApp(ctk.CTk):
         self.status_bar = StatusBar(self)
         self.status_bar.grid(row=1, column=0, columnspan=2, sticky="ew")
 
+        # Version nueva: se consulta una vez al dia, en segundo plano. El
+        # arranque no espera a la red — una planta con el proxy caido no
+        # puede quedarse mirando un splash.
+        self.after(2500, self.check_for_updates)
+
     # ── navigation ───────────────────────────────────────────────────────────
     def _navigate(self, key: str) -> None:
         # Pause every currently-visible screen before hiding it.
@@ -89,6 +94,32 @@ class EyveApp(ctk.CTk):
             screen.on_show()
         self.sidebar.set_active(key)
         log.debug(f"Navigate → {key}")
+
+    # ── actualizaciones ──────────────────────────────────────────────────────
+    def check_for_updates(self, force: bool = False) -> None:
+        """
+        Consulta si hay version nueva y lo avisa en la barra de estado.
+        force=True ignora el intervalo (lo usa el boton de Settings).
+        """
+        from eyve.core import updater as U
+        if not force and not U.should_check():
+            return
+
+        def done(info) -> None:
+            try:
+                self.after(0, lambda: self._on_update_info(info))
+            except Exception:
+                pass
+
+        U.check_async(done)
+
+    def _on_update_info(self, info) -> None:
+        from eyve.ui.screens.update_dialog import offer_update
+        offer_update(self, info)
+
+    def open_update_dialog(self) -> None:
+        from eyve.ui.screens.update_dialog import UpdateDialog
+        UpdateDialog(self)
 
     def _make_screen(self, key: str) -> ctk.CTkFrame:
         from eyve.ui.screens.home_screen import HomeScreen

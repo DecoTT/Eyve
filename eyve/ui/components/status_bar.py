@@ -23,6 +23,17 @@ class StatusBar(ctk.CTkFrame):
         )
         self._right_lbl.pack(side="right", padx=12)
 
+        # Aviso de version nueva. Va en la barra y no en un dialogo al
+        # arrancar: el usuario abrio Eyve para trabajar, no para actualizar.
+        self._update_lbl = ctk.CTkLabel(
+            self, text="",
+            font=T.font(T.FONT_XS), text_color=T.ACCENT, anchor="e"
+        )
+        self._update_lbl.pack(side="right", padx=4)
+        self._update_cb = None
+        self._update_lbl.bind(
+            "<Button-1>", lambda e: (self._update_cb or (lambda: None))())
+
         self._license_lbl = ctk.CTkLabel(
             self, text="",
             font=T.font(T.FONT_XS), text_color=T.WARN, anchor="e"
@@ -40,6 +51,12 @@ class StatusBar(ctk.CTkFrame):
 
     def set_right(self, text: str) -> None:
         self._right_lbl.configure(text=text)
+
+    def set_update(self, text: str, on_click=None) -> None:
+        """Muestra (o borra, con texto vacio) el aviso de version nueva."""
+        self._update_cb = on_click
+        self._update_lbl.configure(
+            text=text, cursor="hand2" if text else "arrow")
 
     def set_license(self, text: str, warn: bool = False) -> None:
         color = T.WARN if warn else T.TEXT_DIM

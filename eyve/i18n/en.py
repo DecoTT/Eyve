@@ -372,6 +372,34 @@ STRINGS = {
     "settings_light":        "Light",
     "settings_license":      "License",
     "settings_license_btn":  "License…",
+    # ── updates ──────────────────────────────────────────────────────────────
+    "settings_updates":    "Updates",
+    "settings_version":    "Installed version: {v}",
+    "settings_update_btn": "Check...",
+    "settings_update_auto": "Check for updates on startup",
+
+    "upd_title":     "Update Eyve",
+    "upd_current":   "You have version {v}",
+    "upd_from_to":   "From {a} to {b}",
+    "upd_checking":  "Checking for updates...",
+    "upd_offline":   "Could not check. Check your connection and try again.",
+    "upd_uptodate":  "You already have the latest version.",
+    "upd_available": "A new version is available: {v}",
+    "upd_safe":      "Your projects, your trained models and your license are left "
+                     "alone. Only the program is replaced, and a copy of the "
+                     "previous version is kept in case anything goes wrong.",
+    "upd_install":   "Update now",
+    "upd_later":     "Not now",
+    "upd_working":   "Updating...",
+    "upd_downloading": "Downloading and verifying...",
+    "upd_done":      "Done: Eyve {v} installed.",
+    "upd_deps_changed": "This version needs new libraries. Close Eyve and run "
+                        "setup.bat once before opening it again.",
+    "upd_failed":    "Update failed: {err}",
+    "upd_retry":     "Retry",
+    "upd_restart":   "Restart Eyve",
+    "upd_banner":    "Version {v} available",
+
     "settings_about":        "About Eyve",
 
     # ── Dialogs / common ─────────────────────────────────────────────────────

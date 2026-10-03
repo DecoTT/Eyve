@@ -123,6 +123,29 @@ class SettingsPopup(ctk.CTkToplevel):
                       text_color=T.TEXT_PRI, font=T.font(T.FONT_XS),
                       command=self._open_license).pack(side="right")
 
+        # ── actualizaciones ──────────────────────────────────────────────────
+        ctk.CTkLabel(self, text=t("settings_updates"),
+                     font=T.bold(T.FONT_SM), text_color=T.TEXT_SEC).pack(
+            anchor="w", padx=PX, pady=(10, 2))
+
+        upd_row = ctk.CTkFrame(self, fg_color="transparent")
+        upd_row.pack(fill="x", padx=PX, pady=(0, 2))
+        ctk.CTkLabel(upd_row, text=t("settings_version", v=_eyve_version),
+                     font=T.font(T.FONT_SM), text_color=T.TEXT_PRI,
+                     anchor="w").pack(side="left", fill="x", expand=True)
+        ctk.CTkButton(upd_row, text=t("settings_update_btn"), width=100, height=28,
+                      font=T.font(T.FONT_XS), fg_color=T.BG_INPUT,
+                      text_color=T.TEXT_PRI, hover_color=T.BORDER,
+                      command=self._open_update).pack(side="right")
+
+        self._auto_upd = ctk.CTkCheckBox(
+            self, text=t("settings_update_auto"),
+            font=T.font(T.FONT_XS), text_color=T.TEXT_DIM,
+            command=self._toggle_auto_update)
+        if not config.get("update_check_disabled", False):
+            self._auto_upd.select()
+        self._auto_upd.pack(anchor="w", padx=PX, pady=(0, 4))
+
         self._sep()
 
         # ── models / offline mode ─────────────────────────────────────────────
@@ -180,6 +203,14 @@ class SettingsPopup(ctk.CTkToplevel):
                       command=self.destroy).pack(pady=(12, 16))
 
     # ── performance section ───────────────────────────────────────────────────
+    def _open_update(self) -> None:
+        self._app.open_update_dialog()
+
+    def _toggle_auto_update(self) -> None:
+        """La casilla dice "buscar al iniciar"; la config guarda lo contrario
+        para que el valor por omision (ausente) sea "si buscar"."""
+        config.set("update_check_disabled", not bool(self._auto_upd.get()))
+
     def _build_performance_section(self, PX: int) -> None:
         # Always bilingual for clarity
         ctk.CTkLabel(self, text=t("set_perf"),
