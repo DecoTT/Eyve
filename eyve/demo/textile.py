@@ -28,7 +28,16 @@ import cv2
 import numpy as np
 
 #: clases del proyecto demo, en el orden que espera el modelo (índice = class_id)
-DEFECT_CLASSES: tuple[str, ...] = ("rayon", "mancha", "falta_impresion")
+DEFECT_CLASSES: tuple[str, ...] = (
+    "rayon",            # trazo: hilo roto, raspon, arrastre
+    "mancha",           # suciedad, aceite, salpicadura
+    "falta_impresion",  # llego poca tinta o ninguna
+    "fantasma",         # eco palido del motivo, desplazado
+    "offset",           # impresion movida: motivo duplicado y corrido
+)
+
+#: fallos que TRANSFORMAN el estampado en vez de pintar encima
+_PRINT_FAULTS = ("falta_impresion", "fantasma", "offset")
 
 #: paleta de la tela — azul sobre blanco, como pidió el guion de la demo
 _INK = (168, 86, 28)        # azul de impresión (BGR)
@@ -47,6 +56,9 @@ _DEFECT_INK = {
 }
 
 MOTIFS = ("diamantes", "flores", "rayas", "puntos")
+
+#: ligamentos. "ninguno" deja la tela lisa (util para aislar en pruebas).
+WEAVES = ("sarga", "tafetan", "sarga_fina", "canasta", "ninguno")
 
 
 @dataclass
@@ -89,11 +101,17 @@ class TextilePattern:
     def __init__(self, width: int = 960, height: int = 540,
                  axis: str = "x", fabric_len: int = 3840,
                  motif: str = "diamantes", speed: float = 110.0,
-                 tilt_deg: float = 1.8, seed: Optional[int] = None) -> None:
+                 tilt_deg: float = 1.8, seed: Optional[int] = None,
+                 weave: str = "sarga", weave_amp: float = 0.07) -> None:
         self.width = int(width)
         self.height = int(height)
         self.axis = "y" if axis == "y" else "x"
         self.motif = motif if motif in MOTIFS else "diamantes"
+        self.weave = weave if weave in WEAVES else "sarga"
+        #: amplitud del ligamento. Bajo a proposito: es el relieve del hilo,
+        #: no un estampado. Pasado de 0.15 compite con el motivo y el modelo
+        #: aprende el tejido en vez del defecto.
+        self.weave_amp = float(weave_amp)
         #: px por segundo sobre el eje de viaje
         self.speed = float(speed)
         self.tilt_deg = float(tilt_deg)
@@ -115,6 +133,7 @@ class TextilePattern:
             self.fw, self.fh = self.width, self.fabric_len
 
         self._base = self._render_fabric()
+        self._weave = self._render_weave()
         # capa de defectos: color + alfa, en coordenadas de tela
         self._layer = np.zeros((self.fh, self.fw, 3), dtype=np.uint8)
         self._alpha = np.zeros((self.fh, self.fw), dtype=np.uint8)
@@ -196,6 +215,46 @@ class TextilePattern:
         q = p // 2
         for ox, oy in ((q, q), (-q, q), (q, -q)):
             cv2.circle(img, (cx + ox, cy + oy), max(3, p // 10), _INK_SOFT, -1)
+
+    def _render_weave(self) -> np.ndarray:
+        """
+        Multiplicador de luz (fh, fw, 1) con el ligamento del tejido.
+
+        Se construye una vez y viaja con la tela.  Los periodos son primos
+        entre si respecto del motivo para que no aparezcan bandas de moire
+        donde el tejido y el estampado se alinean.
+        """
+        if self.weave == "ninguno" or self.weave_amp <= 0:
+            return np.ones((self.fh, self.fw, 1), dtype=np.float32)
+
+        yy, xx = np.meshgrid(np.arange(self.fh, dtype=np.float32),
+                             np.arange(self.fw, dtype=np.float32),
+                             indexing="ij")
+        if self.weave == "sarga":
+            # diagonal marcada: el hilo pasa sobre 2 y bajo 1, desplazado
+            # una pasada por fila — es lo que da la linea a 45 grados
+            t = np.sin((xx + yy) * (2 * math.pi / 7.0))
+            t += 0.35 * np.sin(yy * (2 * math.pi / 3.0))
+        elif self.weave == "sarga_fina":
+            t = np.sin((xx + yy) * (2 * math.pi / 4.0))
+            t += 0.25 * np.sin((xx - yy) * (2 * math.pi / 11.0))
+        elif self.weave == "tafetan":
+            # trama y urdimbre cruzando una a una
+            t = (np.sin(xx * (2 * math.pi / 5.0)) *
+                 np.sin(yy * (2 * math.pi / 5.0)))
+            t += 0.4 * np.sin((xx + yy) * (2 * math.pi / 5.0))
+        else:   # canasta: grupos de 2x2 hilos
+            t = (np.sin(xx * (2 * math.pi / 9.0)) +
+                 np.sin(yy * (2 * math.pi / 9.0)))
+            t += 0.5 * np.sin(xx * (2 * math.pi / 4.5)) * \
+                 np.sin(yy * (2 * math.pi / 4.5))
+
+        t = t / (np.abs(t).max() or 1.0)
+        # irregularidad del hilo: ninguna tela real es perfectamente regular
+        rng = np.random.default_rng(13)
+        t = t + rng.normal(0.0, 0.18, t.shape).astype(np.float32)
+        w = (1.0 + self.weave_amp * t).astype(np.float32)
+        return w[:, :, None]
 
     def _make_vignette(self) -> np.ndarray:
         """Caída de luz en las esquinas, como una cámara real con lente."""
@@ -298,21 +357,138 @@ class TextilePattern:
             prev = cur
         return self.end_stroke()
 
-    def missing_print(self, fx: int, fy: int, size: int = 60) -> Defect:
-        """Parche sin impresión: un rectángulo irregular de tela desnuda."""
-        self.begin_stroke("falta_impresion")
-        w = int(size * self._rng.uniform(0.8, 1.4))
+    # ── fallos de impresion: transforman el estampado de debajo ───────────
+    def _region(self, fx: int, fy: int, w: int, h: int):
+        """
+        Indices (ys, xs) de una region de tela, con vuelta en el eje de
+        viaje.  Devuelve tambien la caja SIN envolver, para la etiqueta.
+        """
+        x0, y0 = int(fx - w // 2), int(fy - h // 2)
+        x1, y1 = x0 + w, y0 + h
+        if self.axis == "x":
+            y0 = max(0, min(y0, self.fh - 1))
+            y1 = max(y0 + 2, min(y1, self.fh))
+        else:
+            x0 = max(0, min(x0, self.fw - 1))
+            x1 = max(x0 + 2, min(x1, self.fw))
+        ys = np.arange(y0, y1) % self.fh
+        xs = np.arange(x0, x1) % self.fw
+        return ys, xs, (x0, y0, x1, y1)
+
+    def _mottle(self, shape, rng_seed: int, escala: int = 14) -> np.ndarray:
+        """
+        Mancha suave 0..1 para que el fallo no sea un rectangulo perfecto.
+
+        Un rectangulo exacto seria un atajo: el modelo aprenderia la forma
+        del parche en vez del fallo de impresion.
+        """
+        h, w = shape
+        rng = np.random.default_rng(rng_seed)
+        chico = rng.random((max(2, h // escala), max(2, w // escala)))
+        suave = cv2.resize(chico.astype(np.float32), (w, h),
+                           interpolation=cv2.INTER_CUBIC)
+        suave = np.clip(suave, 0.0, 1.0)
+        # bordes desvanecidos: el fallo se degrada hacia afuera
+        fy_ = np.linspace(-1, 1, h, dtype=np.float32)[:, None]
+        fx_ = np.linspace(-1, 1, w, dtype=np.float32)[None, :]
+        caida = np.clip(1.25 - (fx_ ** 2 + fy_ ** 2), 0.0, 1.0)
+        return suave * caida
+
+    def _stamp(self, cls: str, ys, xs, caja, nuevo: np.ndarray,
+               alfa: np.ndarray) -> Defect:
+        """Escribe el resultado en la capa de defectos y registra la caja."""
+        grid = np.ix_(ys, xs)
+        a = np.clip(alfa, 0.0, 1.0)[:, :, None]
+        viejo = self._layer[grid].astype(np.float32)
+        va = (self._alpha[grid].astype(np.float32) / 255.0)[:, :, None]
+        base = self._base[grid].astype(np.float32)
+        # si ya habia algo pintado ahi, se respeta como fondo
+        fondo = base * (1 - va) + viejo * va
+        self._layer[grid] = np.clip(fondo * (1 - a) + nuevo * a,
+                                    0, 255).astype(np.uint8)
+        self._alpha[grid] = np.maximum(
+            self._alpha[grid],
+            (np.clip(alfa, 0.0, 1.0) * 255).astype(np.uint8))
+        d = Defect(cls, caja[0], caja[1], caja[2], caja[3])
+        self.defects.append(d)
+        return d
+
+    def ghost(self, fx: int, fy: int, size: int = 120,
+              strength: float = 0.45) -> Defect:
+        """
+        Fantasma: un eco palido del motivo, desplazado unos milimetros.
+
+        Se toma el propio estampado de al lado y se superpone muy suave.
+        """
+        w = int(size * self._rng.uniform(0.9, 1.6))
+        h = int(size * self._rng.uniform(0.7, 1.3))
+        ys, xs, caja = self._region(fx, fy, w, h)
+        dx = int(self.period * self._rng.uniform(0.18, 0.45)) * \
+            self._rng.choice((-1, 1))
+        dy = int(self.period * self._rng.uniform(0.10, 0.35)) * \
+            self._rng.choice((-1, 1))
+        base = self._base[np.ix_(ys, xs)].astype(np.float32)
+        eco = self._base[np.ix_((ys + dy) % self.fh,
+                                (xs + dx) % self.fw)].astype(np.float32)
+        # el eco solo OSCURECE donde el motivo pasa: la tinta no aclara
+        nuevo = np.minimum(base, eco * strength + base * (1 - strength))
+        alfa = self._mottle(nuevo.shape[:2], self._rng.randrange(1 << 30))
+        return self._stamp("fantasma", ys, xs, caja, nuevo, alfa * 0.9)
+
+    def ink_starved(self, fx: int, fy: int, size: int = 120,
+                    severity: Optional[float] = None) -> Defect:
+        """
+        Falta de tinta: el motivo se desvanece hacia la tela cruda.
+
+        severity 0.4 = impresion debil y a parches;  1.0 = tela desnuda.
+        El rango entero es el mismo fallo visto con mas o menos tinta.
+        """
+        if severity is None:
+            severity = self._rng.uniform(0.45, 1.0)
+        w = int(size * self._rng.uniform(0.8, 1.5))
         h = int(size * self._rng.uniform(0.6, 1.2))
-        for yy in range(-h // 2, h // 2 + 1, max(4, h // 8)):
-            # orillas irregulares: un faltante de impresion real no es un
-            # rectangulo, y un rectangulo perfecto seria un atajo que el
-            # modelo aprenderia en vez del defecto
-            j0 = self._rng.randint(-w // 10, w // 10)
-            j1 = self._rng.randint(-w // 10, w // 10)
-            self.paint_segment((fx - w // 2 + j0, fy + yy),
-                               (fx + w // 2 + j1, fy + yy),
-                               max(4, h // 7), "falta_impresion")
-        return self.end_stroke()
+        ys, xs, caja = self._region(fx, fy, w, h)
+        base = self._base[np.ix_(ys, xs)].astype(np.float32)
+        cruda = np.array(_GREIGE, dtype=np.float32)[None, None, :]
+        m = self._mottle(base.shape[:2], self._rng.randrange(1 << 30))
+        # a mas severidad, mas uniforme el faltante
+        k = np.clip(m * (0.5 + severity) + severity - 0.45, 0.0, 1.0)
+        nuevo = base * (1 - k[:, :, None]) + cruda * k[:, :, None]
+        return self._stamp("falta_impresion", ys, xs, caja, nuevo,
+                           np.clip(k * 1.6, 0.0, 1.0))
+
+    def misregister(self, fx: int, fy: int, size: int = 140,
+                    shift: Optional[int] = None) -> Defect:
+        """
+        Offset / movido: el estampado sale duplicado y corrido.
+
+        A diferencia del fantasma, las dos impresiones estan a buena
+        intensidad: es un fallo de registro, no un rebote.
+        """
+        w = int(size * self._rng.uniform(0.9, 1.7))
+        h = int(size * self._rng.uniform(0.7, 1.4))
+        ys, xs, caja = self._region(fx, fy, w, h)
+        if shift is None:
+            shift = int(self.period * self._rng.uniform(0.25, 0.6))
+        ang = self._rng.uniform(0, 2 * math.pi)
+        dx = int(math.cos(ang) * shift)
+        dy = int(math.sin(ang) * shift)
+        base = self._base[np.ix_(ys, xs)].astype(np.float32)
+        corrido = self._base[np.ix_((ys + dy) % self.fh,
+                                    (xs + dx) % self.fw)].astype(np.float32)
+        # las dos impresiones se ven: se queda la mas oscura de cada pixel
+        nuevo = np.minimum(base, corrido)
+        alfa = self._mottle(nuevo.shape[:2], self._rng.randrange(1 << 30))
+        return self._stamp("offset", ys, xs, caja, nuevo,
+                           np.clip(alfa * 1.8, 0.0, 1.0))
+
+    def missing_print(self, fx: int, fy: int, size: int = 60) -> Defect:
+        """
+        Faltante de impresión severo.  Se conserva el nombre porque es la
+        llamada que ya usaban la demo y las pruebas; ahora es el extremo
+        del rango de ink_starved().
+        """
+        return self.ink_starved(fx, fy, size, severity=0.95)
 
     def clear_defects(self) -> None:
         self._layer[:] = 0
@@ -408,11 +584,13 @@ class TextilePattern:
             base = np.take(self._base, idx, axis=1)
             lay = np.take(self._layer, idx, axis=1)
             alp = np.take(self._alpha, idx, axis=1)
+            wv = np.take(self._weave, idx, axis=1)
         else:
             idx = (np.arange(self.height) + off) % self.fh
             base = np.take(self._base, idx, axis=0)
             lay = np.take(self._layer, idx, axis=0)
             alp = np.take(self._alpha, idx, axis=0)
+            wv = np.take(self._weave, idx, axis=0)
 
         out = base
         if alp.any():
@@ -421,6 +599,13 @@ class TextilePattern:
                    lay.astype(np.float32) * a).astype(np.uint8)
         else:
             out = base.copy()
+
+        # El tejido se aplica sobre la tinta tambien: es el relieve del
+        # hilo y se ve igual en la zona impresa y en la cruda. Si solo
+        # modulara el fondo, los defectos saldrian sospechosamente lisos y
+        # el modelo aprenderia "lo liso es defecto".
+        if self.weave != "ninguno" and self.weave_amp > 0:
+            out = np.clip(out.astype(np.float32) * wv, 0, 255).astype(np.uint8)
 
         if abs(self.tilt_deg) > 0.01:
             M = cv2.getRotationMatrix2D((self.width / 2, self.height / 2),
