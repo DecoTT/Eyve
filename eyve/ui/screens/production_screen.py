@@ -26,7 +26,7 @@ from eyve.ui import theme as T
 from eyve.i18n import t
 from eyve.inference.detector import YOLOWorker, VideoSource
 from eyve.inference.polarity import PolarityAnalyzer
-from eyve.inference.tracker import InstanceTracker, RawDetection
+from eyve.inference.tracker import InstanceTracker, RawDetection, TrackerConfig
 from eyve.modules import PolarityModule, CountingModule
 from eyve.production.ok_nok_logic import decide, InspectionStatus, InspectionResult
 from eyve.production.production_session import ProductionSession
@@ -124,7 +124,14 @@ class ProductionScreen(ctk.CTkFrame):
         # Persistent instance tracking (ported from 2.0 Persistent_Instance):
         # stable IDs across frames kill detection flicker; modules process
         # each instance ONCE instead of every frame.
-        self._tracker = InstanceTracker(modules=["polarity"])
+        self._tracker = InstanceTracker(
+            modules=["polarity"],
+            config=TrackerConfig(
+                iou_match          = float(_cfg.get("track_iou", 0.25)),
+                max_lost_frames    = int(_cfg.get("track_lost", 12)),
+                min_confirm_frames = int(_cfg.get("track_confirm", 2)),
+                process_conf_min   = float(_cfg.get("track_conf_min", 0.40)),
+            ))
         # Inspection modules (Eyve Pro)
         self._polarity = PolarityModule()
         self._counting = CountingModule()
@@ -132,8 +139,9 @@ class ProductionScreen(ctk.CTkFrame):
         self._count_last = ""
         # canvas→frame mapping for drawing the counting line (set per frame)
         self._view: Optional[tuple] = None   # (fw, fh, nw, nh, ox, oy)
-        self._meta_drawing = False           # True while user drags the line
+        self._meta_drawing = False           # True while user drags the geometry
         self._meta_start: Optional[tuple[int, int]] = None
+        self._meta_kind = "line"             # "line" | "rect" — set when armed
         self._build()
 
         # Space-bar hot-key (bound before auto-start so it's always available)
@@ -179,10 +187,12 @@ class ProductionScreen(ctk.CTkFrame):
         self._canvas.bind("<B1-Motion>",       self._meta_drag)
         self._canvas.bind("<ButtonRelease-1>", self._meta_release)
 
-        # right panel
-        right = ctk.CTkFrame(body, fg_color=T.BG_CARD, corner_radius=10, width=250)
+        # right panel.  Scrollable: con los 5 metodos de conteo y el panel de
+        # persistencia, el contenido pasa de la altura de la ventana en 1080p.
+        right = ctk.CTkScrollableFrame(body, fg_color=T.BG_CARD, corner_radius=10,
+                                       width=250, scrollbar_button_color=T.BG_INPUT,
+                                       scrollbar_button_hover_color=T.BORDER)
         right.grid(row=0, column=1, sticky="ns", padx=(10, 0))
-        right.grid_propagate(False)
         self._build_right(right)
 
     def _build_right(self, parent) -> None:
@@ -387,21 +397,150 @@ class ProductionScreen(ctk.CTkFrame):
             command=self._on_count_class_change)
         self._count_class.pack(side="right")
 
-        row_cb = ctk.CTkFrame(cnt_cfg, fg_color="transparent"); row_cb.pack(fill="x", pady=2)
+        # metodo de conteo — cambia que evento se cuenta y que controles salen
+        row_cm = ctk.CTkFrame(cnt_cfg, fg_color="transparent"); row_cm.pack(fill="x", pady=1)
+        ctk.CTkLabel(row_cm, text=t("prod_mod_method"), width=64, anchor="w",
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
+        self._count_method = ctk.CTkOptionMenu(
+            row_cm, values=[t("count_m_" + k) for k in CountingModule.METHODS],
+            width=120, height=24,
+            fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
+            dropdown_fg_color=T.BG_CARD, font=T.font(T.FONT_XS),
+            command=self._on_count_method_change)
+        self._count_method.set(t("count_m_" + self._counting.method))
+        self._count_method.pack(side="right")
+
+        # explicacion de una linea del metodo activo — nadie adivina que
+        # significa "aparicion" sin leerla
+        self._count_help = ctk.CTkLabel(
+            cnt_cfg, text="", font=T.font(T.FONT_XS), text_color=T.TEXT_DIM,
+            wraplength=210, justify="left", anchor="w")
+        self._count_help.pack(fill="x", pady=(2, 2))
+
+        # ── filas condicionales (una por metodo) ──────────────────────────────
+        # Se crean todas y se muestran con pack/pack_forget segun el metodo:
+        # reconstruir widgets al cambiar de metodo deja huerfanos en CTk.
+        self._row_dir = ctk.CTkFrame(cnt_cfg, fg_color="transparent")
+        ctk.CTkLabel(self._row_dir, text=t("count_sense"), width=64, anchor="w",
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
+        self._count_dir = ctk.CTkOptionMenu(
+            self._row_dir,
+            values=[t("count_d_" + k) for k in CountingModule.DIRECTIONS],
+            width=120, height=24,
+            fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
+            dropdown_fg_color=T.BG_CARD, font=T.font(T.FONT_XS),
+            command=self._on_count_dir_change)
+        self._count_dir.set(t("count_d_" + self._counting.direction))
+        self._count_dir.pack(side="right")
+
+        self._row_trig = ctk.CTkFrame(cnt_cfg, fg_color="transparent")
+        ctk.CTkLabel(self._row_trig, text=t("count_counts"), width=64, anchor="w",
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
+        self._count_trig = ctk.CTkOptionMenu(
+            self._row_trig,
+            values=[t("count_z_" + k) for k in CountingModule.ZONE_TRIGGERS],
+            width=120, height=24,
+            fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
+            dropdown_fg_color=T.BG_CARD, font=T.font(T.FONT_XS),
+            command=self._on_count_trig_change)
+        self._count_trig.set(t("count_z_" + self._counting.zone_trigger))
+        self._count_trig.pack(side="right")
+
+        self._row_edge = ctk.CTkFrame(cnt_cfg, fg_color="transparent")
+        ctk.CTkLabel(self._row_edge, text=t("count_exit_by"), width=64, anchor="w",
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
+        self._count_edge = ctk.CTkOptionMenu(
+            self._row_edge,
+            values=[t("count_e_" + k) for k in CountingModule.EDGES],
+            width=120, height=24,
+            fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
+            dropdown_fg_color=T.BG_CARD, font=T.font(T.FONT_XS),
+            command=self._on_count_edge_change)
+        self._count_edge.set(t("count_e_" + self._counting.edge))
+        self._count_edge.pack(side="right")
+
+        # rango esperado — es lo que convierte el conteo en criterio OK/NOK
+        self._row_exp = ctk.CTkFrame(cnt_cfg, fg_color="transparent")
+        ctk.CTkLabel(self._row_exp, text=t("count_expected"), width=64, anchor="w",
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
+        self._exp_max = ctk.CTkEntry(self._row_exp, width=42, height=24,
+                                     font=T.font(T.FONT_XS), fg_color=T.BG_INPUT,
+                                     border_width=1, border_color=T.BORDER,
+                                     justify="center", placeholder_text="max")
+        self._exp_max.pack(side="right")
+        ctk.CTkLabel(self._row_exp, text="–", font=T.font(T.FONT_XS),
+                     text_color=T.TEXT_DIM).pack(side="right", padx=3)
+        self._exp_min = ctk.CTkEntry(self._row_exp, width=42, height=24,
+                                     font=T.font(T.FONT_XS), fg_color=T.BG_INPUT,
+                                     border_width=1, border_color=T.BORDER,
+                                     justify="center", placeholder_text="min")
+        self._exp_min.pack(side="right")
+        for _e in (self._exp_min, self._exp_max):
+            _e.bind("<KeyRelease>", self._on_count_expect_change)
+            _e.bind("<FocusOut>",   self._on_count_expect_change)
+
+        # ── dibujar geometria ─────────────────────────────────────────────────
+        self._row_draw = ctk.CTkFrame(cnt_cfg, fg_color="transparent")
         self._meta_btn = ctk.CTkButton(
-            row_cb, text=t("prod_draw_line"), height=26,
+            self._row_draw, text=t("prod_draw_line"), height=26,
             fg_color=T.BG_INPUT, border_width=1, border_color=T.BORDER,
             font=T.font(T.FONT_XS), command=self._arm_meta_draw)
-        self._meta_btn.pack(side="left", fill="x", expand=True, padx=(0, 4))
-        ctk.CTkButton(row_cb, text="↺", width=28, height=26,
+        self._meta_btn.pack(side="left", fill="x", expand=True)
+
+        # ── lectura + reinicio ────────────────────────────────────────────────
+        row_cr = ctk.CTkFrame(cnt_cfg, fg_color="transparent"); row_cr.pack(fill="x", pady=2)
+        self._count_lbl = ctk.CTkLabel(row_cr, text="",
+                                        font=T.bold(T.FONT_SM), text_color=T.ACCENT2,
+                                        wraplength=170, anchor="w", justify="left")
+        self._count_lbl.pack(side="left", fill="x", expand=True)
+        ctk.CTkButton(row_cr, text="↺", width=28, height=26,
                       font=T.font(T.FONT_XS), fg_color="transparent",
                       text_color=T.TEXT_DIM, hover_color=T.BG_INPUT,
                       command=self._reset_counting).pack(side="right")
 
-        self._count_lbl = ctk.CTkLabel(parent, text="",
-                                        font=T.bold(T.FONT_XS), text_color=T.ACCENT2,
-                                        wraplength=200, anchor="w")
-        self._count_lbl.pack(padx=12, anchor="w")
+        # ── persistencia de instancia (plegable) ──────────────────────────────
+        # "Que tanto seguimos reconociendo la misma instancia": hasta 2.1.0
+        # estos cuatro valores solo se podian cambiar editando tracker.py.
+        self._persist_open = False
+        self._persist_btn = ctk.CTkButton(
+            cnt_cfg, text="▸  " + t("count_persistence"), height=24, anchor="w",
+            fg_color="transparent", hover_color=T.BG_INPUT,
+            text_color=T.TEXT_DIM, font=T.font(T.FONT_XS),
+            command=self._toggle_persist)
+        self._persist_btn.pack(fill="x", pady=(4, 0))
+
+        self._persist_box = ctk.CTkFrame(cnt_cfg, fg_color="transparent")
+        _tc = self._tracker.config
+        self._persist_sliders = {}
+        for _key, _label, _lo, _hi, _val, _fmt in [
+            ("track_lost",     t("count_tolerance"), 0,  40,
+             _tc.max_lost_frames,         lambda v: "%d f" % int(v)),
+            ("track_confirm",  t("count_confirm"),   1,  10,
+             _tc.min_confirm_frames,      lambda v: "%d f" % int(v)),
+            ("track_iou",      t("count_iou"),       5,  80,
+             _tc.iou_match * 100,         lambda v: "%d%%" % int(v)),
+            ("track_conf_min", t("count_conf_min"),  10, 95,
+             _tc.process_conf_min * 100,  lambda v: "%d%%" % int(v)),
+        ]:
+            _r = ctk.CTkFrame(self._persist_box, fg_color="transparent")
+            _r.pack(fill="x", pady=1)
+            ctk.CTkLabel(_r, text=_label, width=72, anchor="w",
+                         font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
+            _vlbl = ctk.CTkLabel(_r, text=_fmt(_val), width=32,
+                                 font=T.font(T.FONT_XS), text_color=T.TEXT_SEC)
+            _vlbl.pack(side="right")
+            _sl = ctk.CTkSlider(_r, from_=_lo, to=_hi, width=84,
+                                command=lambda v, k=_key: self._on_persist_change(k, v))
+            _sl.set(_val)
+            _sl.pack(side="right", padx=4)
+            self._persist_sliders[_key] = (_sl, _vlbl, _fmt)
+
+        ctk.CTkLabel(self._persist_box, text=t("count_persistence_hint"),
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM,
+                     wraplength=210, justify="left", anchor="w").pack(
+            fill="x", pady=(2, 4))
+
+        self._refresh_count_rows()
 
         sep2b = ctk.CTkFrame(parent, height=1, fg_color=T.BORDER)
         sep2b.pack(fill="x", padx=12, pady=4)
@@ -545,24 +684,146 @@ class ProductionScreen(ctk.CTkFrame):
     # ── counting module UI ───────────────────────────────────────────────────
     def _on_counting_toggle(self) -> None:
         self._counting.enabled = self._count_var.get()
-        if self._counting.enabled and self._counting.line is None:
-            self._count_lbl.configure(text=t("prod_line_hint"), text_color=T.TEXT_DIM)
-        elif not self._counting.enabled:
+        if not self._counting.enabled:
             self._count_lbl.configure(text="")
+        else:
+            self._refresh_count_rows()
 
     def _on_count_class_change(self, val: str) -> None:
         self._counting.target_class = None if val == t("prod_mod_all") else val
+        self._counting.reset()
+        self._count_last = ""
+
+    def _on_count_method_change(self, label: str) -> None:
+        """Translated label back to the internal method key."""
+        key = next((k for k in CountingModule.METHODS
+                    if t("count_m_" + k) == label), None)
+        if key is None:
+            return
+        self._counting.set_method(key)     # resetea el acumulado a proposito
+        self._count_last = ""
+        self._refresh_count_rows()
+
+    def _on_count_dir_change(self, label: str) -> None:
+        key = next((k for k in CountingModule.DIRECTIONS
+                    if t("count_d_" + k) == label), None)
+        if key:
+            self._counting.direction = key
+            self._count_last = ""
+
+    def _on_count_trig_change(self, label: str) -> None:
+        key = next((k for k in CountingModule.ZONE_TRIGGERS
+                    if t("count_z_" + k) == label), None)
+        if key:
+            self._counting.zone_trigger = key
+            self._counting.reset()
+            self._count_last = ""
+
+    def _on_count_edge_change(self, label: str) -> None:
+        key = next((k for k in CountingModule.EDGES
+                    if t("count_e_" + k) == label), None)
+        if key:
+            self._counting.edge = key
+            self._count_last = ""
+
+    def _on_count_expect_change(self, _event=None) -> None:
+        """
+        Empty field = no expectation on that end (the module only vetoes
+        when at least one bound is set).  Garbage text is ignored, not an
+        error dialog: the user is mid-typing on every KeyRelease.
+        """
+        def parse(entry):
+            txt = entry.get().strip()
+            if not txt:
+                return None
+            try:
+                return max(0, int(txt))
+            except ValueError:
+                return None
+        self._counting.expect_min = parse(self._exp_min)
+        self._counting.expect_max = parse(self._exp_max)
+        self._count_last = ""
+
+    def _toggle_persist(self) -> None:
+        self._persist_open = not self._persist_open
+        if self._persist_open:
+            self._persist_box.pack(fill="x", pady=(2, 0))
+            self._persist_btn.configure(text="\u25be  " + t("count_persistence"))
+        else:
+            self._persist_box.pack_forget()
+            self._persist_btn.configure(text="\u25b8  " + t("count_persistence"))
+
+    #: config key -> TrackerConfig field
+    _PERSIST_FIELDS = {
+        "track_lost":     "max_lost_frames",
+        "track_confirm":  "min_confirm_frames",
+        "track_iou":      "iou_match",
+        "track_conf_min": "process_conf_min",
+    }
+
+    def _on_persist_change(self, key: str, value: float) -> None:
+        """
+        Tracker persistence sliders.  Applied live to the running tracker and
+        persisted in app config, so the next session starts with the line
+        already tuned instead of back at the defaults.
+        """
+        _sl, vlbl, fmt = self._persist_sliders[key]
+        vlbl.configure(text=fmt(value))
+        if key in ("track_iou", "track_conf_min"):
+            stored = round(value / 100.0, 2)
+        else:
+            stored = int(value)
+        _cfg.set(key, stored)
+        self._tracker.configure(**{self._PERSIST_FIELDS[key]: stored})
+
+    def _refresh_count_rows(self) -> None:
+        """
+        Show only the controls the active method actually uses, and update the
+        one-line explanation + draw-button label.
+        """
+        m = self._counting.method
+        for row in (self._row_dir, self._row_trig, self._row_edge,
+                    self._row_exp, self._row_draw):
+            row.pack_forget()
+        if m == "line":
+            self._row_dir.pack(fill="x", pady=1)
+            self._row_draw.pack(fill="x", pady=2)
+        elif m == "zone":
+            self._row_trig.pack(fill="x", pady=1)
+            self._row_exp.pack(fill="x", pady=1)
+            self._row_draw.pack(fill="x", pady=2)
+        elif m == "disappear":
+            self._row_edge.pack(fill="x", pady=1)
+        elif m == "screen":
+            self._row_exp.pack(fill="x", pady=1)
+
+        self._count_help.configure(text=t("count_help_" + m))
+
+        kind = self._counting.geometry_kind
+        if kind == "rect":
+            self._meta_btn.configure(text=t("prod_draw_zone"))
+        else:
+            self._meta_btn.configure(text=t("prod_draw_line"))
+
+        if self._counting.enabled and self._counting.needs_geometry:
+            hint = t("prod_zone_hint") if kind == "rect" else t("prod_line_hint")
+            self._count_lbl.configure(text=hint, text_color=T.TEXT_DIM)
+        elif self._counting.enabled:
+            self._count_lbl.configure(text=self._counting.summary(),
+                                      text_color=T.ACCENT2)
 
     def _reset_counting(self) -> None:
         self._counting.reset()
         self._count_last = ""
         self._count_lbl.configure(text="0", text_color=T.ACCENT2)
 
-    # ── finish-line drawing on the canvas ────────────────────────────────────
+    # ── geometry drawing on the canvas (line or zone rect) ───────────────────
     def _arm_meta_draw(self) -> None:
+        self._meta_kind = self._counting.geometry_kind or "line"
         self._meta_drawing = True
         self._meta_btn.configure(fg_color=T.ACCENT2, text_color="#000")
-        self._count_lbl.configure(text=t("prod_line_hint"), text_color=T.ACCENT2)
+        hint = t("prod_zone_hint") if self._meta_kind == "rect" else t("prod_line_hint")
+        self._count_lbl.configure(text=hint, text_color=T.ACCENT2)
 
     def _meta_press(self, event) -> None:
         if self._meta_drawing:
@@ -572,8 +833,13 @@ class ProductionScreen(ctk.CTkFrame):
         if not (self._meta_drawing and self._meta_start):
             return
         self._canvas.delete("meta_tmp")
-        self._canvas.create_line(*self._meta_start, event.x, event.y,
-                                 fill="#ffd700", width=2, tags="meta_tmp")
+        if self._meta_kind == "rect":
+            self._canvas.create_rectangle(*self._meta_start, event.x, event.y,
+                                          outline="#00bffe", width=2,
+                                          tags="meta_tmp")
+        else:
+            self._canvas.create_line(*self._meta_start, event.x, event.y,
+                                     fill="#ffd700", width=2, tags="meta_tmp")
 
     def _meta_release(self, event) -> None:
         if not (self._meta_drawing and self._meta_start):
@@ -593,12 +859,22 @@ class ProductionScreen(ctk.CTkFrame):
 
         p1 = to_frame(*start)
         p2 = to_frame(event.x, event.y)
-        if abs(p1[0] - p2[0]) < 5 and abs(p1[1] - p2[1]) < 5:
-            return   # accidental click, not a line
-        self._counting.line = (*p1, *p2)
+        if self._meta_kind == "rect":
+            # un rectangulo de 3 px no es una zona: fue un clic suelto
+            if abs(p1[0] - p2[0]) < 12 or abs(p1[1] - p2[1]) < 12:
+                self._refresh_count_rows()
+                return
+            self._counting.zone = (min(p1[0], p2[0]), min(p1[1], p2[1]),
+                                   max(p1[0], p2[0]), max(p1[1], p2[1]))
+        else:
+            if abs(p1[0] - p2[0]) < 5 and abs(p1[1] - p2[1]) < 5:
+                self._refresh_count_rows()
+                return   # accidental click, not a line
+            self._counting.line = (*p1, *p2)
         self._counting.reset()
         self._count_var.set(True)
         self._counting.enabled = True
+        self._count_last = ""
         self._count_lbl.configure(text="0", text_color=T.ACCENT2)
 
     # ── model loading ─────────────────────────────────────────────────────────
@@ -918,15 +1194,30 @@ class ProductionScreen(ctk.CTkFrame):
                                 text_color=(T.COLOR_NOK if pol_wrong
                                             else T.TEXT_DIM))
 
-                    # ── counting: instances crossing the finish line ──────
+                    # ── counting (5 metodos sobre el mismo tracker) ───────
                     if self._counting.enabled:
-                        self._counting.update_tracks(tracks)
+                        fh_, fw_ = frame.shape[:2]
+                        cv_ = self._counting.update_tracks(
+                            tracks,
+                            expired=self._tracker.last_expired,
+                            frame_wh=(fw_, fh_))
                         self._counting.draw(annotated)
+                        # Un conteo fuera del rango esperado es un defecto:
+                        # veta el frame igual que la polaridad.
+                        if not cv_.ok and inspection.status != InspectionStatus.NOT_OK:
+                            inspection = InspectionResult(
+                                status=InspectionStatus.NOT_OK,
+                                triggered_by=cv_.triggered_by or "conteo",
+                                confidence=1.0,
+                                detections=result.detections,
+                            )
                         cs = self._counting.summary()
                         if cs != self._count_last:
                             self._count_last = cs
-                            self._count_lbl.configure(text=cs,
-                                                       text_color=T.ACCENT2)
+                            self._count_lbl.configure(
+                                text=cs,
+                                text_color=(T.COLOR_NOK if not cv_.ok
+                                            else T.ACCENT2))
 
                     # ── polarity preview (picture-in-picture, top-right) ──
                     if self._polarity.enabled and self._polarity.last_debug is not None:

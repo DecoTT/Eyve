@@ -120,6 +120,56 @@ STRINGS = {
     "prod_draw_line": "✏ Draw finish line",
     "prod_line_hint": "Drag on the video to draw the finish line",
     "prod_arc": "Arc",
+    # ── counting module (5 methods) ──────────────────────────────────────────
+    "count_m_screen":     "On screen",
+    "count_m_line":       "Line crossing",
+    "count_m_zone":       "Zone (area)",
+    "count_m_appear":     "On appear",
+    "count_m_disappear":  "On disappear",
+
+    "count_help_screen":    "Counts what is in frame RIGHT NOW. Does not accumulate. "
+                            "With an expected range, a count outside it flags NOT OK.",
+    "count_help_line":      "Each instance counts once as it crosses the finish line. "
+                            "Draw the line over the video.",
+    "count_help_zone":      "Counts on entering the area, on leaving, or both, and "
+                            "reports how many are inside. Draw the area over the video.",
+    "count_help_appear":    "Counts every new instance exactly once, wherever it shows "
+                            "up. For parts with no fixed side of arrival.",
+    "count_help_disappear": "Counts every instance that leaves the frame. With an edge "
+                            "selected, only the ones leaving through that side.",
+
+    "count_sense":        "Sense",
+    "count_counts":       "Counts",
+    "count_exit_by":      "Leaves by",
+    "count_expected":     "Expected",
+
+    "count_d_both":       "Both",
+    "count_d_fwd":        "One way",
+    "count_d_rev":        "Reverse",
+
+    "count_z_enter":      "On enter",
+    "count_z_exit":       "On exit",
+    "count_z_both":       "Enter and exit",
+
+    "count_e_any":        "Any side",
+    "count_e_left":       "Left",
+    "count_e_right":      "Right",
+    "count_e_top":        "Top",
+    "count_e_bottom":     "Bottom",
+
+    "count_persistence":  "Instance persistence",
+    "count_persistence_hint": "Tolerance = frames a part may vanish without losing its "
+                              "ID (raise it if the detector flickers). IoU = how alike "
+                              "two boxes must be to count as the same part (lower it "
+                              "when they move fast).",
+    "count_tolerance":    "Tolerance",
+    "count_confirm":      "Confirm",
+    "count_iou":          "Min IoU",
+    "count_conf_min":     "Min conf.",
+
+    "prod_draw_zone":     "\u270f Draw zone",
+    "prod_zone_hint":     "Drag on the video to draw the area",
+
 
     # ── i18n pass (previously hardcoded) ─────────────────────────────────────
     "cam_loading": "⟳  Loading cameras…",

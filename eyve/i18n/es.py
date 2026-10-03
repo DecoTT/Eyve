@@ -120,6 +120,56 @@ STRINGS = {
     "prod_draw_line": "✏ Dibujar meta",
     "prod_line_hint": "Arrastra sobre el video para dibujar la meta",
     "prod_arc": "Arco",
+    # ── counting module (5 metodos) ──────────────────────────────────────────
+    "count_m_screen":     "En pantalla",
+    "count_m_line":       "Cruce de meta",
+    "count_m_zone":       "Zona (area)",
+    "count_m_appear":     "Al aparecer",
+    "count_m_disappear":  "Al desaparecer",
+
+    "count_help_screen":    "Cuenta lo que hay AHORA en el encuadre. No acumula. "
+                            "Con un rango esperado, un conteo fuera de rango marca NOT OK.",
+    "count_help_line":      "Cada instancia cuenta una vez al cruzar la meta. "
+                            "Dibuja la linea sobre el video.",
+    "count_help_zone":      "Cuenta al entrar al area, al salir, o ambas, y reporta "
+                            "cuantas hay dentro. Dibuja el area sobre el video.",
+    "count_help_appear":    "Cuenta cada instancia nueva una sola vez, aparezca donde "
+                            "aparezca. Para piezas sin un lado fijo de llegada.",
+    "count_help_disappear": "Cuenta cada instancia que se va del encuadre. Con un borde "
+                            "elegido, solo las que salen por ese lado.",
+
+    "count_sense":        "Sentido",
+    "count_counts":       "Cuenta",
+    "count_exit_by":      "Sale por",
+    "count_expected":     "Esperado",
+
+    "count_d_both":       "Ambos",
+    "count_d_fwd":        "Un sentido",
+    "count_d_rev":        "Sentido inverso",
+
+    "count_z_enter":      "Al entrar",
+    "count_z_exit":       "Al salir",
+    "count_z_both":       "Entrar y salir",
+
+    "count_e_any":        "Cualquier lado",
+    "count_e_left":       "Izquierda",
+    "count_e_right":      "Derecha",
+    "count_e_top":        "Arriba",
+    "count_e_bottom":     "Abajo",
+
+    "count_persistence":  "Persistencia de instancia",
+    "count_persistence_hint": "Tolerancia = frames que una pieza puede desaparecer "
+                              "sin perder su ID (sube si el detector parpadea). "
+                              "IoU = que tan parecidas deben ser dos cajas para ser "
+                              "la misma pieza (baja si se mueven rapido).",
+    "count_tolerance":    "Tolerancia",
+    "count_confirm":      "Confirmar",
+    "count_iou":          "IoU minima",
+    "count_conf_min":     "Conf. minima",
+
+    "prod_draw_zone":     "\u270f Dibujar zona",
+    "prod_zone_hint":     "Arrastra sobre el video para dibujar el area",
+
 
     # ── i18n pass (antes hardcoded) ──────────────────────────────────────────
     "cam_loading": "⟳  Cargando cámaras…",

@@ -46,6 +46,45 @@ PROCESS_CONF_MIN    = 0.40   # confianza mínima para enviar a procesamiento
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+#  Configuración por instancia
+# ─────────────────────────────────────────────────────────────────────────────
+@dataclass
+class TrackerConfig:
+    """
+    Parámetros de persistencia de instancia, ajustables en caliente.
+
+    Hasta 2.1.0 estos cuatro valores eran constantes de módulo, así que la
+    única forma de afinar "qué tanto seguimos reconociendo la misma
+    instancia" era editar el código.  El módulo de conteo los necesita a la
+    mano: una banda rápida con oclusión pide tolerancia alta
+    (max_lost_frames), y piezas pegadas pide iou_match bajo.
+
+    iou_match          IoU mínima para considerar que dos cajas son la misma
+                       instancia entre frames.  Bajo = más permisivo (une
+                       piezas que se mueven rápido); alto = más estricto
+                       (evita robar el ID del vecino).
+    max_lost_frames    Frames que una instancia puede desaparecer sin perder
+                       su ID.  Es la tolerancia al parpadeo del detector.
+    min_confirm_frames Frames vistos antes de considerar la instancia "real".
+                       Filtra detecciones de un solo frame (falsos positivos).
+    process_conf_min   Confianza mínima para mandar la instancia a un módulo.
+    """
+    iou_match:          float = IOU_MATCH_THRESHOLD
+    max_lost_frames:    int   = MAX_LOST_FRAMES
+    min_confirm_frames: int   = MIN_CONFIRM_FRAMES
+    process_conf_min:   float = PROCESS_CONF_MIN
+
+    def clamped(self) -> "TrackerConfig":
+        """Valores dentro de rango usable (la UI no puede romper el tracker)."""
+        return TrackerConfig(
+            iou_match          = min(max(self.iou_match, 0.01), 0.95),
+            max_lost_frames    = max(int(self.max_lost_frames), 0),
+            min_confirm_frames = max(int(self.min_confirm_frames), 1),
+            process_conf_min   = min(max(self.process_conf_min, 0.0), 0.99),
+        )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 #  Detección de entrada
 # ─────────────────────────────────────────────────────────────────────────────
 @dataclass
@@ -80,19 +119,20 @@ class RawDetection:
 class TrackedInstance:
     _id_counter = 0
 
-    def __init__(self, det: RawDetection):
+    def __init__(self, det: RawDetection, cfg: Optional[TrackerConfig] = None):
         TrackedInstance._id_counter += 1
         self.id           = TrackedInstance._id_counter
         self.label        = det.label
         self.confidence   = det.confidence
         self.bbox         = det.bbox
         self.bbox_history: List[Tuple] = [det.bbox]
+        self._cfg         = cfg or TrackerConfig()
 
         self.frames_seen  = 1
         self.frames_lost  = 0
         self.first_seen   = time.time()
         self.last_seen    = time.time()
-        self.confirmed    = (MIN_CONFIRM_FRAMES <= 1)
+        self.confirmed    = (self._cfg.min_confirm_frames <= 1)
 
         self._proc_state: Dict[str, str] = {}
         self._results:    Dict[str, Any] = {}
@@ -145,7 +185,7 @@ class TrackedInstance:
     def needs_processing(self, module: str) -> bool:
         if not self.confirmed:
             return False
-        if self.confidence < PROCESS_CONF_MIN:
+        if self.confidence < self._cfg.process_conf_min:
             return False
         return self._proc_state.get(module, "pending") == "pending"
 
@@ -188,7 +228,7 @@ class TrackedInstance:
         self.frames_lost  = 0
         self.last_seen    = time.time()
 
-        if self.frames_seen >= MIN_CONFIRM_FRAMES:
+        if self.frames_seen >= self._cfg.min_confirm_frames:
             self.confirmed = True
 
     def mark_lost(self):
@@ -209,10 +249,32 @@ class InstanceTracker:
     Utiliza IoU para asociar detecciones a instancias existentes.
     """
 
-    def __init__(self, modules: Optional[List[str]] = None):
+    def __init__(self, modules: Optional[List[str]] = None,
+                 config: Optional[TrackerConfig] = None):
         self._tracks: Dict[int, TrackedInstance] = {}
         self._modules: List[str] = modules or []
         self._frame_count = 0
+        self.config: TrackerConfig = (config or TrackerConfig()).clamped()
+        #: instancias purgadas en el último update() — el método de conteo
+        #: "desaparición" cuenta justo estas (ya no hay forma de verlas luego).
+        self.last_expired: List[TrackedInstance] = []
+
+    def configure(self, **kwargs) -> None:
+        """
+        Ajusta la configuración en caliente (desde la UI, sin reiniciar).
+
+        Los tracks vivos conservan la config con la que nacieron para su
+        umbral de confirmación; los nuevos usan la nueva.  La tolerancia de
+        purga y la IoU de asociación aplican de inmediato a todos.
+        """
+        cur = {
+            "iou_match":          self.config.iou_match,
+            "max_lost_frames":    self.config.max_lost_frames,
+            "min_confirm_frames": self.config.min_confirm_frames,
+            "process_conf_min":   self.config.process_conf_min,
+        }
+        cur.update({k: v for k, v in kwargs.items() if k in cur and v is not None})
+        self.config = TrackerConfig(**cur).clamped()
 
     def update(self, detections: List[RawDetection],
                frame: Optional[np.ndarray] = None) -> List[TrackedInstance]:
@@ -234,7 +296,7 @@ class InstanceTracker:
                 if iou_matrix.size == 0:
                     break
                 max_val = float(iou_matrix.max())
-                if max_val < IOU_MATCH_THRESHOLD:
+                if max_val < self.config.iou_match:
                     break
                 ti_arr, di_arr = np.unravel_index(iou_matrix.argmax(), iou_matrix.shape)
                 ti, di = int(ti_arr), int(di_arr)
@@ -260,16 +322,18 @@ class InstanceTracker:
         # Crear nuevas instancias
         for i, det in enumerate(detections):
             if i not in matched_det_idxs:
-                t = TrackedInstance(det)
+                t = TrackedInstance(det, self.config)
                 for m in self._modules:
                     t.register_module(m)
                 if frame is not None:
                     t.update_roi(frame)
                 self._tracks[t.id] = t
 
-        # Purgar expirados
+        # Purgar expirados.  Se guardan en last_expired ANTES de borrarlos:
+        # es la única oportunidad de contarlos (conteo por desaparición).
         purge = [tid for tid, t in self._tracks.items()
-                 if t.frames_lost > MAX_LOST_FRAMES]
+                 if t.frames_lost > self.config.max_lost_frames]
+        self.last_expired = [self._tracks[tid] for tid in purge]
         for tid in purge:
             del self._tracks[tid]
 
@@ -287,6 +351,7 @@ class InstanceTracker:
 
     def reset(self):
         self._tracks.clear()
+        self.last_expired = []
         TrackedInstance._id_counter = 0
         self._frame_count = 0
 
