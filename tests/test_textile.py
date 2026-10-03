@@ -27,7 +27,8 @@ SCRATCH.mkdir(parents=True, exist_ok=True)
 
 import numpy as np
 import cv2
-from eyve.demo.textile import TextilePattern, DEFECT_CLASSES
+from eyve.demo.textile import (TextilePattern, DEFECT_CLASSES,
+                               YOLO_CLASSES, PRINT_FAULTS)
 
 fails = []
 
@@ -264,8 +265,29 @@ p.blob(*p.screen_to_fabric(420, 300), size=70, cls="mancha")
 p.missing_print(*p.screen_to_fabric(640, 450), size=80)
 labels = p.visible_labels()
 check("tres defectos etiquetados", len(labels), 3)
-check("las tres clases presentes",
-      sorted(set(l[0] for l in labels)), sorted(DEFECT_CLASSES))
+check("las tres clases pintadas estan presentes",
+      sorted(set(l[0] for l in labels)),
+      sorted(["rayon", "mancha", "falta_impresion"]))
+
+print("\n[7b] Las primitivas de fallo de impresion dejan marca")
+# Fantasma y offset no son clases entrenables, pero el generador tiene que
+# saber hacerlos: son el material con el que se prueba el modulo Patron y
+# lo que el modo automatico de la demo le ensena a la gente.
+for nombre, hacer in [("fantasma", lambda q, f: q.ghost(*f, size=150)),
+                      ("offset", lambda q, f: q.misregister(*f, size=160))]:
+    q = TextilePattern(width=640, height=480, axis="x", tilt_deg=0.0,
+                       motif="diamantes", seed=20)
+    limpio = q.frame().astype(int)
+    hacer(q, q.screen_to_fabric(320, 240))
+    d_ = np.abs(q.frame().astype(int) - limpio).sum(axis=2)
+    check_true(f"{nombre} cambia la imagen", (d_ > 25).sum() > 400,
+               f"px={(d_ > 25).sum()}")
+    check(f"{nombre} queda registrado como defecto", len(q.defects), 1)
+
+check_true("las clases entrenables son solo dos", len(YOLO_CLASSES) == 2,
+           str(YOLO_CLASSES))
+check_true("y los fallos de impresion van aparte", len(PRINT_FAULTS) == 3,
+           str(PRINT_FAULTS))
 
 print("\n[8] falta_impresion borra el motivo (deja tela desnuda)")
 p = TextilePattern(width=400, height=300, axis="x", tilt_deg=0.0,

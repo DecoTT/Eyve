@@ -27,7 +27,7 @@ from eyve.i18n import t
 from eyve.inference.detector import YOLOWorker, VideoSource
 from eyve.inference.polarity import PolarityAnalyzer
 from eyve.inference.tracker import InstanceTracker, RawDetection, TrackerConfig
-from eyve.modules import PolarityModule, CountingModule
+from eyve.modules import PolarityModule, CountingModule, PatternModule
 from eyve.production.ok_nok_logic import decide, InspectionStatus, InspectionResult
 from eyve.production.production_session import ProductionSession
 from eyve.ui.components.dialogs import show_error
@@ -135,6 +135,9 @@ class ProductionScreen(ctk.CTkFrame):
         # Inspection modules (Eyve Pro)
         self._polarity = PolarityModule()
         self._counting = CountingModule()
+        self._pattern = PatternModule()
+        self._pat_last = ""
+        self._pat_cal_left = 0
         self._mod_last_status = ""     # cache to avoid configure() every frame
         self._count_last = ""
         # canvas→frame mapping for drawing the counting line (set per frame)
@@ -542,6 +545,62 @@ class ProductionScreen(ctk.CTkFrame):
 
         self._refresh_count_rows()
 
+        sep2a = ctk.CTkFrame(parent, height=1, fg_color=T.BORDER)
+        sep2a.pack(fill="x", padx=12, pady=4)
+
+        # ── modulo Patron: inspeccion sin clases ──────────────────────────────
+        self._pat_var = ctk.BooleanVar(value=False)
+        ctk.CTkCheckBox(parent, text=t("pat_title"), variable=self._pat_var,
+                        font=T.font(T.FONT_XS), text_color=T.TEXT_PRI,
+                        command=self._on_pattern_toggle).pack(
+            padx=12, anchor="w", pady=(2, 0))
+
+        pat_cfg = ctk.CTkFrame(parent, fg_color="transparent")
+        pat_cfg.pack(fill="x", padx=12, pady=(2, 0))
+
+        row_pm = ctk.CTkFrame(pat_cfg, fg_color="transparent")
+        row_pm.pack(fill="x", pady=1)
+        ctk.CTkLabel(row_pm, text=t("pat_method"), width=64, anchor="w",
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
+        self._pat_method = ctk.CTkOptionMenu(
+            row_pm, values=[t("pat_m_" + k) for k in PatternModule.METHODS],
+            width=120, height=24, fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
+            dropdown_fg_color=T.BG_CARD, font=T.font(T.FONT_XS),
+            command=self._on_pat_method)
+        self._pat_method.set(t("pat_m_" + self._pattern.method))
+        self._pat_method.pack(side="right")
+
+        self._pat_help = ctk.CTkLabel(
+            pat_cfg, text=t("pat_help_" + self._pattern.method),
+            font=T.font(T.FONT_XS), text_color=T.TEXT_DIM,
+            wraplength=210, justify="left", anchor="w")
+        self._pat_help.pack(fill="x", pady=(2, 2))
+
+        row_ps = ctk.CTkFrame(pat_cfg, fg_color="transparent")
+        row_ps.pack(fill="x", pady=1)
+        ctk.CTkLabel(row_ps, text=t("pat_sens"), width=72, anchor="w",
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
+        self._pat_sens_val = ctk.CTkLabel(row_ps, text="70", width=28,
+                                           font=T.font(T.FONT_XS),
+                                           text_color=T.TEXT_SEC)
+        self._pat_sens_val.pack(side="right")
+        self._pat_sens = ctk.CTkSlider(row_ps, from_=0, to=100, width=86,
+                                        command=self._on_pat_sens)
+        self._pat_sens.set(70)
+        self._pat_sens.pack(side="right", padx=4)
+        self._pattern.sensitivity = 70.0
+
+        self._pat_cal_btn = ctk.CTkButton(
+            pat_cfg, text=t("pat_calibrate"), height=26,
+            fg_color=T.BG_INPUT, border_width=1, border_color=T.BORDER,
+            font=T.font(T.FONT_XS), command=self._calibrate_pattern)
+        self._pat_cal_btn.pack(fill="x", pady=2)
+
+        self._pat_status = ctk.CTkLabel(
+            pat_cfg, text=t("pat_uncalibrated"), font=T.font(T.FONT_XS),
+            text_color=T.WARN, wraplength=210, justify="left", anchor="w")
+        self._pat_status.pack(fill="x")
+
         sep2b = ctk.CTkFrame(parent, height=1, fg_color=T.BORDER)
         sep2b.pack(fill="x", padx=12, pady=4)
 
@@ -811,6 +870,53 @@ class ProductionScreen(ctk.CTkFrame):
         elif self._counting.enabled:
             self._count_lbl.configure(text=self._counting.summary(),
                                       text_color=T.ACCENT2)
+
+    # ── modulo Patron ────────────────────────────────────────────────────────
+    def _on_pattern_toggle(self) -> None:
+        self._pattern.enabled = self._pat_var.get()
+        if not self._pattern.enabled:
+            self._pat_status.configure(text="", text_color=T.TEXT_DIM)
+        else:
+            self._refresh_pat_status()
+
+    def _on_pat_method(self, label: str) -> None:
+        key = next((k for k in PatternModule.METHODS
+                    if t("pat_m_" + k) == label), None)
+        if key is None:
+            return
+        self._pattern.set_method(key)
+        self._pat_help.configure(text=t("pat_help_" + key))
+        self._refresh_pat_status()
+
+    def _on_pat_sens(self, value: float) -> None:
+        self._pattern.sensitivity = float(value)
+        self._pat_sens_val.configure(text=str(int(value)))
+
+    def _calibrate_pattern(self) -> None:
+        """
+        Aprende el ruido del material BUENO que esta pasando ahora.
+
+        Se toman varios frames seguidos y no uno: un frame trae su propio
+        ruido, y ese ruido se volveria el criterio de lo correcto.
+        """
+        self._pattern.clear_calibration()
+        self._pat_cal_left = 15
+        self._pat_var.set(True)
+        self._pattern.enabled = True
+        self._refresh_pat_status()
+
+    def _refresh_pat_status(self) -> None:
+        if self._pat_cal_left > 0:
+            self._pat_status.configure(
+                text=t("pat_calibrating", n=self._pat_cal_left),
+                text_color=T.ACCENT2)
+        elif self._pattern.calibrated:
+            self._pat_status.configure(
+                text=t("pat_calibrated", n=self._pattern.calibration_count),
+                text_color=T.TEXT_DIM)
+        else:
+            self._pat_status.configure(text=t("pat_uncalibrated"),
+                                        text_color=T.WARN)
 
     def _reset_counting(self) -> None:
         self._counting.reset()
@@ -1083,6 +1189,7 @@ class ProductionScreen(ctk.CTkFrame):
         self._mod_last_status = ""
         self._tracker.reset()
         self._counting.reset()
+        self._pat_last = ""
         self._count_last = ""
         if self._worker:
             self._worker.stop()
@@ -1193,6 +1300,32 @@ class ProductionScreen(ctk.CTkFrame):
                                 text=st,
                                 text_color=(T.COLOR_NOK if pol_wrong
                                             else T.TEXT_DIM))
+
+                    # ── Patron: lo que el detector no sabe nombrar ───────
+                    if self._pattern.enabled:
+                        if self._pat_cal_left > 0:
+                            self._pattern.calibrate(frame)
+                            self._pat_cal_left -= 1
+                            self._refresh_pat_status()
+                        elif self._pattern.calibrated or \
+                                self._pattern.method == "referencia":
+                            pv = self._pattern.process(frame, result.detections,
+                                                       annotated)
+                            self._pattern.draw(annotated)
+                            if not pv.ok and inspection.status != InspectionStatus.NOT_OK:
+                                inspection = InspectionResult(
+                                    status=InspectionStatus.NOT_OK,
+                                    triggered_by=pv.triggered_by or "patron",
+                                    confidence=1.0,
+                                    detections=result.detections,
+                                )
+                            ps = self._pattern.summary()
+                            if ps != self._pat_last:
+                                self._pat_last = ps
+                                self._pat_status.configure(
+                                    text=ps,
+                                    text_color=(T.COLOR_NOK if not pv.ok
+                                                else T.TEXT_DIM))
 
                     # ── counting (5 metodos sobre el mismo tracker) ───────
                     if self._counting.enabled:

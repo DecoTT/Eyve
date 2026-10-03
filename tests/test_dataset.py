@@ -28,7 +28,7 @@ import numpy as np
 import yaml
 
 from eyve.demo.dataset import build_dataset
-from eyve.demo.textile import DEFECT_CLASSES
+from eyve.demo.textile import DEFECT_CLASSES, PRINT_FAULTS, YOLO_CLASSES
 
 OUT = SCRATCH / "Demo_Verif"
 fails = []
@@ -56,7 +56,7 @@ proj = build_dataset(OUT, frames=120, seed=99)
 check("carpeta exacta (sin huerfanas)", proj.root.name, "Demo_Verif")
 check_true("no se creo una carpeta extra",
            not (SCRATCH / "Demo_Textil").exists())
-check("tres clases", proj.class_names, list(DEFECT_CLASSES))
+check("solo las clases entrenables", proj.class_names, list(YOLO_CLASSES))
 
 print("\n[2] Estructura en disco")
 p = proj.paths
@@ -69,8 +69,9 @@ check_true("cada imagen tiene SU etiqueta canonica",
 
 print("\n[3] data.yaml coherente con el proyecto")
 dy = yaml.safe_load(p.dataset_yaml.read_text(encoding="utf-8"))
-check("nc", dy["nc"], 3)
-check("names en orden", [dy["names"][i] for i in range(3)], list(DEFECT_CLASSES))
+check("nc", dy["nc"], len(YOLO_CLASSES))
+check("names en orden", [dy["names"][i] for i in range(len(YOLO_CLASSES))],
+      list(YOLO_CLASSES))
 tr = list((p.dataset / "images" / "train").glob("*.jpg"))
 va = list((p.dataset / "images" / "val").glob("*.jpg"))
 check_true("split train/val poblado", len(tr) > 0 and len(va) > 0,
@@ -95,7 +96,7 @@ for lb in lbls:
             continue
         ci = int(parts[0])
         vals = [float(v) for v in parts[1:]]
-        if not (0 <= ci < 3):
+        if not (0 <= ci < len(YOLO_CLASSES)):
             fails.append(f"class_id fuera de rango en {lb.name}: {ci}")
         if not all(0.0 <= v <= 1.0 for v in vals):
             fails.append(f"coordenada fuera de [0,1] en {lb.name}: {vals}")
@@ -106,13 +107,45 @@ print(f"  OK    {n_box} cajas, {n_clean} frames limpios, formato valido")
 check_true("hay frames limpios (fondo negativo)", n_clean >= 5, f"n={n_clean}")
 check_true("hay suficientes cajas", n_box > 100, f"n={n_box}")
 
-print("\n[5] Las tres clases aparecen")
-per_cls = {c: 0 for c in range(3)}
+print("\n[4b] Los fallos de impresion se generan y NO se etiquetan")
+# Es el reparto entre los dos motores, llevado al dataset: YOLO aprende que
+# un fallo de impresion es fondo, y quien lo encuentra es el modulo Patron.
+# Se comprueba de dos formas, porque la ausencia de etiqueta por si sola no
+# prueba que el fallo este ahi: (a) ninguna etiqueta los menciona, y (b) el
+# modulo Patron, calibrado, los encuentra en varios frames del dataset.
+ids_validos = set(range(len(YOLO_CLASSES)))
+malas = []
+for lb in lbls:
+    for line in lb.read_text(encoding="utf-8").strip().splitlines():
+        if line.strip() and int(line.split()[0]) not in ids_validos:
+            malas.append(lb.name)
+check("ninguna etiqueta fuera de las clases entrenables", malas, [])
+
+from eyve.modules.pattern_module import PatternModule
+
+_rng_pat = random.Random(7)
+pm = PatternModule()
+pm.enabled = True
+pm.sensitivity = 70
+limpias = [i for i in imgs if not proj.paths.label_file(i).read_text().strip()]
+for i in limpias[:10]:
+    pm.calibrate(cv2.imread(str(i)))
+hallados = revisados = 0
+for i in _rng_pat.sample(imgs, min(40, len(imgs))):
+    revisados += 1
+    if pm.analyze(cv2.imread(str(i))):
+        hallados += 1
+print(f"        el modulo Patron marca {hallados}/{revisados} frames del dataset")
+check_true("el dataset SI trae fallos que YOLO no etiqueta",
+           hallados >= 3, f"{hallados}/{revisados}")
+
+print("\n[5] Las clases entrenables aparecen")
+per_cls = {c: 0 for c in range(len(YOLO_CLASSES))}
 for lb in lbls:
     for line in lb.read_text(encoding="utf-8").strip().splitlines():
         if line.strip():
             per_cls[int(line.split()[0])] += 1
-print("       ", {DEFECT_CLASSES[k]: v for k, v in per_cls.items()})
+print("       ", {YOLO_CLASSES[k]: v for k, v in per_cls.items()})
 check_true("ninguna clase vacia", all(v > 10 for v in per_cls.values()))
 
 def firma(roi, cls):
@@ -124,8 +157,8 @@ def firma(roi, cls):
         return float(((b + g + r) < 330).mean())
     if cls == "mancha":
         return float(((r > b + 25) & ((b + g + r) < 500)).mean())
-    # falta_impresion: tela cruda — clara y mas calida que la impresa
-    return float(((r > b + 3) & (r > 180) & (b > 150)).mean())
+    # solo quedan dos clases entrenables; cualquier otra es un error
+    raise AssertionError("clase no entrenable en una etiqueta: " + cls)
 
 
 def cajas_de(img_path, dx=0, dy=0, rel=0.0):
@@ -154,7 +187,7 @@ def cajas_de(img_path, dx=0, dy=0, rel=0.0):
         x1, y1 = max(0, x1), max(0, y1)
         x2, y2 = min(W, x2), min(H, y2)
         if x2 - x1 >= 10 and y2 - y1 >= 10:
-            out.append((DEFECT_CLASSES[int(ci)], x1, y1, x2, y2))
+            out.append((YOLO_CLASSES[int(ci)], x1, y1, x2, y2))
     return img, out
 
 
@@ -208,7 +241,7 @@ for ip in muestras:
         a, t = por_cls.get(cls, (0, 0))
         f = firma(img[y1:y2, x1:x2], cls)
         por_cls[cls] = (a + (1 if f >= 0.10 else 0), t + 1)
-for cls in DEFECT_CLASSES:
+for cls in YOLO_CLASSES:
     a, t = por_cls.get(cls, (0, 0))
     if t:
         check_true(f"clase {cls}", a / t > 0.90, f"{a}/{t}")
@@ -228,9 +261,9 @@ for img_path in sorted(imgs)[:12]:
         cx, cy, bw, bh = float(cx), float(cy), float(bw), float(bh)
         x1 = int((cx - bw/2) * W); y1 = int((cy - bh/2) * H)
         x2 = int((cx + bw/2) * W); y2 = int((cy + bh/2) * H)
-        col = [(0,215,255),(255,190,0),(120,255,120)][int(ci)]
+        col = [(0,215,255),(255,190,0)][int(ci)]
         cv2.rectangle(img, (x1,y1), (x2,y2), col, 2)
-        cv2.putText(img, DEFECT_CLASSES[int(ci)], (x1, max(12,y1-4)),
+        cv2.putText(img, YOLO_CLASSES[int(ci)], (x1, max(12,y1-4)),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.45, col, 1, cv2.LINE_AA)
     hoja.append(cv2.resize(img, (320, 180)))
 filas = [np.hstack(hoja[i:i+4]) for i in range(0, 12, 4)]

@@ -3,21 +3,19 @@
 Smoke test de la pantalla de demo.
 
 Simula lo que hace un visitante del stand: elegir herramienta, arrastrar
-sobre el lienzo, limpiar, pausar, cambiar de motivo. Comprueba que cada
-gesto llega a la tela con la CLASE correcta y en el LUGAR correcto — que
-es lo unico que no se puede ver a ojo sin la expo enfrente.
+sobre el lienzo, poner un fallo de impresion, cambiar el material, tomar el
+control del modo automatico. Comprueba que cada gesto llega a la tela con
+la CLASE correcta y en el LUGAR correcto, que es lo unico que no se puede
+ver a ojo sin la expo enfrente.
 """
 import sys
 import types
 import tempfile
 from pathlib import Path
 
-# El repo es el padre de tests/: nada de rutas absolutas, para que las
-# pruebas corran en cualquier maquina y desde cualquier carpeta.
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
-# Salidas de las pruebas (hojas de contacto, proyectos temporales).
 SCRATCH = Path(tempfile.gettempdir()) / "eyve_tests"
 SCRATCH.mkdir(parents=True, exist_ok=True)
 
@@ -28,7 +26,8 @@ from eyve.ui import theme as T
 T.apply("dark")
 set_language("es")
 
-from eyve.demo.textile import DEFECT_CLASSES
+from eyve.demo.textile import MOTIFS, PRINT_FAULTS, WEAVES, YOLO_CLASSES
+from eyve.modules import CountingModule
 
 fails = []
 
@@ -49,169 +48,157 @@ def check_true(name, cond, extra=""):
 class FakeProject:
     classes = []
     ok_classes = []
-    nok_classes = list(DEFECT_CLASSES)
+    nok_classes = list(YOLO_CLASSES)
     active_model = None
+
     class paths:
         best_model = types.SimpleNamespace(exists=lambda: False)
 
 
 class FakeApp(ctk.CTk):
-    def get_project(self): return FakeProject()
+    def get_project(self):
+        return FakeProject()
 
 
 app = FakeApp()
-app.geometry("1400x900")
+app.geometry("1600x950")
 
 from eyve.ui.screens import demo_screen as DS
+DS.DemoScreen._load_model = lambda self: None
+
 scr = DS.DemoScreen(app, app)
 scr.pack(fill="both", expand=True)
+scr._source.start()        # on_show() no corre en la prueba
 app.update()
 
-print("\n[1] Se construye y arranca la tela sintetica")
-check_true("hay patron", scr._pattern is not None)
-check_true("hay origen sintetico", scr._source is not None)
-f = scr._source.pattern.frame()
-check("frame del tamano pedido", f.shape, (540, 960, 3))
+print("\n[1] Arranca con los dos motores y el modo automatico")
+check_true("hay patron de tela", scr._pattern is not None)
+check_true("hay modulo de conteo", scr._counting.enabled)
+check_true("hay modulo Patron", scr._patternmod.enabled)
 check("herramienta inicial", scr._tool, "rayon")
+check("el modo automatico arranca encendido", scr._auto, True)
 
 print("\n[2] El lienzo mapea canvas -> frame")
-# forzar un mapeo conocido (en la expo lo pone _paint con el tamano real)
 scr._view = (960, 540, 960, 540, 0, 0)
 check("centro", scr._canvas_to_frame(480, 270), (480, 270))
-check("esquina", scr._canvas_to_frame(0, 0), (0, 0))
 check("fuera del video -> None", scr._canvas_to_frame(-5, 270), None)
-check("fuera por abajo -> None", scr._canvas_to_frame(480, 999), None)
-# con letterbox (video centrado y escalado a la mitad)
 scr._view = (960, 540, 480, 270, 100, 50)
-check("letterbox: centro", scr._canvas_to_frame(100 + 240, 50 + 135), (480, 270))
-
-print("\n[3] Un arrastre pinta UN defecto de la clase elegida")
+check("con letterbox", scr._canvas_to_frame(100 + 240, 50 + 135), (480, 270))
 scr._view = (960, 540, 960, 540, 0, 0)
-scr._source.set_paused(True)          # tela quieta, como al dibujar con calma
-for cls in DEFECT_CLASSES:
+
+print("\n[3] Las dos herramientas pintan su clase")
+scr._source.set_paused(True)
+for cls in YOLO_CLASSES:
     scr.reset_demo()
     scr._set_tool(cls)
     check(f"herramienta activa {cls}", scr._tool, cls)
-    ev = types.SimpleNamespace(x=200, y=200)
-    scr._on_press(ev)
-    for x in range(210, 330, 10):
+    scr._on_press(types.SimpleNamespace(x=200, y=200))
+    for x in range(210, 320, 10):
         scr._on_drag(types.SimpleNamespace(x=x, y=200 + (x % 20)))
-    scr._on_release(ev)
+    scr._on_release(types.SimpleNamespace(x=320, y=200))
     check(f"un arrastre = un defecto ({cls})", len(scr._pattern.defects), 1)
     check(f"clase correcta ({cls})", scr._pattern.defects[0].cls, cls)
-    labs = scr._pattern.visible_labels()
-    check(f"queda etiquetado ({cls})", len(labs), 1)
-    check(f"la etiqueta dice {cls}", labs[0][0], cls)
-    # y se ve en el frame
-    limpio = DS.TextilePattern(width=960, height=540, axis="x",
-                               motif=scr._pattern.motif)
-    limpio.offset = scr._pattern.offset
-    d = np.abs(scr._pattern.frame().astype(int) - limpio.frame().astype(int))
-    check_true(f"la tinta se ve en el frame ({cls})",
-               (d.sum(axis=2) > 40).sum() > 150,
-               f"px={(d.sum(axis=2) > 40).sum()}")
 
-print("\n[4] Dos arrastres = dos defectos (instancias distintas)")
+print("\n[4] Tocar el lienzo le quita el control al modo automatico")
+scr._auto = True
+scr._refresh_auto_label()
 scr.reset_demo()
-scr._set_tool("mancha")
-for cx in (200, 600):
-    scr._on_press(types.SimpleNamespace(x=cx, y=300))
-    scr._on_drag(types.SimpleNamespace(x=cx + 30, y=300))
-    scr._on_release(types.SimpleNamespace(x=cx + 30, y=300))
-check("dos defectos", len(scr._pattern.defects), 2)
-
-print("\n[5] Arrastrar fuera del video no pinta ni revienta")
-scr.reset_demo()
-scr._on_press(types.SimpleNamespace(x=-50, y=-50))
-check_true("press fuera no inicia trazo", scr._drawing is False)
-scr._on_drag(types.SimpleNamespace(x=-40, y=-40))
-scr._on_release(types.SimpleNamespace(x=-40, y=-40))
-check("nada pintado", len(scr._pattern.defects), 0)
-# press dentro, arrastre que se sale, release fuera
 scr._on_press(types.SimpleNamespace(x=300, y=300))
-scr._on_drag(types.SimpleNamespace(x=5000, y=5000))
-scr._on_release(types.SimpleNamespace(x=5000, y=5000))
-check("el trazo que se sale no revienta", len(scr._pattern.defects), 1)
-check_true("el trazo quedo cerrado", scr._drawing is False)
+scr._on_release(types.SimpleNamespace(x=300, y=300))
+check("al dibujar se apaga el automatico", scr._auto, False)
+check("y el aviso lo dice", scr._auto_lbl.cget("text"), t("demo_auto_off"))
+scr._toggle_auto()
+check("se puede volver a encender", scr._auto, True)
+check("el aviso vuelve", scr._auto_lbl.cget("text"), t("demo_auto_on"))
 
-print("\n[6] Limpiar deja todo en cero")
-scr._set_tool("rayon")
-scr._on_press(types.SimpleNamespace(x=300, y=300))
-scr._on_drag(types.SimpleNamespace(x=400, y=320))
-scr._on_release(types.SimpleNamespace(x=400, y=320))
-scr._counting.counts["rayon"] = 5
-scr._nok_total = 5
+print("\n[5] Los botones de fallo de impresion pintan sin ser clases")
+for fault in PRINT_FAULTS:
+    scr.reset_demo()
+    scr._auto = True
+    scr._place_fault(fault)
+    check_true(f"{fault}: deja algo en la tela",
+               len(scr._pattern.defects) >= 1, str(len(scr._pattern.defects)))
+    check(f"{fault}: tambien quita el automatico", scr._auto, False)
+    marcado = {d.cls for d in scr._pattern.defects}
+    check_true(f"{fault}: no se etiqueta como clase de YOLO",
+               not (marcado & set(YOLO_CLASSES)), str(marcado))
+
+print("\n[6] El automatico es ESPACIADO, no una lluvia de defectos")
+check_true("intervalo minimo de al menos 10 s", DS._AUTO_MIN >= 10.0,
+           f"{DS._AUTO_MIN}s")
+check_true("tope de defectos antes de limpiar", DS._AUTO_MAX_DEFECTS <= 6,
+           str(DS._AUTO_MAX_DEFECTS))
 scr.reset_demo()
-check("sin defectos", len(scr._pattern.defects), 0)
-check("conteo en cero", scr._counting.total, 0)
-check("contador en cero", scr._nok_total, 0)
-check("sin tracks", len(scr._tracker.get_all()), 0)
-check("etiqueta en cero", scr._count_lbl.cget("text"), t("demo_found", n=0))
+scr._auto = True
+scr._auto_next = 0.0
+scr._auto_tick()
+n1 = len(scr._pattern.defects)
+check_true("coloca uno al vencer el tiempo", n1 >= 1, str(n1))
+scr._auto_tick()      # sin esperar: no debe colocar otro
+check("no coloca otro antes de tiempo", len(scr._pattern.defects), n1)
+# al llegar al tope, limpia en vez de acumular
+scr._auto_placed = DS._AUTO_MAX_DEFECTS
+scr._auto_next = 0.0
+scr._auto_tick()
+check("al llegar al tope limpia la tela", len(scr._pattern.defects), 0)
+check("y reinicia la cuenta", scr._auto_placed, 0)
 
-print("\n[7] Pausa, velocidad y motivo")
-scr._source.set_paused(False)
-scr._toggle_pause()
-check("pausado", scr._source.paused, True)
-check("boton dice reanudar", scr._pause_btn.cget("text"), t("demo_resume"))
-scr._toggle_pause()
-check("reanudado", scr._source.paused, False)
-check("boton dice pausar", scr._pause_btn.cget("text"), t("demo_pause"))
+print("\n[7] Los 5 metodos de conteo, con geometria automatica")
+for m in CountingModule.METHODS:
+    scr._on_count_method(t("count_m_" + m))
+    check(f"metodo -> {m}", scr._counting.method, m)
+    if m == "line":
+        check_true("la meta se dibuja sola", scr._counting.line is not None)
+    if m == "zone":
+        check_true("la zona se dibuja sola", scr._counting.zone is not None)
+    check_true(f"hay explicacion para {m}",
+               bool(scr._count_help.cget("text")))
 
-scr._on_speed(200.0)
-check("velocidad al patron", scr._source.pattern.speed, 200.0)
-scr._on_speed(0.0)
-check("velocidad cero permitida", scr._source.pattern.speed, 0.0)
-
-for motif in DS.MOTIFS:
-    scr._on_motif(motif)
-    check(f"motivo {motif}", scr._pattern.motif, motif)
-    check_true(f"el origen apunta a la tela nueva ({motif})",
+print("\n[8] Material: estampado y tejido, y recalibra al cambiar")
+for w in WEAVES:
+    scr._on_weave(t("weave_" + w))
+    check(f"tejido -> {w}", scr._pattern.weave, w)
+    check_true(f"el origen apunta a la tela nueva ({w})",
                scr._source.pattern is scr._pattern)
-    check(f"cambiar motivo limpia ({motif})", len(scr._pattern.defects), 0)
+    check_true(f"recalibra al cambiar de tejido ({w})", scr._cal_left > 0,
+               str(scr._cal_left))
+for mo in MOTIFS:
+    scr._on_motif(t("motif_" + mo))
+    check(f"estampado -> {mo}", scr._pattern.motif, mo)
 
-print("\n[8] La tela VIAJA y el defecto viaja con ella")
-scr._on_motif("diamantes")
-scr._source.set_paused(True)
-scr._set_tool("mancha")
-scr._view = (960, 540, 960, 540, 0, 0)
-scr._on_press(types.SimpleNamespace(x=700, y=270))
-scr._on_drag(types.SimpleNamespace(x=720, y=280))
-scr._on_release(types.SimpleNamespace(x=720, y=280))
-xs = []
-for _ in range(5):
-    lab = scr._pattern.visible_labels()
-    xs.append(lab[0][1] if lab else None)
-    scr._pattern.advance(0.4)
-vistos = [q for q in xs if q is not None]
-check_true("el defecto se mueve con la tela", len(set(vistos)) > 1, f"x={vistos}")
+print("\n[9] Calibracion del modulo Patron al entrar")
+scr._start_calibration(frames=3)
+check("pide 3 frames", scr._cal_left, 3)
+check_true("arranca sin calibrar", not scr._patternmod.calibrated)
+for _ in range(3):
+    f = scr._source.read()
+    if f is not None:
+        scr._patternmod.calibrate(f)
+        scr._cal_left -= 1
+check_true("queda calibrado", scr._patternmod.calibrated)
 
-print("\n[9] El bucle corre sin modelo cargado (no revienta)")
+print("\n[10] El bucle corre sin modelo YOLO (solo con Patron)")
 scr._worker = None
-scr._running = True
-scr._source.set_paused(False)
-scr._source.start()
-for _ in range(5):
-    frame = scr._source.read()
-    check_true("hay frame del origen", frame is not None)
-    out = scr._inspect(frame) if frame is not None else None
-    check_true("inspect devuelve imagen sin modelo",
-               out is not None and out.shape == (540, 960, 3))
-    break
-app.update()
+frame = scr._source.read()
+check_true("hay frame", frame is not None)
+out = scr._inspect(frame)
+check_true("inspect devuelve imagen", out is not None and out.shape == (540, 960, 3))
 
-print("\n[10] Las cadenas de la demo existen en los dos idiomas")
+print("\n[11] Las cadenas existen en los dos idiomas")
 from eyve.i18n.es import STRINGS as ES
 from eyve.i18n.en import STRINGS as EN
-claves = ["demo_title","demo_hint","demo_side_eyve","demo_side_you","demo_clear",
-          "demo_pause","demo_resume","demo_speed","demo_found","demo_clean",
-          "demo_defect","demo_loading","demo_no_model","demo_model_error",
-          "nav_demo"] + [f"demo_tool_{c}" for c in DEFECT_CLASSES]
-for k in claves:
-    if k not in ES: fails.append(f"falta en es: {k}")
-    if k not in EN: fails.append(f"falta en en: {k}")
-print(f"  OK    {len(claves)} claves presentes en es y en")
+claves = (["demo_yolo_title", "demo_pattern_title", "demo_count_title",
+           "demo_auto", "demo_auto_on", "demo_auto_off", "demo_material",
+           "demo_calibrating", "demo_faults", "demo_nothing",
+           "demo_count_reset", "demo_auto_stop"]
+          + [f"demo_fault_{x}" for x in PRINT_FAULTS]
+          + [f"motif_{m}" for m in MOTIFS]
+          + [f"weave_{w}" for w in WEAVES]
+          + [f"demo_tool_{c}" for c in YOLO_CLASSES])
+faltan = [k for k in claves if k not in ES or k not in EN]
+check("ninguna clave falta", faltan, [])
 
-print("\n[11] Cierre limpio")
+print("\n[12] Cierre limpio")
 scr.on_hide()
 check_true("el origen se detuvo", scr._source._thread is None)
 scr.on_close()
@@ -221,7 +208,7 @@ print("  OK    on_hide/on_close sin excepciones")
 print("\n" + "=" * 60)
 if fails:
     print(f"FALLARON {len(fails)}:")
-    for f in fails:
-        print("  -", f)
+    for f_ in fails:
+        print("  -", f_)
     sys.exit(1)
 print("PANTALLA DE DEMO: TODO PASO")

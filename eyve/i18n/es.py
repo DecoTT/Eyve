@@ -20,7 +20,6 @@ STRINGS = {
     "demo_side_you":  "Dibuja aqui",
     "demo_tool_rayon":           "Rayon",
     "demo_tool_mancha":          "Mancha",
-    "demo_tool_falta_impresion": "Borrar patron",
     "demo_clear":   "Limpiar tela",
     "demo_pause":   "Pausar tela",
     "demo_resume":  "Reanudar",
@@ -31,6 +30,54 @@ STRINGS = {
     "demo_loading": "Cargando el modelo de la demo...",
     "demo_no_model": "Falta el modelo de la demo. Genera uno con: python -m eyve.demo.train",
     "demo_model_error": "No se pudo cargar el modelo: {err}",
+
+    # ── demo ampliada: patron, conteo, modo automatico, material ─────────────
+    "demo_yolo_title":    "Lo que le ensenaste",
+    "demo_yolo_sub":      "YOLO: nombra el defecto, pero solo los que entreno",
+    "demo_pattern_title": "Lo que nunca vio",
+    "demo_pattern_sub":   "Patron: sin entrenar; dice donde algo no cuadra",
+    "demo_count_title":   "Conteo",
+    "demo_count_reset":   "Reiniciar",
+    "demo_nothing":       "nada",
+    "demo_faults":        "Fallos de impresion (no son clases: los ve el modulo Patron)",
+    "demo_fault_fantasma":        "Fantasma",
+    "demo_fault_offset":          "Movido",
+    "demo_fault_falta_impresion": "Falta tinta",
+    "demo_auto":          "Modo auto",
+    "demo_auto_stop":     "Tomar control",
+    "demo_auto_on":       "Modo automatico - toca para tomar el control",
+    "demo_auto_off":      "Tu tienes el control",
+    "demo_material":      "Material",
+    "demo_calibrating":   "aprendiendo el material...",
+
+    "motif_diamantes": "Diamantes",
+    "motif_flores":    "Flores",
+    "motif_rayas":     "Rayas",
+    "motif_puntos":    "Puntos",
+
+    "weave_sarga":      "Sarga",
+    "weave_tafetan":    "Tafetan",
+    "weave_sarga_fina": "Sarga fina",
+    "weave_canasta":    "Canasta",
+    "weave_ninguno":    "Liso",
+
+    # ── modulo Patron en Produccion ──────────────────────────────────────────
+    "pat_title":        "Patron (sin clases)",
+    "pat_method":       "Metodo",
+    "pat_m_periodo":    "Periodicidad",
+    "pat_m_layout":     "Layout",
+    "pat_m_referencia": "Referencia",
+    "pat_help_periodo":    "El material que se repite es su propia referencia. "
+                           "Compara cada repeticion con sus vecinas.",
+    "pat_help_layout":     "Reconstruye donde deberia ir la tinta y distingue "
+                           "tinta de mas de tinta que falta.",
+    "pat_help_referencia": "Aprende de material bueno. Para piezas que no se "
+                           "repiten.",
+    "pat_sens":         "Sensibilidad",
+    "pat_calibrate":    "Calibrar con material bueno",
+    "pat_calibrating":  "Aprendiendo... {n}",
+    "pat_calibrated":   "Calibrado ({n} frames)",
+    "pat_uncalibrated": "Sin calibrar - ensenale material bueno primero",
 
     # ── Home screen ──────────────────────────────────────────────────────────
     "home_welcome": "Bienvenido a Eyve",

@@ -19,7 +19,6 @@ STRINGS = {
     "demo_side_you":  "Draw here",
     "demo_tool_rayon":           "Scratch",
     "demo_tool_mancha":          "Stain",
-    "demo_tool_falta_impresion": "Erase print",
     "demo_clear":   "Clean fabric",
     "demo_pause":   "Pause fabric",
     "demo_resume":  "Resume",
@@ -31,6 +30,54 @@ STRINGS = {
     "demo_no_model": "Demo model missing. Build one with: python -m eyve.demo.train",
     "demo_model_error": "Could not load the model: {err}",
 
+
+    # ── extended demo: pattern, counting, auto mode, material ────────────────
+    "demo_yolo_title":    "What you taught it",
+    "demo_yolo_sub":      "YOLO: names the defect, but only the ones it trained on",
+    "demo_pattern_title": "What it never saw",
+    "demo_pattern_sub":   "Pattern: untrained; says where something is off",
+    "demo_count_title":   "Counting",
+    "demo_count_reset":   "Reset",
+    "demo_nothing":       "nothing",
+    "demo_faults":        "Print faults (not classes: the Pattern module finds these)",
+    "demo_fault_fantasma":        "Ghosting",
+    "demo_fault_offset":          "Misregister",
+    "demo_fault_falta_impresion": "Ink starved",
+    "demo_auto":          "Auto mode",
+    "demo_auto_stop":     "Take control",
+    "demo_auto_on":       "Auto mode - touch to take control",
+    "demo_auto_off":      "You are in control",
+    "demo_material":      "Material",
+    "demo_calibrating":   "learning the material...",
+
+    "motif_diamantes": "Diamonds",
+    "motif_flores":    "Flowers",
+    "motif_rayas":     "Stripes",
+    "motif_puntos":    "Dots",
+
+    "weave_sarga":      "Twill",
+    "weave_tafetan":    "Plain",
+    "weave_sarga_fina": "Fine twill",
+    "weave_canasta":    "Basket",
+    "weave_ninguno":    "Flat",
+
+    # ── Pattern module in Production ─────────────────────────────────────────
+    "pat_title":        "Pattern (no classes)",
+    "pat_method":       "Method",
+    "pat_m_periodo":    "Periodicity",
+    "pat_m_layout":     "Layout",
+    "pat_m_referencia": "Reference",
+    "pat_help_periodo":    "Repeating material is its own reference. Compares "
+                           "each repeat against its neighbours.",
+    "pat_help_layout":     "Rebuilds where the ink should be and tells excess "
+                           "ink from missing ink.",
+    "pat_help_referencia": "Learns from good material. For parts that do not "
+                           "repeat.",
+    "pat_sens":         "Sensitivity",
+    "pat_calibrate":    "Calibrate on good material",
+    "pat_calibrating":  "Learning... {n}",
+    "pat_calibrated":   "Calibrated ({n} frames)",
+    "pat_uncalibrated": "Not calibrated - show it good material first",
 
     # ── Home screen ──────────────────────────────────────────────────────────
     "home_welcome": "Welcome to Eyve",

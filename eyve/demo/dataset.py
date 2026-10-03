@@ -30,13 +30,13 @@ from typing import Optional
 import cv2
 
 from eyve.core.project_manager import ClassDef, Project, create_project, load_project
-from eyve.demo.textile import DEFECT_CLASSES, MOTIFS, TextilePattern
+from eyve.demo.textile import (MOTIFS, PRINT_FAULTS, TextilePattern,
+                               WEAVES, YOLO_CLASSES)
 
 #: cómo se ve cada clase en la UI de Eyve
 _CLASS_COLORS = {
-    "rayon":           "#ffd700",
-    "mancha":          "#00bcd4",
-    "falta_impresion": "#78ff78",
+    "rayon":  "#ffd700",
+    "mancha": "#00bcd4",
 }
 
 #: frames por tanda antes de reconstruir la tela (motivo/velocidad nuevos)
@@ -58,7 +58,7 @@ def ensure_project(root: Path) -> Project:
         proj = create_project(root.name, root.parent,
                               target="Demo textil de expo")
     proj.classes = [ClassDef(name=c, kind="nok", color=_CLASS_COLORS[c])
-                    for c in DEFECT_CLASSES]
+                    for c in YOLO_CLASSES]
     proj.paths.create_all()
     proj.save()
     return proj
@@ -82,7 +82,7 @@ def build_dataset(out: Path, frames: int = 600, width: int = 960,
     img_dir.mkdir(parents=True, exist_ok=True)
     p.tagged_labels.mkdir(parents=True, exist_ok=True)
 
-    cls_index = {c: i for i, c in enumerate(DEFECT_CLASSES)}
+    cls_index = {c: i for i, c in enumerate(YOLO_CLASSES)}
     pattern: Optional[TextilePattern] = None
     written = 0
 
@@ -94,6 +94,12 @@ def build_dataset(out: Path, frames: int = 600, width: int = 960,
                 width=width, height=height,
                 axis=rng.choice(("x", "y")),
                 motif=rng.choice(MOTIFS),
+                # Variedad de tejido a proposito: si el modelo solo viera
+                # una tela, la textura seria una dificultad; viendolas
+                # todas, se vuelve invariancia. Se mide despues el mAP por
+                # ligamento para saber si de verdad le costo.
+                weave=rng.choice(WEAVES),
+                weave_amp=rng.uniform(0.04, 0.11),
                 speed=rng.uniform(60, 190),
                 tilt_deg=rng.uniform(-3.5, 3.5),
                 seed=rng.randrange(1 << 30),
@@ -107,6 +113,11 @@ def build_dataset(out: Path, frames: int = 600, width: int = 960,
         if rng.random() >= clean_ratio:
             for _ in range(rng.randint(1, 3)):
                 _paint_random(pattern, rng)
+        # Fallos de impresion en uno de cada tres frames, SIN etiqueta: le
+        # ensenan a YOLO que eso es fondo. Son el territorio del modulo
+        # Patron, que no necesita entrenamiento.
+        if rng.random() < 0.33:
+            _paint_print_fault(pattern, rng)
 
         frame = pattern.frame()
         labels = pattern.visible_labels()
@@ -120,6 +131,8 @@ def build_dataset(out: Path, frames: int = 600, width: int = 960,
         # entrenamiento en silencio una vez.
         lines = []
         for cls, x1, y1, x2, y2 in labels:
+            if cls not in cls_index:
+                continue        # fallo de impresion: va sin etiqueta, a proposito
             cx = ((x1 + x2) / 2) / width
             cy = ((y1 + y2) / 2) / height
             bw = (x2 - x1) / width
@@ -156,17 +169,36 @@ def _paint_random(pattern: TextilePattern, rng: random.Random) -> None:
     sx = rng.randint(m, pattern.width - m)
     sy = rng.randint(m, pattern.height - m)
     fx, fy = pattern.screen_to_fabric(sx, sy)
-    kind = rng.choices(DEFECT_CLASSES, weights=(0.4, 0.35, 0.25))[0]
+    kind = rng.choices(YOLO_CLASSES, weights=(0.55, 0.45))[0]
     diag = (pattern.width ** 2 + pattern.height ** 2) ** 0.5
     if kind == "rayon":
         # sesgado a los cortos (son los más comunes) pero con cola larga
         largo = int(rng.triangular(45, diag * 0.55, 140))
-        pattern.streak(fx, fy, length=largo,
-                       thickness=rng.randint(3, 11))
-    elif kind == "mancha":
-        pattern.blob(fx, fy, size=int(rng.triangular(24, 170, 60)))
+        pattern.streak(fx, fy, length=largo, thickness=rng.randint(3, 11))
     else:
-        pattern.missing_print(fx, fy, size=int(rng.triangular(35, 200, 80)))
+        pattern.blob(fx, fy, size=int(rng.triangular(24, 170, 60)))
+
+
+def _paint_print_fault(pattern: TextilePattern, rng: random.Random) -> None:
+    """
+    Un fallo de impresión, que va SIN etiqueta.
+
+    Aparece en los frames de entrenamiento para que YOLO aprenda que es
+    fondo —no un rayón ni una mancha— y lo deje en paz.  Quien lo encuentra
+    es el módulo Patrón, que no necesita que nadie se lo enseñe.
+    """
+    m = 80
+    sx = rng.randint(m, pattern.width - m)
+    sy = rng.randint(m, pattern.height - m)
+    fx, fy = pattern.screen_to_fabric(sx, sy)
+    kind = rng.choice(PRINT_FAULTS)
+    if kind == "fantasma":
+        pattern.ghost(fx, fy, size=rng.randint(90, 220))
+    elif kind == "offset":
+        pattern.misregister(fx, fy, size=rng.randint(100, 240))
+    else:
+        pattern.ink_starved(fx, fy, size=rng.randint(80, 220),
+                            severity=rng.uniform(0.45, 1.0))
 
 
 def _write_data_yaml(proj: Project) -> Path:

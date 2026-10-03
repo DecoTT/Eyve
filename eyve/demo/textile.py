@@ -39,6 +39,16 @@ DEFECT_CLASSES: tuple[str, ...] = (
 #: fallos que TRANSFORMAN el estampado en vez de pintar encima
 _PRINT_FAULTS = ("falta_impresion", "fantasma", "offset")
 
+#: Clases que se ENTRENAN en YOLO: lo puntual y nombrable, que es lo que
+#: se cuenta y lo que se reporta por tipo.
+YOLO_CLASSES: tuple[str, ...] = ("rayon", "mancha")
+
+#: Fallos que NO son clases: variantes sin fin de "esto no se parece a lo
+#: bueno".  Los cubre el modulo Patron, sin entrenar nada.  Se generan en
+#: los frames de entrenamiento igual, pero sin etiqueta, para ensenarle a
+#: YOLO que son fondo y no la clase mas parecida.
+PRINT_FAULTS: tuple[str, ...] = _PRINT_FAULTS
+
 #: paleta de la tela — azul sobre blanco, como pidió el guion de la demo
 _INK = (168, 86, 28)        # azul de impresión (BGR)
 _INK_SOFT = (205, 150, 95)  # azul claro para el relleno secundario
