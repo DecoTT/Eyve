@@ -359,6 +359,53 @@ Lo que se evita no es usar el genérico, sino usarlo **silenciosamente**.
 
 ---
 
+### 11.2 Módulos de inspección
+
+Un `InspectionModule` corre **dentro** del bucle de producción, después de la detección
+YOLO, sobre las instancias que declara que le interesan. Puede vetar el veredicto del
+frame y dibujar su propio overlay. Contrato en `eyve/modules/base.py`.
+
+#### Conteo — 5 métodos
+
+"Contar" significa un evento distinto según lo que haya frente a la cámara, y el conteo
+por cruce de meta que traía 2.1.0 solo cubre la banda transportadora.
+
+| Método | Qué cuenta | Acumula | Para qué |
+|---|---|---|---|
+| **En pantalla** | cuántas hay AHORA en el encuadre | no | tortillas en la charola, pines en el conector, cajas en la tarima |
+| **Cruce de meta** | cada instancia al cruzar la línea, con sentido | sí | banda transportadora; cuenta entran / salen / neto |
+| **Zona (área)** | al entrar al área, al salir, o ambas; más la ocupación | sí | celda de trabajo, zona de carga |
+| **Al aparecer** | cada instancia nueva, una vez, aparezca donde aparezca | sí | piezas sin un lado fijo de llegada |
+| **Al desaparecer** | cada instancia que se va, con filtro de borde opcional | sí | piezas que alguien retira o que salen del encuadre |
+
+**Rango esperado.** "En pantalla" y la ocupación de "Zona" aceptan mínimo/máximo y vetan
+el frame a NOT OK fuera de rango, igual que la polaridad. Es lo que convierte el conteo en
+un criterio de inspección y no solo en un número en la esquina.
+
+**Cambiar de método limpia el acumulado a propósito:** mostrar un total que se construyó
+contando otro evento sería mentir.
+
+#### Persistencia de instancia
+
+Los cuatro parámetros que deciden "qué tanto seguimos reconociendo la misma instancia"
+están en la UI (panel plegable de Producción) y se guardan en `~/.eyve/config.json`, así
+que la línea arranca ya afinada. Hasta 2.1.0 eran constantes de módulo: afinarlos
+significaba editar `tracker.py`.
+
+| Parámetro | Qué hace | Súbelo cuando |
+|---|---|---|
+| **Tolerancia** | frames que una pieza puede desaparecer sin perder su ID | el detector parpadea |
+| **Confirmar** | frames vistos antes de considerarla real | hay falsos positivos de un frame |
+| **IoU mínima** | qué tan parecidas deben ser dos cajas para ser la misma pieza | *bájala* si las piezas se mueven rápido |
+| **Conf. mínima** | confianza mínima para mandarla a un módulo | sobran detecciones dudosas |
+
+Esto es lo que hace que el conteo sea inmune al parpadeo del detector: una pieza que
+desaparece unos frames conserva su ID y no se cuenta dos veces.
+
+Módulos: `eyve/modules/counting_module.py`, `eyve/inference/tracker.py`.
+
+---
+
 ## 12. Sesiones y evidencia
 
 Eyve registra las sesiones de producción localmente. Como mínimo: fecha, hora, proyecto,
@@ -528,9 +575,49 @@ sobreviven automáticamente.
 **Criterio de aceptación:** un usuario puede pasar de 2.1 a 2.1.1 sin perder proyectos,
 sin mover archivos a mano y sin volver a etiquetar.
 
-### 17.2 Futuro (P2)
+### 17.2 Actualizador integrado
 
-Actualizador integrado que detecte versión nueva, descargue y migre. No es alcance de 2.1.
+Eyve consulta una vez al día la API pública de GitHub Releases, compara el tag del último
+release contra `eyve/__init__.py: __version__` y, si hay versión nueva, lo avisa en la
+barra de estado. Un clic abre el diálogo; el diálogo dice qué versión hay, qué trae, y
+—lo que de verdad frena a la gente— que sus proyectos no se tocan.
+
+Módulo: `eyve/core/updater.py`. UI: `eyve/ui/screens/update_dialog.py` + Settings.
+
+**Qué se reemplaza:** `eyve/` y los archivos sueltos de la raíz que trae el ZIP
+(`requirements.txt`, `setup.bat`, `run.bat`, `LICENSE`…).
+
+**Qué nunca se toca**, venga o no en el ZIP:
+
+```text
+projects/     los proyectos del usuario
+.venv/        el entorno
+~/.eyve/      config, licencia, modelos descargados
+```
+
+**ZIP y no `git pull`:** el usuario final no tiene git, y obligar a instalarlo en cada
+planta donde corre Eyve no es razonable. El pipeline de release de §15 ya produce ZIP +
+`SHA256SUMS.txt`, así que el actualizador no pide ningún cambio en el servidor ni en la
+tienda — la URL fija de `releases/latest/download/` sirve para los dos caminos.
+
+Reglas que vienen de pensar qué pasa cuando algo sale mal:
+
+| Riesgo | Qué hace el actualizador |
+|---|---|
+| ZIP a medias o corrupto | Verifica SHA256 contra el `SHA256SUMS.txt` **del mismo release** antes de tocar nada |
+| Error a media instalación | Extrae todo a temporal → respalda → recién entonces mueve; si falla, restaura |
+| Módulo eliminado en la versión nueva | Borra el paquete viejo antes de poner el nuevo (copiar encima lo dejaría vivo) |
+| ZIP manipulado con `../` | Descarta toda entrada con ruta relativa hacia arriba o absoluta |
+| `2.10.0` contra `2.9.0` | Compara por números, no por texto |
+| Sin red | `check()` responde "no hay actualización" con el motivo; nunca un diálogo de error al abrir |
+| `requirements.txt` cambió | Avisa que hay que pasar `setup.bat` una vez; **no** corre pip solo (puede bajar gigas, y en una planta con red medida esa decisión es del usuario) |
+
+La instalación lado a lado de §17.1 sigue siendo válida y es el camino de respaldo si el
+actualizador falla o la máquina no tiene salida a internet.
+
+**Criterio de aceptación:** un usuario con proyectos cargados pasa de 2.1.0 a 2.1.1 desde
+dentro de Eyve, sin descomprimir nada, y al reabrir encuentra sus proyectos y sus modelos
+entrenados exactamente donde estaban.
 
 ---
 
@@ -570,6 +657,61 @@ proyectos reales.
 Complementa —no sustituye— al modelo genérico de §11.1: el genérico deja ver el pipeline
 funcionando; el demo deja ver un proyecto **completo y coherente** (clases, imágenes,
 etiquetas, modelo entrenado).
+
+### 19.1 Demo de expo — tela textil sintética
+
+Para un stand de feria hace falta algo más que un proyecto de ejemplo: hace falta que el
+visitante **provoque el defecto él mismo** y vea a Eyve encontrarlo. Esa es la diferencia
+entre "me enseñaron un video" y "lo vi funcionar".
+
+La pantalla **Demo** se parte en dos:
+
+```text
+IZQUIERDA          DERECHA
+Lo que ve Eyve     Dibuja aquí
+(detección,        (la misma tela,
+ seguimiento,       sin anotar)
+ conteo, OK/NOK)
+```
+
+Una tela con patrón de impresión (azul sobre blanco) pasa infinitamente frente a una
+cámara que no existe. El visitante dibuja un rayón, una mancha, o borra el patrón; lo que
+pinta entra en la tela, **viaja con ella** hacia el encuadre de Eyve, y Eyve lo encuentra,
+lo sigue con ID estable y lo cuenta una vez. Cuando la tela vuelve a estar limpia —porque
+el visitante borra, o porque el defecto salió del encuadre— Eyve vuelve a LIMPIO solo.
+
+Decisiones que la hacen funcionar:
+
+- **La capa de defectos vive en coordenadas de tela, no de pantalla.** Pintado sobre la
+  pantalla, el defecto se quedaría quieto mientras la tela pasa por debajo y el tracker lo
+  vería como un objeto estático. Pintado sobre la tela, entra por un lado del encuadre,
+  cruza y sale — que es justo lo que el módulo de conteo (§11.2) necesita.
+- **El origen de video es sintético, no una cámara virtual.** `SyntheticSource` tiene la
+  misma interfaz que `VideoSource` (`start`/`stop`/`read`), así que el bucle de producción
+  no sabe que no hay cámara. Sin webcam, sin OBS, sin latencia.
+- **El generador del dataset dibuja con LAS MISMAS primitivas que el visitante.** Si el
+  dataset se generara con elipses perfectas, el modelo aprendería "elipse" y no
+  reconocería un garabato hecho a mano. Al compartir las primitivas, lo que la gente
+  dibuja cae dentro de la distribución de entrenamiento por construcción, no por suerte.
+- **El modelo se entrena con el `TrainManager` de Eyve**, no por una ruta aparte: el
+  `best.pt` que queda es el mismo que produciría un usuario desde la pantalla de
+  Entrenamiento. En la expo se enseña el producto, no una maqueta.
+
+Clases del proyecto demo: `rayon`, `mancha`, `falta_impresion`.
+
+Preparar la demo en la máquina del stand (una sola vez):
+
+```bash
+python -m eyve.demo.train --out "projects/Demo_Textil" --frames 700 --epochs 40
+```
+
+El dataset se genera en segundos; el entrenamiento es lo que tarda (~45 min en CPU,
+minutos con torch CUDA). Para llevarla a otra máquina basta copiar
+`projects/Demo_Textil/models/best.pt` — el proyecto entero pesa cientos de MB por los
+checkpoints de ultralytics, y no hacen falta.
+
+Módulos: `eyve/demo/` (`textile.py`, `source.py`, `dataset.py`, `train.py`) y
+`eyve/ui/screens/demo_screen.py`.
 
 ---
 
@@ -974,6 +1116,9 @@ Leyenda: ✅ funciona · ⚠️ funciona con problemas · ❌ roto
 | Tema dark/light | ✅ | |
 | Settings | ✅ | Idioma, tema, FPS cap, offline mode, licencia |
 | Release / instalador | ⚠️ | ZIP funciona; falta auto-install de Python (§15.3) |
+| Conteo | ✅ | 5 métodos + persistencia configurable (§11.2); E2E con la demo: 3 defectos, 3 conteos |
+| Demo de expo | ✅ | Tela sintética + canvas interactivo (§19.1); modelo mAP50 0.975 |
+| Actualizador | ✅ | GitHub Releases + SHA256 + respaldo (§17.2) |
 
 ---
 

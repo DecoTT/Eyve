@@ -27,10 +27,35 @@ Captura  →  Etiquetado  →  Entrenamiento  →  Producción
 | **Etiquetado** | Dibuja cajas sobre fotos, sobre un video pausado (barra de navegación) o congelando la cámara en vivo. |
 | **Entrenamiento** | YOLOv8 local, CPU o GPU. 40 imágenes ≈ 5 min en CPU. |
 | **Producción** | Tu modelo en tiempo real sobre cámara o video: OK / NOT OK, conteo de piezas, evidencia de defectos, log de sesión. |
-| **Módulos** | Inspecciones más allá de detectar: polaridad de componentes, conteo por línea de meta. Arquitectura abierta para escribir el tuyo. |
+| **Demo** | Una tela con patrón pasa frente a una cámara simulada: dibuja un defecto y mira a Eyve encontrarlo, seguirlo y contarlo. Sin cámara ni cableado. |
+| **Módulos** | Inspecciones más allá de detectar: **conteo con 5 métodos** y polaridad de componentes. Arquitectura abierta para escribir el tuyo. |
 
 Todo corre en tu máquina. Eyve usa internet solo para instalarse y para bajar los
 pesos base del modelo la primera vez.
+
+## Contar, de cinco maneras
+
+"Contar" no significa lo mismo en una banda que en una charola. El módulo de conteo
+trabaja sobre instancias seguidas entre frames, así que una pieza que parpadea en la
+detección no se cuenta dos veces.
+
+| Método | Cuenta | Ejemplo |
+|---|---|---|
+| **En pantalla** | lo que hay ahora en el encuadre | ¿van las 12 tortillas en la charola? |
+| **Cruce de meta** | cada pieza al cruzar una línea, por sentido | banda transportadora: entran, salen, neto |
+| **Zona** | al entrar a un área, al salir, o ambas | celda de trabajo, zona de carga |
+| **Al aparecer** | cada pieza nueva, una vez | piezas que llegan por cualquier lado |
+| **Al desaparecer** | cada pieza que se va, por el borde que elijas | piezas que alguien retira |
+
+"En pantalla" y la ocupación de "Zona" aceptan un rango esperado: fuera de rango, el
+frame se marca NOT OK. Eso convierte el conteo en un criterio de inspección.
+
+## Actualizarse
+
+Eyve avisa en la barra de estado cuando hay versión nueva. Un clic, y se actualiza solo:
+descarga, verifica el SHA-256 publicado, respalda la versión anterior y reemplaza el
+programa. **Tus proyectos, tus modelos entrenados y tu licencia no se tocan.** Se acabó
+descomprimir carpetas y volver a cargar proyectos a mano.
 
 ## Instalar
 
@@ -70,6 +95,13 @@ python -m eyve.main
 - `eyve/ui/` — pantallas (CustomTkinter). `eyve/inference/` — YOLO worker, tracker
   persistente, motor de polaridad. `eyve/modules/` — módulos de inspección; para
   escribir uno nuevo implementa `InspectionModule` y regístralo en `MODULE_REGISTRY`.
+  `eyve/core/updater.py` — actualización desde GitHub Releases.
+- `eyve/demo/` — la tela sintética de la pantalla Demo. Para prepararla en la máquina
+  del stand (una vez; el dataset tarda segundos, el entrenamiento ~45 min en CPU):
+
+  ```bash
+  python -m eyve.demo.train --out "projects/Demo_Textil" --frames 700 --epochs 40
+  ```
 - `PRD.md` — alcance, decisiones y notas técnicas del release (léelo antes de tocar
   la cámara: el Anexo A documenta varias trampas de DSHOW y Tkinter que ya nos costaron).
 - `Release/build_release.ps1` — empaqueta y valida el instalador.
