@@ -11,6 +11,27 @@ STRINGS = {
     "nav_training": "Entrenamiento",
     "nav_production": "Producción",
 
+    "nav_demo": "Demo",
+
+    # ── pantalla de demo (expo) ──────────────────────────────────────────────
+    "demo_title":     "Demo en vivo",
+    "demo_hint":      "Dibuja un defecto sobre la tela de la derecha. Eyve lo encuentra solo.",
+    "demo_side_eyve": "Lo que ve Eyve",
+    "demo_side_you":  "Dibuja aqui",
+    "demo_tool_rayon":           "Rayon",
+    "demo_tool_mancha":          "Mancha",
+    "demo_tool_falta_impresion": "Borrar patron",
+    "demo_clear":   "Limpiar tela",
+    "demo_pause":   "Pausar tela",
+    "demo_resume":  "Reanudar",
+    "demo_speed":   "Velocidad",
+    "demo_found":   "Defectos: {n}",
+    "demo_clean":   "LIMPIO",
+    "demo_defect":  "DEFECTO",
+    "demo_loading": "Cargando el modelo de la demo...",
+    "demo_no_model": "Falta el modelo de la demo. Genera uno con: python -m eyve.demo.train",
+    "demo_model_error": "No se pudo cargar el modelo: {err}",
+
     # ── Home screen ──────────────────────────────────────────────────────────
     "home_welcome": "Bienvenido a Eyve",
     "home_tagline": "Crea, entrena y ejecuta proyectos de inspección visual localmente.",

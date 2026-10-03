@@ -10,6 +10,27 @@ STRINGS = {
     "nav_tagging": "Tagging",
     "nav_training": "Training",
     "nav_production": "Production",
+    "nav_demo": "Demo",
+
+    # ── demo screen (trade show) ─────────────────────────────────────────────
+    "demo_title":     "Live demo",
+    "demo_hint":      "Draw a defect on the fabric at right. Eyve finds it on its own.",
+    "demo_side_eyve": "What Eyve sees",
+    "demo_side_you":  "Draw here",
+    "demo_tool_rayon":           "Scratch",
+    "demo_tool_mancha":          "Stain",
+    "demo_tool_falta_impresion": "Erase print",
+    "demo_clear":   "Clean fabric",
+    "demo_pause":   "Pause fabric",
+    "demo_resume":  "Resume",
+    "demo_speed":   "Speed",
+    "demo_found":   "Defects: {n}",
+    "demo_clean":   "CLEAN",
+    "demo_defect":  "DEFECT",
+    "demo_loading": "Loading the demo model...",
+    "demo_no_model": "Demo model missing. Build one with: python -m eyve.demo.train",
+    "demo_model_error": "Could not load the model: {err}",
+
 
     # ── Home screen ──────────────────────────────────────────────────────────
     "home_welcome": "Welcome to Eyve",
