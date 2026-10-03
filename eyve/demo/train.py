@@ -38,7 +38,9 @@ def main(argv=None) -> int:
 
     if args.skip_dataset:
         from eyve.core.project_manager import load_project
-        proj = load_project(out)
+        # resolve(): con --out relativo, todas las rutas del proyecto salen
+        # relativas al directorio desde donde se lanzo el comando
+        proj = load_project(out.resolve())
         print(f"Reusando dataset: {proj.raw_image_count()} imagenes")
     else:
         print(f"Generando {args.frames} frames en {out} ...")

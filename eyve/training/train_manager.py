@@ -170,16 +170,28 @@ class TrainManager:
                 batch=cfg.batch,
                 device=device,
                 patience=cfg.patience,
-                project=str(self._project.paths.runs),
+                # Ruta ABSOLUTA a proposito: ultralytics resuelve un
+                # project= relativo contra su propio directorio de runs, asi
+                # que un proyecto abierto con ruta relativa terminaba
+                # entrenando en runs/detect/<ruta>/runs/train y la copia
+                # posterior a models/ no encontraba nada.
+                project=str(self._project.paths.runs.resolve()),
                 name="train",
                 exist_ok=True,
                 verbose=False,
             )
 
             # copy best model to project/models/
-            run_dir = self._project.paths.runs / "train"
+            run_dir = self._project.paths.runs.resolve() / "train"
             best_src = run_dir / "weights" / "best.pt"
             last_src = run_dir / "weights" / "last.pt"
+            if not best_src.exists():
+                # Si los pesos no estan donde se esperaban, el entrenamiento
+                # NO termino bien aunque ultralytics haya devuelto resultados.
+                # Decirlo: la version anterior se reportaba "listo" y dejaba
+                # el modelo viejo en su lugar.
+                raise FileNotFoundError(
+                    f"el entrenamiento no dejo pesos en {best_src}")
             models_dir = self._project.paths.models
             models_dir.mkdir(parents=True, exist_ok=True)
 
