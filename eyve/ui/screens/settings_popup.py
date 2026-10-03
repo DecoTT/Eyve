@@ -9,6 +9,7 @@ import webbrowser
 
 import customtkinter as ctk
 
+from eyve import __version__ as _eyve_version
 from eyve.ui import theme as T
 from eyve.ui.logo_loader import about_logo
 from eyve.i18n import t, get_language, available_languages
