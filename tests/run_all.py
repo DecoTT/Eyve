@@ -22,6 +22,7 @@ HERE = Path(__file__).resolve().parent
 SUITES: list[tuple[str, list[str], bool]] = [
     ("test_counting.py",        [],      False),
     ("test_train_paths.py",     [],      False),
+    ("test_merge_fragments.py", [],      False),
     ("test_ui_counting.py",     [],      False),
     ("test_textile.py",         [],      False),
     ("test_dataset.py",         [],      False),

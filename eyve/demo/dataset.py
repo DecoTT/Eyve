@@ -141,22 +141,32 @@ def build_dataset(out: Path, frames: int = 600, width: int = 960,
 
 
 def _paint_random(pattern: TextilePattern, rng: random.Random) -> None:
-    """Un defecto al azar, con las mismas primitivas del canvas de la demo."""
+    """
+    Un defecto al azar, con las mismas primitivas del canvas de la demo.
+
+    Los rangos importan tanto como las primitivas.  La primera versión
+    generaba rayones de 55 a 190 px, y en la demo un visitante arrastra el
+    mouse de lado a lado: un trazo de 300 px era algo que el modelo nunca
+    había visto, así que lo partía en tres cajas y lo contaba tres veces.
+    Ahora los rayones llegan a media diagonal del encuadre.
+    """
     # margen: un defecto pegado al borde se descarta al etiquetar, así que
     # generarlos ahí solo gasta frames
-    m = 70
+    m = 60
     sx = rng.randint(m, pattern.width - m)
     sy = rng.randint(m, pattern.height - m)
     fx, fy = pattern.screen_to_fabric(sx, sy)
     kind = rng.choices(DEFECT_CLASSES, weights=(0.4, 0.35, 0.25))[0]
+    diag = (pattern.width ** 2 + pattern.height ** 2) ** 0.5
     if kind == "rayon":
-        pattern.streak(fx, fy,
-                       length=rng.randint(55, 190),
-                       thickness=rng.randint(3, 9))
+        # sesgado a los cortos (son los más comunes) pero con cola larga
+        largo = int(rng.triangular(45, diag * 0.55, 140))
+        pattern.streak(fx, fy, length=largo,
+                       thickness=rng.randint(3, 11))
     elif kind == "mancha":
-        pattern.blob(fx, fy, size=rng.randint(28, 85))
+        pattern.blob(fx, fy, size=int(rng.triangular(24, 170, 60)))
     else:
-        pattern.missing_print(fx, fy, size=rng.randint(40, 105))
+        pattern.missing_print(fx, fy, size=int(rng.triangular(35, 200, 80)))
 
 
 def _write_data_yaml(proj: Project) -> Path:

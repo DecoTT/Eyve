@@ -450,8 +450,16 @@ class TextilePattern:
         mancha completa.
         """
         out = []
+        span_w = self.width if self.axis == "x" else self.fw
+        span_h = self.height if self.axis == "y" else self.fh
         for d in self.defects:
             if d.w < 2 or d.h < 2:
+                continue
+            # Un trazo pintado sobre la costura de la tela se envuelve: sus
+            # puntos caen en los dos extremos y la caja abarca la tela
+            # entera. No se puede etiquetar bien, y entrenar con esa caja
+            # ensena una barbaridad — se descarta.
+            if d.w > span_w or d.h > span_h:
                 continue
             corners = [self.fabric_to_screen(x, y)
                        for x, y in ((d.x1, d.y1), (d.x2, d.y1),

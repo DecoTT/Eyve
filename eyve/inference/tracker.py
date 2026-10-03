@@ -43,6 +43,7 @@ IOU_MATCH_THRESHOLD = 0.25   # IoU mínima para considerar "misma instancia"
 MAX_LOST_FRAMES     = 12     # frames sin ver antes de purgar
 MIN_CONFIRM_FRAMES  = 2      # frames mínimos para considerar instancia "real"
 PROCESS_CONF_MIN    = 0.40   # confianza mínima para enviar a procesamiento
+MERGE_IOMIN         = 0.65   # fusionar fragmentos de la misma instancia
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -68,11 +69,18 @@ class TrackerConfig:
     min_confirm_frames Frames vistos antes de considerar la instancia "real".
                        Filtra detecciones de un solo frame (falsos positivos).
     process_conf_min   Confianza mínima para mandar la instancia a un módulo.
+    merge_iomin        Fusiona en una sola instancia las detecciones de la
+                       MISMA clase cuya intersección cubre esta fracción de
+                       la caja más chica.  Existe porque el detector parte
+                       un defecto alargado (un rayón, una rebaba, una fuga)
+                       en varias cajas, y sin fusionarlas se cuenta una pieza
+                       como tres.  0 = desactivado.
     """
     iou_match:          float = IOU_MATCH_THRESHOLD
     max_lost_frames:    int   = MAX_LOST_FRAMES
     min_confirm_frames: int   = MIN_CONFIRM_FRAMES
     process_conf_min:   float = PROCESS_CONF_MIN
+    merge_iomin:        float = MERGE_IOMIN
 
     def clamped(self) -> "TrackerConfig":
         """Valores dentro de rango usable (la UI no puede romper el tracker)."""
@@ -81,6 +89,7 @@ class TrackerConfig:
             max_lost_frames    = max(int(self.max_lost_frames), 0),
             min_confirm_frames = max(int(self.min_confirm_frames), 1),
             process_conf_min   = min(max(self.process_conf_min, 0.0), 0.99),
+            merge_iomin        = min(max(self.merge_iomin, 0.0), 1.0),
         )
 
 
@@ -111,6 +120,68 @@ class RawDetection:
 
     @property
     def area(self): return self.w * self.h
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Fusión de fragmentos
+# ─────────────────────────────────────────────────────────────────────────────
+def _io_min(a: Tuple, b: Tuple) -> float:
+    """
+    Intersección sobre el área de la caja MÁS CHICA.
+
+    No se usa IoU aquí a propósito: dos fragmentos de un rayón largo comparten
+    poca área respecto de su unión (IoU bajo) pero el chico está casi dentro
+    del grande (IoMin alto).  Dos piezas vecinas que se tocan por el borde dan
+    IoMin bajo, que es como se distinguen las dos situaciones.
+    """
+    ax1, ay1, ax2, ay2 = a
+    bx1, by1, bx2, by2 = b
+    ix = max(0, min(ax2, bx2) - max(ax1, bx1))
+    iy = max(0, min(ay2, by2) - max(ay1, by1))
+    inter = ix * iy
+    if inter == 0:
+        return 0.0
+    area_a = max(1, (ax2 - ax1) * (ay2 - ay1))
+    area_b = max(1, (bx2 - bx1) * (by2 - by1))
+    return inter / min(area_a, area_b)
+
+
+def merge_fragments(detections: List[RawDetection],
+                    iomin: float = MERGE_IOMIN) -> List[RawDetection]:
+    """
+    Une las detecciones de la MISMA clase que son pedazos de una sola pieza.
+
+    El detector parte un defecto alargado en varias cajas y el NMS de YOLO no
+    las junta porque se solapan poco.  Sin esto, un rayón dibujado de un trazo
+    se cuenta dos o tres veces.
+
+    Se repite hasta que no haya nada más que unir: tres fragmentos en fila
+    pueden necesitar dos pasadas (A+B, y luego AB+C).
+    """
+    if iomin <= 0 or len(detections) < 2:
+        return list(detections)
+
+    dets = list(detections)
+    cambio = True
+    while cambio:
+        cambio = False
+        for i in range(len(dets)):
+            for j in range(i + 1, len(dets)):
+                a, b = dets[i], dets[j]
+                if a.label != b.label:
+                    continue
+                if _io_min(a.bbox, b.bbox) < iomin:
+                    continue
+                dets[i] = RawDetection(
+                    a.label, max(a.confidence, b.confidence),
+                    min(a.x1, b.x1), min(a.y1, b.y1),
+                    max(a.x2, b.x2), max(a.y2, b.y2))
+                dets.pop(j)
+                cambio = True
+                break
+            if cambio:
+                break
+    return dets
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -272,6 +343,7 @@ class InstanceTracker:
             "max_lost_frames":    self.config.max_lost_frames,
             "min_confirm_frames": self.config.min_confirm_frames,
             "process_conf_min":   self.config.process_conf_min,
+            "merge_iomin":        self.config.merge_iomin,
         }
         cur.update({k: v for k, v in kwargs.items() if k in cur and v is not None})
         self.config = TrackerConfig(**cur).clamped()
@@ -283,6 +355,10 @@ class InstanceTracker:
         Retorna lista de instancias activas en este frame.
         """
         self._frame_count += 1
+        # Fusionar fragmentos ANTES de asociar: si el detector partio una
+        # pieza en tres cajas, sin esto nacen tres instancias y se cuenta
+        # tres veces.
+        detections = merge_fragments(detections, self.config.merge_iomin)
         active  = list(self._tracks.values())
         matched_track_ids = set()
         matched_det_idxs  = set()

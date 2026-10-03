@@ -128,8 +128,16 @@ def firma(roi, cls):
     return float(((r > b + 3) & (r > 180) & (b > 150)).mean())
 
 
-def cajas_de(img_path, dx=0, dy=0):
-    """Cajas del .txt en pixeles, opcionalmente corridas dx/dy."""
+def cajas_de(img_path, dx=0, dy=0, rel=0.0):
+    """
+    Cajas del .txt en pixeles, opcionalmente corridas.
+
+    dx/dy  corrimiento fijo en pixeles
+    rel    corrimiento PROPORCIONAL al tamano de cada caja. Hace falta
+           porque los defectos van de 40 a 400 px: un corrimiento fijo de
+           90 px saca de su sitio a uno chico pero deja al grande casi
+           encima de si mismo, y el control negativo deja de controlar.
+    """
     txt = p_.label_file(img_path).read_text(encoding="utf-8").strip()
     if not txt:
         return None, []
@@ -139,8 +147,10 @@ def cajas_de(img_path, dx=0, dy=0):
     for line in txt.splitlines():
         ci, cx, cy, bw, bh = line.split()
         cx, cy, bw, bh = float(cx), float(cy), float(bw), float(bh)
-        x1 = int((cx - bw / 2) * W) + dx; x2 = int((cx + bw / 2) * W) + dx
-        y1 = int((cy - bh / 2) * H) + dy; y2 = int((cy + bh / 2) * H) + dy
+        ox = dx + int(rel * bw * W)
+        oy = dy + int(rel * bh * H)
+        x1 = int((cx - bw / 2) * W) + ox; x2 = int((cx + bw / 2) * W) + ox
+        y1 = int((cy - bh / 2) * H) + oy; y2 = int((cy + bh / 2) * H) + oy
         x1, y1 = max(0, x1), max(0, y1)
         x2, y2 = min(W, x2), min(H, y2)
         if x2 - x1 >= 10 and y2 - y1 >= 10:
@@ -148,11 +158,11 @@ def cajas_de(img_path, dx=0, dy=0):
     return img, out
 
 
-def tasa_acierto(dx=0, dy=0, umbral=0.10):
+def tasa_acierto(dx=0, dy=0, rel=0.0, umbral=0.10):
     aciertos = total = 0
     detalle = []
     for ip in muestras:
-        img, cajas = cajas_de(ip, dx, dy)
+        img, cajas = cajas_de(ip, dx, dy, rel)
         if img is None:
             continue
         for cls, x1, y1, x2, y2 in cajas:
@@ -178,11 +188,14 @@ check_true("las etiquetas caen sobre el defecto correcto",
            tot > 0 and ok_n / tot > 0.95, f"{ok_n}/{tot}")
 
 print("\n[7] El chequeo SI distingue: con etiquetas corridas debe desplomarse")
-for dx, dy in [(90, 90), (-120, 0), (0, 110)]:
-    bad_n, bad_tot, _ = tasa_acierto(dx, dy)
+# Corrimiento proporcional: 1.3 veces el tamano de cada caja la saca por
+# completo de su defecto, mida lo que mida.
+for rel in (1.3, -1.3):
+    bad_n, bad_tot, _ = tasa_acierto(rel=rel)
     tasa = bad_n / max(1, bad_tot)
-    print(f"       corrimiento ({dx:+4d},{dy:+4d}): {bad_n}/{bad_tot} ({tasa:.0%})")
-    check_true(f"rechaza corrimiento ({dx:+d},{dy:+d})", tasa < 0.35,
+    print(f"       corrimiento de {rel:+.1f} veces su tamano: "
+          f"{bad_n}/{bad_tot} ({tasa:.0%})")
+    check_true(f"rechaza corrimiento proporcional ({rel:+.1f}x)", tasa < 0.35,
                f"tasa={tasa:.0%}")
 
 print("\n[8] Cada clase por separado")
