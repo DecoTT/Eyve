@@ -55,6 +55,7 @@ Limitaciones, dichas de frente:
 """
 from __future__ import annotations
 
+import math
 from typing import Optional, Tuple
 
 import cv2
@@ -63,6 +64,8 @@ import numpy as np
 from eyve.modules.base import InspectionModule, ModuleVerdict
 
 _COLOR = (255, 120, 255)      # magenta (BGR) — distinto de las clases YOLO
+_COLOR_EXTRA = (0, 160, 255)  # naranja: hay tinta donde no deberia
+_COLOR_FALTA = (255, 220, 0)  # cian:    falta tinta donde si deberia
 
 #: ancho al que se reduce el frame para analizar.  El defecto más chico que
 #: interesa mide varios píxeles aquí; bajar de esto pierde los finos.
@@ -72,9 +75,17 @@ _WORK_W = 480
 class PatternModule(InspectionModule):
     name = "Patrón"
 
-    #: métodos del módulo.  "periodo" no necesita nada; "referencia" aprende
-    #: de frames buenos y sirve cuando el material NO se repite.
-    METHODS = ("periodo", "referencia")
+    #: métodos del módulo:
+    #:   periodo     ¿esto se parece a sus vecinos?  No necesita nada.
+    #:   layout      ¿dónde debería haber tinta y dónde no?  Distingue
+    #:               "tinta de más" de "tinta de menos", y por eso ve el
+    #:               fantasma, que al método periodo se le escapa.
+    #:   referencia  aprende de frames buenos; para material que NO se repite.
+    METHODS = ("periodo", "layout", "referencia")
+
+    #: qué significa cada signo de la diferencia contra lo esperado
+    KIND_EXTRA = "tinta de más"
+    KIND_FALTA = "falta tinta"
 
     def __init__(self) -> None:
         super().__init__()
@@ -99,9 +110,15 @@ class PatternModule(InspectionModule):
         #: scores se comprimen y solo sobrevive el defecto mas fuerte.
         self._norm: Optional[Tuple[float, float]] = None
         self._regions: list[tuple[int, int, int, int]] = []
+        #: con el método layout, qué tipo es cada región de _regions
+        self._kinds: list[str] = []
         self._score_max: float = 0.0
         self._verdict = ModuleVerdict()
         self._last_period: Optional[Tuple[int, int]] = None
+        #: diferencia con signo del último frame (método layout)
+        self._signed: Optional[np.ndarray] = None
+        #: inclinación de la retícula estimada en el último frame
+        self._angle: float = 0.0
 
     # ── configuración ─────────────────────────────────────────────────────
     def set_method(self, method: str) -> None:
@@ -198,8 +215,7 @@ class PatternModule(InspectionModule):
         return self._last_period
 
     # ── preparación del frame ─────────────────────────────────────────────
-    @staticmethod
-    def _prep(frame: np.ndarray) -> np.ndarray:
+    def _prep(self, frame: np.ndarray) -> np.ndarray:
         """
         Gris, reducido y con el brillo local normalizado.
 
@@ -215,7 +231,19 @@ class PatternModule(InspectionModule):
         g = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY).astype(np.float32)
         fondo = cv2.GaussianBlur(g, (0, 0), 21)
         g = g / np.maximum(fondo, 1.0)
-        return cv2.GaussianBlur(g, (0, 0), 1.0)
+        g = cv2.GaussianBlur(g, (0, 0), 1.0)
+
+        # Enderezar la retícula antes de analizar: los desplazamientos de un
+        # periodo asumen que la repetición va a lo largo de los ejes, y una
+        # retícula girada los desalinea un poco más en cada salto.
+        ang = self.estimate_angle(g)
+        self._angle = ang
+        if abs(ang) > 0.2:
+            h2, w2 = g.shape
+            M = cv2.getRotationMatrix2D((w2 / 2, h2 / 2), ang, 1.0)
+            g = cv2.warpAffine(g, M, (w2, h2), flags=cv2.INTER_LINEAR,
+                               borderMode=cv2.BORDER_REPLICATE)
+        return g
 
     # ── estimación del periodo ────────────────────────────────────────────
     @staticmethod
@@ -239,6 +267,43 @@ class PatternModule(InspectionModule):
         if seg[k] < 0.25:
             return None
         return lo + k
+
+    @staticmethod
+    def estimate_angle(g: np.ndarray) -> float:
+        """
+        Inclinación de la retícula, en grados.
+
+        Se autocorrelaciona la imagen en 2D: el pico más fuerte fuera del
+        centro cae justo donde está la repetición más cercana, así que su
+        ángulo ES el de la retícula.  Se busca solo en ±30 grados: más allá
+        el eje "horizontal" y el "vertical" se confunden y enderezar saldría
+        peor que no hacerlo.
+        """
+        h, w = g.shape
+        if min(h, w) < 48:
+            return 0.0
+        x = g - g.mean()
+        F = np.fft.rfft2(x)
+        ac = np.fft.irfft2(F * np.conj(F), x.shape)
+        ac = np.fft.fftshift(ac)
+        cy, cx = h // 2, w // 2
+        r = min(h, w) // 3
+        ventana = ac[max(0, cy - r):cy + r, max(0, cx - r):cx + r].copy()
+        vy, vx = ventana.shape
+        oy, ox = vy // 2, vx // 2
+        # tapar el centro: el pico de lag cero no dice nada
+        yy, xx = np.ogrid[:vy, :vx]
+        d2 = (yy - oy) ** 2 + (xx - ox) ** 2
+        ventana[d2 < 36] = -np.inf
+        k = int(np.argmax(ventana))
+        py_, px_ = divmod(k, vx)
+        dy, dx = py_ - oy, px_ - ox
+        if dx == 0 and dy == 0:
+            return 0.0
+        ang = np.degrees(np.arctan2(dy, dx))
+        # llevar a la familia de ejes mas cercana (cada 90 grados)
+        ang = (ang + 45.0) % 90.0 - 45.0
+        return float(ang) if abs(ang) <= 30.0 else 0.0
 
     def estimate_period(self, g: np.ndarray) -> Optional[Tuple[int, int]]:
         """
@@ -292,7 +357,16 @@ class PatternModule(InspectionModule):
                 self._last_period = None
                 return None
             self._last_period = per
-            dif = self._self_similarity(g, per)
+            if self.method == "layout":
+                esperado = self._expected(g, per)
+                # Diferencia CON SIGNO contra lo esperado.  Se guarda para
+                # poder decir después de qué lado está cada región: más
+                # oscuro que lo esperado es tinta de más, más claro es
+                # tinta que falta.
+                self._signed = cv2.GaussianBlur(g - esperado, (0, 0), 1.2)
+                dif = np.abs(self._signed)
+            else:
+                dif = self._self_similarity(g, per)
 
         # ── energia local, no pixel suelto ────────────────────────────
         # El residuo de una tela buena esta repartido por todo el frame:
@@ -348,16 +422,85 @@ class PatternModule(InspectionModule):
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, k, iterations=2)
 
         min_area = max(12.0, (self.min_area_pct / 100.0) * gh * gw)
-        n, _, stats, _ = cv2.connectedComponentsWithStats(mask, 8)
+        n, etiquetas, stats, _ = cv2.connectedComponentsWithStats(mask, 8)
         regiones = []
+        tipos = []
         for i in range(1, n):
             x, y, w_, h_, area = stats[i]
             if area < min_area:
                 continue
-            regiones.append((int(x * escala), int(y * escala),
-                             int((x + w_) * escala), int((y + h_) * escala)))
+            caja = self._unrotate((x, y, x + w_, y + h_), gw, gh)
+            regiones.append(tuple(int(v * escala) for v in caja))
+            tipos.append(self._kind_of(etiquetas == i))
         self._regions = regiones
+        self._kinds = tipos
         return regiones
+
+    def _unrotate(self, caja, gw: int, gh: int):
+        """
+        Caja del espacio enderezado de vuelta al del frame.
+
+        Se giran las cuatro esquinas y se toma su caja envolvente, que es
+        lo mismo que hace el etiquetado del dataset: una caja alineada a los
+        ejes no puede representar un giro, así que se toma la que lo
+        contiene.
+        """
+        if abs(self._angle) <= 0.2:
+            return caja
+        x1, y1, x2, y2 = caja
+        a = math.radians(-self._angle)
+        cx, cy = gw / 2.0, gh / 2.0
+        xs, ys = [], []
+        for px_, py_ in ((x1, y1), (x2, y1), (x2, y2), (x1, y2)):
+            dx, dy = px_ - cx, py_ - cy
+            xs.append(dx * math.cos(a) - dy * math.sin(a) + cx)
+            ys.append(dx * math.sin(a) + dy * math.cos(a) + cy)
+        return (max(0, min(xs)), max(0, min(ys)),
+                min(gw, max(xs)), min(gh, max(ys)))
+
+    def _kind_of(self, mascara: np.ndarray) -> str:
+        """De qué lado está la región: tinta de más o tinta que falta."""
+        if self._signed is None or self.method != "layout":
+            return ""
+        v = float(np.mean(self._signed[mascara]))
+        # g está normalizado por el fondo local: más oscuro = valor menor
+        return self.KIND_EXTRA if v < 0 else self.KIND_FALTA
+
+    @staticmethod
+    def _expected(g: np.ndarray, per: Tuple[int, int]) -> np.ndarray:
+        """
+        El estampado que DEBERÍA verse, reconstruido del propio material.
+
+        Para cada píxel se juntan sus valores en las repeticiones vecinas y
+        se toma la MEDIANA.  Es lo que impide que un defecto se cuele en su
+        propia referencia: entre ocho repeticiones, una mala no mueve la
+        mediana.  Un promedio sí la movería, y el defecto quedaría medio
+        perdonado.
+        """
+        px, py = max(2, per[0]), max(2, per[1])
+        h, w = g.shape
+        # Repeticiones a UNO, DOS y TRES periodos de distancia, no solo las
+        # pegadas. Con los vecinos inmediatos la referencia se contamina a
+        # si misma: un fantasma de tres celdas de ancho tambien fantasmea a
+        # sus vecinos, la mediana sale fantasmeada y el fallo desaparece.
+        # Desde dos o tres periodos ya se sale del defecto.
+        # Un periodo de distancia, no tres. Probado: buscar la referencia
+        # mas lejos la empeora, porque cada salto acumula el error que deja
+        # la reticula enderezada solo aproximadamente, y "lo esperado" sale
+        # borroso. El contagio del defecto a sus vecinos se tolera: para eso
+        # esta la mediana.
+        capas = []
+        saltos = [(px, 0), (-px, 0), (0, py), (0, -py),
+                  (px, py), (-px, -py), (px, -py), (-px, py)]
+        for dx, dy in saltos:
+            if abs(dx) >= w or abs(dy) >= h:
+                continue
+            M = np.float32([[1, 0, dx], [0, 1, dy]])
+            capas.append(cv2.warpAffine(g, M, (w, h), flags=cv2.INTER_LINEAR,
+                                        borderMode=cv2.BORDER_REPLICATE))
+        if not capas:
+            return g.copy()
+        return np.median(np.stack(capas, axis=0), axis=0).astype(np.float32)
 
     @staticmethod
     def _self_similarity(g: np.ndarray, per: Tuple[int, int]) -> np.ndarray:
@@ -435,15 +578,38 @@ class PatternModule(InspectionModule):
         if self.method == "periodo" and not self.calibrated:
             return "sin calibrar"
         n = len(self._regions)
-        return "sin anomalías" if n == 0 else f"{n} anomalía{'s' if n > 1 else ''}"
+        if n == 0:
+            return "sin anomalías"
+        if self.method == "layout" and self._kinds:
+            extra = sum(1 for k in self._kinds if k == self.KIND_EXTRA)
+            falta = n - extra
+            partes = []
+            if extra:
+                partes.append(f"{extra} tinta de más")
+            if falta:
+                partes.append(f"{falta} falta tinta")
+            return "  ".join(partes)
+        return f"{n} anomalía{'s' if n > 1 else ''}"
 
     def draw(self, annotated: np.ndarray) -> None:
         if not self.enabled:
             return
-        for (x1, y1, x2, y2) in self._regions:
-            cv2.rectangle(annotated, (x1, y1), (x2, y2), _COLOR, 2)
-            cv2.putText(annotated, "?", (x1 + 4, max(16, y1 - 6)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, _COLOR, 2, cv2.LINE_AA)
+        for i, (x1, y1, x2, y2) in enumerate(self._regions):
+            tipo = self._kinds[i] if i < len(self._kinds) else ""
+            if tipo == self.KIND_EXTRA:
+                col, txt = _COLOR_EXTRA, "+"
+            elif tipo == self.KIND_FALTA:
+                col, txt = _COLOR_FALTA, "-"
+            else:
+                col, txt = _COLOR, "?"
+            cv2.rectangle(annotated, (x1, y1), (x2, y2), col, 2)
+            cv2.putText(annotated, txt, (x1 + 4, max(16, y1 - 6)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, col, 2, cv2.LINE_AA)
+
+    @property
+    def kinds(self) -> list[str]:
+        """Tipo de cada región de `regions` (solo con el método layout)."""
+        return list(self._kinds)
 
     # ── contrato de InspectionModule ──────────────────────────────────────
     def process(self, frame: np.ndarray, detections: list,

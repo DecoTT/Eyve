@@ -96,10 +96,11 @@ print(f"       {falsos}/{total} frames limpios con falsa alarma")
 check_true("tela limpia practicamente sin falsas alarmas",
            falsos <= total * 0.08, f"{falsos}/{total}")
 
-def calibrado(motif, weave="sarga", sens=70, frames=8):
+def calibrado(motif, weave="sarga", sens=70, frames=8, metodo="periodo"):
     """Modulo calibrado con material BUENO de ese mismo material."""
     m = PatternModule()
     m.enabled = True
+    m.set_method(metodo)
     m.sensitivity = sens
     b = tela(motif=motif, weave=weave)
     for _ in range(frames):
@@ -140,8 +141,8 @@ ESPERADO = [
     ("rayon",       lambda p, f: p.streak(*f, length=160, thickness=6),   4),
     ("offset",      lambda p, f: p.misregister(*f, size=160),             4),
     ("mancha",      lambda p, f: p.blob(*f, size=90),                     4),
-    ("falta tinta", lambda p, f: p.ink_starved(*f, size=150, severity=0.6), 2),
-    ("faltante severo", lambda p, f: p.ink_starved(*f, size=150, severity=0.95), 2),
+    ("falta tinta", lambda p, f: p.ink_starved(*f, size=150, severity=0.6), 3),
+    ("faltante severo", lambda p, f: p.ink_starved(*f, size=150, severity=0.95), 3),
 ]
 for nombre, hacer, minimo in ESPERADO:
     n = 0
@@ -154,22 +155,56 @@ for nombre, hacer, minimo in ESPERADO:
     check_true(f"{nombre}: al menos {minimo} de 4 estampados", n >= minimo,
                f"{n}/4")
 
-print("\n[4b] PUNTO CIEGO conocido: el fantasma")
+print("\n[4b] El fantasma, que era el punto ciego")
 # El metodo compara el patron contra copias desplazadas de si mismo, y un
-# fantasma ES una copia desplazada del patron. Es una ceguera estructural
-# del metodo, no un umbral mal puesto: medido, el fantasma puntua entre
-# 0.93x y 1.03x del ruido del propio material. Se deja dicho en vez de
-# forzar el umbral hasta que "pase" llenando de falsas alarmas.
+# fantasma ES una copia desplazada del patron, asi que parecia una ceguera
+# estructural: se detectaba en 1 de 4 estampados.
+#
+# No era eso. Era que la reticula llega girada a la camara y un
+# desplazamiento de un periodo sobre una reticula girada 1.6 grados deja
+# 1.5 px de deriva — suficiente para enterrar un fallo tenue. Enderezando
+# la reticula antes de analizar, el fantasma sube a 3 de 4.
 n = 0
 for motif in MOTIFS:
     m = calibrado(motif)
     p = tela(motif=motif)
-    p.ghost(*p.screen_to_fabric(480, 270), size=150)
+    p.ghost(*p.screen_to_fabric(480, 270), size=160)
     if m.analyze(p.frame()):
         n += 1
-print(f"        fantasma detectado en {n}/4 estampados (ceguera conocida)")
-check_true("el fantasma sigue siendo el punto debil, y se sabe", n <= 2,
-           f"{n}/4 — si subiera, revisar si cambio el metodo")
+print(f"        fantasma detectado en {n}/4 estampados")
+check_true("el fantasma ya no es el punto ciego", n >= 3, f"{n}/4")
+
+print("\n[4bb] Estima la inclinacion de la reticula")
+for real in (0.0, 1.6, -4.0, 7.0):
+    mm = PatternModule()
+    mm.enabled = True
+    pp = TextilePattern(width=960, height=540, axis="x", motif="diamantes",
+                        weave="sarga", tilt_deg=real, speed=110.0, seed=5)
+    pp.offset = 350.0
+    mm._prep(pp.frame())
+    check_true(f"inclinacion real {real:+.1f}",
+               abs(abs(mm._angle) - abs(real)) < 1.0,
+               f"estimado {mm._angle:+.2f}")
+
+print("\n[4bbb] Metodo LAYOUT: dice de que lado esta el error")
+# Mide menos que el metodo periodo (7 de 24 contra 21 de 24 en la misma
+# tabla), pero aporta algo que periodo no puede: distinguir tinta de MAS
+# de tinta que FALTA. Para el operador no es lo mismo — una es rodillo
+# sucio y la otra es tinta que se acabo.
+n = 0
+tipos = set()
+for motif in MOTIFS:
+    m = calibrado(motif, metodo="layout")
+    p = tela(motif=motif)
+    p.streak(*p.screen_to_fabric(480, 270), length=160, thickness=6)
+    if m.analyze(p.frame()):
+        n += 1
+        tipos.update(k for k in m.kinds if k)
+check_true("layout encuentra tinta de mas", n >= 3, f"{n}/4")
+check_true("y la etiqueta como tal",
+           PatternModule.KIND_EXTRA in tipos, str(tipos))
+check("sin anomalias no inventa tipos",
+      calibrado("diamantes", metodo="layout").kinds, [])
 
 print("\n[4c] Tras calibrar, el material bueno no da falsas alarmas")
 fa = tot = 0
