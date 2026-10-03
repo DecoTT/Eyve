@@ -109,6 +109,12 @@ class PatternModule(InspectionModule):
         #: defectos a la vez, la mediana del propio frame se contamina, los
         #: scores se comprimen y solo sobrevive el defecto mas fuerte.
         self._norm: Optional[Tuple[float, float]] = None
+        #: picos CRUDOS (max - mediana) de cada frame de calibracion. Se
+        #: guardan sin normalizar y se dividen al final por la escala ya
+        #: promediada: dividir sobre la marcha, con la escala a medio
+        #: converger, inflaba el piso un 50% con el material en
+        #: movimiento — y en una linea real el material siempre se mueve.
+        self._cal_peaks: list = []
         self._regions: list[tuple[int, int, int, int]] = []
         #: con el método layout, qué tipo es cada región de _regions
         self._kinds: list[str] = []
@@ -132,6 +138,7 @@ class PatternModule(InspectionModule):
         self._baseline = None
         self._baseline_n = 0
         self._norm = None
+        self._cal_peaks = []
         self._regions = []
         self._score_max = 0.0
         self._verdict = ModuleVerdict()
@@ -182,9 +189,13 @@ class PatternModule(InspectionModule):
             n = self._baseline_n + 1
             self._norm = (self._norm[0] + (med - self._norm[0]) / n,
                           self._norm[1] + (sigma - self._norm[1]) / n)
-        pico = float(((crudo - float(np.median(crudo))) / self._norm[1]).max())
+        # Se guarda el pico CRUDO y se normaliza al final, con la escala
+        # ya promediada. Normalizar aqui, con la escala a medio converger,
+        # inflaba el piso de 1.47 a 2.25 con la tela en movimiento: el
+        # umbral subia a 3.14 y los fallos tenues quedaban por debajo.
+        self._cal_peaks.append(float((crudo - float(np.median(crudo))).max()))
         self._baseline_n += 1
-        self._baseline = pico if self._baseline is None else max(self._baseline, pico)
+        self._baseline = max(self._cal_peaks) / self._norm[1]
         return self._baseline
 
     @property
@@ -203,6 +214,7 @@ class PatternModule(InspectionModule):
         self._baseline = None
         self._baseline_n = 0
         self._norm = None
+        self._cal_peaks = []
 
     def raw_score(self, frame: np.ndarray) -> Optional[float]:
         """Pico de anomalía del frame, sin aplicar umbral."""

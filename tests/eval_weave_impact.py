@@ -86,6 +86,28 @@ def main(argv=None) -> int:
     print(f"evaluacion: {args.frames} frames nuevos por ligamento, "
           f"conf {args.conf}\n")
 
+    # Antes de concluir nada: comprobar que el tejido SI cambia la imagen.
+    # Sin esto, un "no afecta" podria significar simplemente que el
+    # parametro no hace nada, y seria una verificacion que no puede fallar.
+    base = None
+    print("cuanto cambia la imagen cada ligamento (vs tela lisa):")
+    for weave in WEAVES:
+        rng = random.Random(args.seed)
+        f, _ = frame_con_defectos(rng, weave)
+        if weave == "ninguno":
+            continue
+        rng2 = random.Random(args.seed)
+        f0, _ = frame_con_defectos(rng2, "ninguno")
+        dif = float(np.abs(f.astype(int) - f0.astype(int)).mean())
+        print(f"   {weave:>12}  {dif:5.2f} niveles de diferencia media")
+        if base is None or dif < base:
+            base = dif
+    if base is None or base < 0.5:
+        print("\nEL TEJIDO NO ESTA CAMBIANDO LA IMAGEN: "
+              "la comparacion de abajo no probaria nada.")
+        return 1
+    print()
+
     print(f"{'ligamento':>12} {'defectos':>9} {'encontr.':>9} "
           f"{'recall':>8} {'precision':>10} {'falsos':>7}")
     filas = []
