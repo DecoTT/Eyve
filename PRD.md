@@ -404,6 +404,65 @@ desaparece unos frames conserva su ID y no se cuenta dos veces.
 
 Módulos: `eyve/modules/counting_module.py`, `eyve/inference/tracker.py`.
 
+#### Patrón — inspección sin clases
+
+Detectar con YOLO obliga a **enumerar** los defectos, y los defectos son infinitos.
+Funciona bien para lo puntual y nombrable —un rayón, una mancha, una pieza que hay que
+contar— porque ahí hace falta saber *qué* es. Para fallos de impresión no: fantasma,
+offset, falta de tinta, y los diez que nadie listó, son variantes sin fin de "esto no se
+parece a lo bueno".
+
+El módulo Patrón responde esa otra pregunta. No se entrena, no se etiqueta, y encuentra
+cosas que nunca vio. A cambio dice **dónde** está mal, no **qué** es. Corre junto a YOLO,
+no en su lugar:
+
+| | YOLO | Patrón |
+|---|---|---|
+| Qué dice | "rayón", "mancha" | "aquí algo no cuadra" |
+| Necesita | etiquetar y entrenar | nada, o sólo material bueno |
+| Cubre | lo que le enseñaste | lo que nunca vio |
+
+**Método `periodo`** — el material que se repite es su propia referencia. Para cada píxel
+se compara su vecindad contra la misma vecindad desplazada un periodo, en seis
+direcciones, y se toma la *menor* diferencia: lo normal coincide con alguna, un defecto
+con ninguna. El periodo y la inclinación de la retícula se estiman solos.
+
+**Método `layout`** — reconstruye dónde *debería* ir la tinta y compara con signo, así que
+distingue **tinta de más** (rodillo sucio, salpicadura) de **tinta que falta** (se acabó
+la tinta). Son dos averías distintas de la máquina. Cubre menos que `periodo` (7 de 24
+contra 21 de 24 en la misma tabla); aporta la polaridad, no más cobertura.
+
+**Método `referencia`** — aprende de material bueno, para piezas que no se repiten.
+
+**Calibración, y por qué es obligatoria.** No existe un umbral fijo que sirva: el ruido
+del material bueno cambia con el material. Un mismo número sería dos sensibilidades
+distintas en dos telas distintas. Por eso se le enseña material bueno unos segundos y el
+umbral queda como múltiplo de ese piso. Es además cómo se despliega de verdad una
+inspección por anomalía: primero se le enseña lo bueno.
+
+**Las anomalías son instancias.** Las regiones entran al mismo `InstanceTracker` que las
+detecciones de YOLO, con su propia clase, así que heredan la confirmación por frames —una
+región que aparece un instante nunca se confirma, y por tanto nunca se dibuja ni se
+cuenta— y el módulo de conteo las cuenta como lo que son: defectos. Lo que YOLO ya nombró
+se descarta, para no contar el mismo defecto dos veces.
+
+**Capacidad medida** (4 estampados, calibrado, 0 falsas alarmas en 64 frames de material
+bueno): rayón 4/4 · offset 4/4 · mancha 4/4 · falta de tinta 3/4 · fantasma 3/4.
+
+**Límites, dichos de frente:**
+
+- Necesita que el material se repita. Para una pieza única en posición fija, el método es
+  `referencia`.
+- El umbral se apoya en que la mayor parte del encuadre sea material sano. Pasado un
+  tercio de área anómala la referencia robusta se degrada; para material así la respuesta
+  no es afinar el umbral, es parar la línea.
+- **Contar anomalías acumulando no es exacto todavía.** Un defecto que cruza el encuadre
+  cambia de forma; su región se parte y se vuelve a unir, y cada pedazo nuevo es una
+  instancia. Medido con variación: nunca cuenta de menos, pero puede contar de más.
+  Contar las *visibles ahora* (método "En pantalla") sí es fiable.
+
+Módulo: `eyve/modules/pattern_module.py`.
+
 ---
 
 ## 12. Sesiones y evidencia
@@ -697,7 +756,26 @@ Decisiones que la hacen funcionar:
   `best.pt` que queda es el mismo que produciría un usuario desde la pantalla de
   Entrenamiento. En la expo se enseña el producto, no una maqueta.
 
-Clases del proyecto demo: `rayon`, `mancha`, `falta_impresion`.
+**El reparto, que es el argumento de la demo.** YOLO entrena sólo `rayon` y `mancha` —lo
+puntual, lo nombrable, lo que se cuenta—. Los fallos de impresión (fantasma, offset, falta
+de tinta) salen de las clases y los cubre el módulo Patrón sin entrenar nada. Pero **sí**
+se generan en los frames de entrenamiento, *sin etiqueta*, para enseñarle a YOLO que son
+fondo y no la clase más parecida. Verificado: YOLO no reclama ninguno de los tres.
+
+**El tejido no le cuesta a YOLO**, medido con material nuevo y el mismo defecto por
+ligamento: recall 98.9 % en sarga, tafetán, sarga fina, canasta y tela lisa por igual.
+Entrenar con los cinco mezclados convirtió la textura en invariancia. La evaluación
+(`tests/eval_weave_impact.py`) comprueba primero que el tejido cambia la imagen y aborta
+si no: sin eso, un "no afecta" podría significar que el parámetro no hace nada.
+
+**Modo automático** para el stand vacío: un defecto cada 11-18 s, no cada 5 —uno cada 5
+llenaría la tela en medio minuto y el equipo estaría infiriendo sobre un encuadre saturado
+todo el día—. A los 4 limpia la tela, lo que además deja ver el regreso a LIMPIO. Se apaga
+solo en cuanto alguien toca el lienzo.
+
+**La tela se detiene mientras alguien dibuja.** Sin eso, entre dos eventos del mouse la
+tela avanza, el trazo sale partido y un solo gesto del visitante se cuenta como dos
+defectos.
 
 Preparar la demo en la máquina del stand (una sola vez):
 
@@ -1116,7 +1194,8 @@ Leyenda: ✅ funciona · ⚠️ funciona con problemas · ❌ roto
 | Tema dark/light | ✅ | |
 | Settings | ✅ | Idioma, tema, FPS cap, offline mode, licencia |
 | Release / instalador | ⚠️ | ZIP funciona; falta auto-install de Python (§15.3) |
-| Conteo | ✅ | 5 métodos + persistencia configurable (§11.2); E2E con la demo: 3 defectos, 3 conteos |
+| Conteo | ✅ | 5 métodos + persistencia configurable (§11.2); E2E con la demo: rayón y mancha, 1 cada uno |
+| Patrón | ✅ | Inspección sin clases (§11.2); 21/24 defectos, 0 falsas alarmas tras calibrar. Acumular anomalías no es exacto aún |
 | Demo de expo | ✅ | Tela sintética + canvas interactivo (§19.1); modelo mAP50 0.975 |
 | Actualizador | ✅ | GitHub Releases + SHA256 + respaldo (§17.2) |
 

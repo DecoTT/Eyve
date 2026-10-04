@@ -99,6 +99,12 @@ class PatternModule(InspectionModule):
         self.sensitivity: float = 50.0
         #: área mínima de una región, en % del frame
         self.min_area_pct: float = 0.08
+        #: margen de borde, en % del ancho.  Una región pegada a la orilla
+        #: es un defecto a medio entrar o a medio salir: su forma cambia en
+        #: cada frame, se parte y se vuelve a unir, y cada pedazo nuevo se
+        #: vuelve una instancia distinta.  Medido, es de donde salian los
+        #: conteos absurdos (29 por dos fallos).  0 = no filtrar.
+        self.edge_margin_pct: float = 2.0
         #: periodo en píxeles de trabajo; None = estimarlo solo
         self.period: Optional[Tuple[int, int]] = None
         self.auto_period: bool = True
@@ -451,12 +457,19 @@ class PatternModule(InspectionModule):
             cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kc, kc)))
 
         min_area = max(12.0, (self.min_area_pct / 100.0) * gh * gw)
+        m_borde = int((self.edge_margin_pct / 100.0) * gw)
         n, etiquetas, stats, _ = cv2.connectedComponentsWithStats(mask, 8)
         regiones = []
         tipos = []
         for i in range(1, n):
             x, y, w_, h_, area = stats[i]
             if area < min_area:
+                continue
+            # Pegada a la orilla: el defecto esta a medio entrar o a medio
+            # salir. Se reporta cuando acabe de entrar, no antes.
+            if m_borde > 0 and (x <= m_borde or y <= m_borde
+                                or x + w_ >= gw - m_borde
+                                or y + h_ >= gh - m_borde):
                 continue
             caja = self._unrotate((x, y, x + w_, y + h_), gw, gh)
             regiones.append(tuple(int(v * escala) for v in caja))

@@ -28,10 +28,29 @@ Captura  →  Etiquetado  →  Entrenamiento  →  Producción
 | **Entrenamiento** | YOLOv8 local, CPU o GPU. 40 imágenes ≈ 5 min en CPU. |
 | **Producción** | Tu modelo en tiempo real sobre cámara o video: OK / NOT OK, conteo de piezas, evidencia de defectos, log de sesión. |
 | **Demo** | Una tela con patrón pasa frente a una cámara simulada: dibuja un defecto y mira a Eyve encontrarlo, seguirlo y contarlo. Sin cámara ni cableado. |
-| **Módulos** | Inspecciones más allá de detectar: **conteo con 5 métodos** y polaridad de componentes. Arquitectura abierta para escribir el tuyo. |
+| **Módulos** | Inspecciones más allá de detectar: **conteo con 5 métodos**, **patrón sin clases** y polaridad de componentes. Arquitectura abierta para escribir el tuyo. |
 
 Todo corre en tu máquina. Eyve usa internet solo para instalarse y para bajar los
 pesos base del modelo la primera vez.
+
+## Dos formas de encontrar un defecto
+
+Detectar con un modelo entrenado obliga a **enumerar** los defectos, y los defectos son
+infinitos. Por eso Eyve trae las dos:
+
+| | **Detección entrenada** | **Patrón (sin clases)** |
+|---|---|---|
+| Qué te dice | **qué** es: "rayón", "mancha" | **dónde** algo no cuadra |
+| Necesita | etiquetar y entrenar | nada, o sólo material bueno |
+| Cubre | lo que le enseñaste | lo que nunca vio |
+
+El módulo **Patrón** no se entrena. Si tu material se repite —estampado, malla, extrusión,
+azulejo, tejido— el material es su propia referencia: compara cada repetición contra sus
+vecinas y marca lo que no cuadra. Encuentra fallos que nadie listó, y distingue *tinta de
+más* de *tinta que falta*, que son dos averías distintas de la máquina.
+
+Se le enseña material bueno unos segundos y queda calibrado. No hay un umbral universal:
+el ruido del material sano cambia con el material.
 
 ## Contar, de cinco maneras
 
