@@ -105,6 +105,9 @@ class DemoScreen(ctk.CTkFrame):
         self._count_total = -1
         self._last_status: Optional[InspectionStatus] = None
         self._pat_last = ""
+        #: ultimas detecciones de YOLO, para que el Patron no vuelva a
+        #: levantar la mano por algo que ya tiene nombre
+        self._ultimas_dets: list = []
         # modo automático
         self._auto = True
         self._auto_next = time.time() + 4.0
@@ -513,6 +516,7 @@ class DemoScreen(ctk.CTkFrame):
         self._pattern.clear_defects()
         self._tracker.reset()
         self._counting.reset()
+        self._ultimas_dets = []
         self._count_total = -1
         self._auto_placed = 0
         self._refresh_count_label()
@@ -594,13 +598,34 @@ class DemoScreen(ctk.CTkFrame):
         annotated = frame.copy()
         fh, fw = frame.shape[:2]
 
-        # ── Patrón: corre siempre, no necesita modelo ────────────────────
-        hay_anomalia = False
+        # ── YOLO: nombra lo que le ensenaron ─────────────────────────────
+        raw: list[RawDetection] = []
+        nombres: list[str] = []
+        if self._worker is not None:
+            self._worker.push_frame(frame)
+            result = self._worker.get_result()
+            if result is not None:
+                self._ultimas_dets = [
+                    RawDetection(d.class_name, d.confidence,
+                                 int(d.x1), int(d.y1), int(d.x2), int(d.y2))
+                    for d in result.detections if d.confidence >= 0.35]
+                nombres = sorted({d.label for d in self._ultimas_dets})
+                self._yolo_lbl.configure(
+                    text=", ".join(nombres) if nombres else t("demo_nothing"))
+        raw = list(self._ultimas_dets)
+
+        # ── Patron: corre siempre, no necesita modelo ────────────────────
         if self._patternmod.enabled and self._patternmod.calibrated:
             try:
-                regs = self._patternmod.analyze(frame)
-                self._patternmod.draw(annotated)
-                hay_anomalia = bool(regs)
+                self._patternmod.analyze(frame)
+                # Las anomalias entran al MISMO tracker, con su propia
+                # clase. Asi heredan la confirmacion por frames —que es lo
+                # que mata el parpadeo de una region que aparece un instante—
+                # y el modulo de conteo las cuenta como lo que son: defectos.
+                # Las que YOLO ya nombro se descartan para no contar dos
+                # veces el mismo defecto.
+                raw += self._patternmod.as_detections(
+                    named=[d.bbox for d in self._ultimas_dets])
                 resumen = self._patternmod.summary()
                 if resumen != self._pat_last:
                     self._pat_last = resumen
@@ -608,46 +633,34 @@ class DemoScreen(ctk.CTkFrame):
             except Exception as e:
                 log.debug(f"demo pattern: {e}")
 
-        # ── YOLO: solo si hay modelo ─────────────────────────────────────
-        hay_clase = False
-        if self._worker is not None:
-            self._worker.push_frame(frame)
-            result = self._worker.get_result()
-            if result is not None:
-                raw = [RawDetection(d.class_name, d.confidence,
-                                    int(d.x1), int(d.y1), int(d.x2), int(d.y2))
-                       for d in result.detections]
-                tracks = self._tracker.update(raw, frame)
-                for tr in tracks:
-                    if not tr.confirmed:
-                        continue
-                    x1, y1, x2, y2 = tr.bbox
-                    col = {"rayon": (0, 215, 255),
-                           "mancha": (255, 190, 0)}.get(tr.label, (0, 230, 118))
-                    cv2.rectangle(annotated, (x1, y1), (x2, y2), col, 2)
-                    cv2.putText(annotated, f"{tr.label} #{tr.id}",
-                                (x1, max(14, y1 - 6)),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.55, col, 2,
-                                cv2.LINE_AA)
-                hay_clase = any(tr.confirmed for tr in tracks)
+        # ── un solo tracker para los dos motores ─────────────────────────
+        tracks = self._tracker.update(raw, frame)
+        hay_defecto = False
+        for tr in tracks:
+            if not tr.confirmed:
+                continue
+            hay_defecto = True
+            x1, y1, x2, y2 = tr.bbox
+            if tr.label == PatternModule.ANOMALY_LABEL:
+                col, etq = (255, 120, 255), f"? #{tr.id}"
+            else:
+                col = {"rayon": (0, 215, 255),
+                       "mancha": (255, 190, 0)}.get(tr.label, (0, 230, 118))
+                etq = f"{tr.label} #{tr.id}"
+            cv2.rectangle(annotated, (x1, y1), (x2, y2), col, 2)
+            cv2.putText(annotated, etq, (x1, max(14, y1 - 6)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.55, col, 2, cv2.LINE_AA)
 
-                self._counting.update_tracks(
-                    tracks, expired=self._tracker.last_expired,
-                    frame_wh=(fw, fh))
-                self._counting.draw(annotated)
-
-                insp = decide(result.detections, [], list(YOLO_CLASSES), 0.35)
-                nombres = sorted({d.class_name for d in result.detections
-                                  if d.confidence >= 0.35})
-                self._yolo_lbl.configure(
-                    text=", ".join(nombres) if nombres else t("demo_nothing"))
+        self._counting.update_tracks(
+            tracks, expired=self._tracker.last_expired, frame_wh=(fw, fh))
+        self._counting.draw(annotated)
 
         total = self._counting.total
         if total != self._count_total:
             self._count_total = total
             self._refresh_count_label()
 
-        estado = (InspectionStatus.NOT_OK if (hay_clase or hay_anomalia)
+        estado = (InspectionStatus.NOT_OK if hay_defecto
                   else InspectionStatus.OK)
         if estado != self._last_status:
             self._last_status = estado

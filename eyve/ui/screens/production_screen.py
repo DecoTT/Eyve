@@ -1307,11 +1307,13 @@ class ProductionScreen(ctk.CTkFrame):
                             self._pattern.calibrate(frame)
                             self._pat_cal_left -= 1
                             self._refresh_pat_status()
-                        elif self._pattern.calibrated or \
-                                self._pattern.method == "referencia":
+                        else:
+                            # analyze() ya corrio arriba, antes de asociar, y
+                            # sus regiones entraron al tracker: aqui solo se
+                            # recoge el veredicto. Las cajas las dibuja
+                            # _annotate_tracks como cualquier otra instancia.
                             pv = self._pattern.process(frame, result.detections,
                                                        annotated)
-                            self._pattern.draw(annotated)
                             if not pv.ok and inspection.status != InspectionStatus.NOT_OK:
                                 inspection = InspectionResult(
                                     status=InspectionStatus.NOT_OK,

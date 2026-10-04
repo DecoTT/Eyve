@@ -87,6 +87,11 @@ class PatternModule(InspectionModule):
     KIND_EXTRA = "tinta de más"
     KIND_FALTA = "falta tinta"
 
+    #: clase con la que las anomalías entran al tracker.  No es una clase
+    #: entrenada: es la etiqueta con la que viajan para heredar confirmación
+    #: por frames, ID estable y conteo, igual que cualquier instancia.
+    ANOMALY_LABEL = "anomalía"
+
     def __init__(self) -> None:
         super().__init__()
         self.method: str = "periodo"
@@ -433,6 +438,18 @@ class PatternModule(InspectionModule):
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, k)
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, k, iterations=2)
 
+        # Cierre a la escala de UNA repeticion del estampado.  Sin esto un
+        # mismo defecto sale roto en pedazos —medido: hasta 22 regiones para
+        # un solo fallo— y cada pedazo se vuelve una instancia distinta, asi
+        # que un fallo cruzando el encuadre llegaba a contarse 159 veces.
+        # El tamano no es arbitrario: dos defectos separados por mas de una
+        # repeticion siguen siendo dos (comprobado en la prueba).
+        per = self._last_period or (9, 9)
+        kc = max(3, (int(max(per) * 1.0) | 1))
+        mask = cv2.morphologyEx(
+            mask, cv2.MORPH_CLOSE,
+            cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kc, kc)))
+
         min_area = max(12.0, (self.min_area_pct / 100.0) * gh * gw)
         n, etiquetas, stats, _ = cv2.connectedComponentsWithStats(mask, 8)
         regiones = []
@@ -622,6 +639,47 @@ class PatternModule(InspectionModule):
     def kinds(self) -> list[str]:
         """Tipo de cada región de `regions` (solo con el método layout)."""
         return list(self._kinds)
+
+    # ── las anomalías como instancias ─────────────────────────────────────
+    @staticmethod
+    def _solapa(a, b) -> float:
+        """Intersección sobre el área de la caja más chica."""
+        ax1, ay1, ax2, ay2 = a
+        bx1, by1, bx2, by2 = b
+        ix = max(0, min(ax2, bx2) - max(ax1, bx1))
+        iy = max(0, min(ay2, by2) - max(ay1, by1))
+        inter = ix * iy
+        if inter == 0:
+            return 0.0
+        aa = max(1, (ax2 - ax1) * (ay2 - ay1))
+        bb = max(1, (bx2 - bx1) * (by2 - by1))
+        return inter / min(aa, bb)
+
+    def as_detections(self, named: Optional[list] = None,
+                      solape_max: float = 0.35) -> list:
+        """
+        Las regiones de este frame, como detecciones para el tracker.
+
+        named: cajas (x1, y1, x2, y2) que el detector YA nombró.  Una región
+        que coincide con una de ellas NO se reporta: si YOLO ya dijo que eso
+        es un rayón, el Patrón no tiene que volver a levantar la mano — y si
+        lo hiciera, el mismo defecto se contaría dos veces.
+
+        Las detecciones salen con la clase ANOMALY_LABEL, así que al entrar
+        al tracker heredan la confirmación por frames que mata el parpadeo:
+        una región que aparece un solo frame nunca llega a confirmarse y por
+        tanto nunca se dibuja ni se cuenta.
+        """
+        from eyve.inference.tracker import RawDetection
+        cajas = named or []
+        salida = []
+        for (x1, y1, x2, y2) in self._regions:
+            if any(self._solapa((x1, y1, x2, y2), c) > solape_max
+                   for c in cajas):
+                continue
+            salida.append(RawDetection(self.ANOMALY_LABEL, 1.0,
+                                       int(x1), int(y1), int(x2), int(y2)))
+        return salida
 
     # ── contrato de InspectionModule ──────────────────────────────────────
     def process(self, frame: np.ndarray, detections: list,
