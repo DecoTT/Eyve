@@ -99,6 +99,30 @@ for cls in YOLO_CLASSES:
     check(f"un arrastre = un defecto ({cls})", len(scr._pattern.defects), 1)
     check(f"clase correcta ({cls})", scr._pattern.defects[0].cls, cls)
 
+print("\n[3b] Un gesto = UN defecto, aunque la tela este corriendo")
+# Visto en la pantalla real: la tela avanza entre dos eventos del mouse, el
+# trazo sale partido en dos pedazos separados y un solo gesto del visitante
+# se cuenta como DOS defectos. Por eso la tela se detiene mientras se dibuja.
+scr._source.set_paused(False)
+scr.reset_demo()
+scr._set_tool("rayon")
+scr._on_press(types.SimpleNamespace(x=200, y=180))
+check("la tela se detiene al empezar a dibujar", scr._source.paused, True)
+for x in range(220, 420, 20):
+    scr._pattern.advance(0.3)       # la tela intentaria avanzar
+    scr._on_drag(types.SimpleNamespace(x=x, y=180 + (x - 200) // 3))
+scr._on_release(types.SimpleNamespace(x=420, y=253))
+check("un gesto deja UN defecto", len(scr._pattern.defects), 1)
+check("la tela se reanuda al soltar", scr._source.paused, False)
+
+# y si el visitante ya la habia pausado, se respeta su decision
+scr._source.set_paused(True)
+scr.reset_demo()
+scr._on_press(types.SimpleNamespace(x=200, y=180))
+scr._on_release(types.SimpleNamespace(x=200, y=180))
+check("si ya estaba pausada, sigue pausada", scr._source.paused, True)
+scr._source.set_paused(False)
+
 print("\n[4] Tocar el lienzo le quita el control al modo automatico")
 scr._auto = True
 scr._refresh_auto_label()

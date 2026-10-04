@@ -98,6 +98,9 @@ class DemoScreen(ctk.CTkFrame):
         self._tool = "rayon"
         self._drawing = False
         self._last_pt: Optional[tuple[int, int]] = None
+        #: si la tela ya estaba pausada antes de empezar a dibujar, para no
+        #: reanudarla al soltar y pisarle la decision al visitante
+        self._pausa_previa = False
         self._view: Optional[tuple] = None
         self._count_total = -1
         self._last_status: Optional[InspectionStatus] = None
@@ -395,6 +398,12 @@ class DemoScreen(ctk.CTkFrame):
         if pt is None:
             return
         self._hand_over()
+        # La tela se detiene mientras se dibuja. Sin esto, entre dos eventos
+        # del mouse la tela avanza y el trazo sale partido en dos pedazos
+        # separados — y entonces un solo gesto del visitante se cuenta como
+        # dos defectos, que es justo lo que no debe pasar en el stand.
+        self._pausa_previa = self._source.paused
+        self._source.set_paused(True)
         self._drawing = True
         self._pattern.begin_stroke(self._tool)
         fab = self._pattern.screen_to_fabric(*pt)
@@ -423,6 +432,8 @@ class DemoScreen(ctk.CTkFrame):
     def _on_release(self, _event) -> None:
         if self._drawing:
             self._pattern.end_stroke()
+            if not self._pausa_previa:
+                self._source.set_paused(False)
         self._drawing = False
         self._last_pt = None
 
