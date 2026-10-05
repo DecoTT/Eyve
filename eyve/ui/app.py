@@ -129,6 +129,7 @@ class EyveApp(ctk.CTk):
         from eyve.ui.screens.training_screen import TrainingScreen
         from eyve.ui.screens.production_screen import ProductionScreen
         from eyve.ui.screens.demo_screen import DemoScreen
+        from eyve.ui.screens.counting_demo_screen import CountingDemoScreen
 
         map_ = {
             "nav_home":       HomeScreen,
@@ -138,6 +139,7 @@ class EyveApp(ctk.CTk):
             "nav_training":   TrainingScreen,
             "nav_production": ProductionScreen,
             "nav_demo":       DemoScreen,
+            "nav_cdemo":      CountingDemoScreen,
         }
         cls = map_.get(key)
         if cls is None:

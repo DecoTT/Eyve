@@ -21,6 +21,8 @@ HERE = Path(__file__).resolve().parent
 #: (archivo, argumentos, necesita el modelo entrenado de la demo)
 SUITES: list[tuple[str, list[str], bool]] = [
     ("test_counting.py",        [],      False),
+    ("test_conveyor_scene.py",  [],      False),
+    ("test_counting_demo_screen.py", [], False),
     ("test_train_paths.py",     [],      False),
     ("test_merge_fragments.py", [],      False),
     ("test_pattern_module.py",  [],      False),

@@ -13,6 +13,53 @@ STRINGS = {
 
     "nav_demo": "Demo",
 
+    # ── demo del modulo de conteo ────────────────────────────────────────────
+    "nav_cdemo":   "Conteo",
+    "cdemo_title": "Contar, de cinco maneras",
+    "cdemo_sub":   "El mismo modulo, cinco preguntas distintas",
+    "cdemo_paso":  "Metodo {n} de {total}",
+    "cdemo_count": "Lo que lleva contado",
+    "cdemo_donde": "Donde sirve",
+    "cdemo_auto_on":  "Avanzando solo",
+    "cdemo_auto_off": "Detenido en este",
+    "cdemo_dir":      "{a} en un sentido, {b} en el otro",
+    "cdemo_zona":     "{n} dentro del area ahora mismo",
+    "cdemo_esperado": "Se esperan entre {lo} y {hi}",
+
+    "cdemo_q_screen":    "¿Cuantas hay AHORA?",
+    "cdemo_q_line":      "¿Cuantas han pasado por aqui?",
+    "cdemo_q_zone":      "¿Cuantas entraron al area, y cuantas hay dentro?",
+    "cdemo_q_appear":    "¿Cuantas piezas nuevas han salido?",
+    "cdemo_q_disappear": "¿Cuantas se han ido?",
+
+    "cdemo_como_screen":    "Mira el encuadre y dice cuantas hay en este momento. "
+                            "El numero sube y baja; no acumula.",
+    "cdemo_como_line":      "Una linea atraviesa la banda. Cada pieza suma una "
+                            "sola vez al cruzarla, aunque despues siga ahi.",
+    "cdemo_como_zone":      "Un area marcada. Suma al entrar, y aparte dice "
+                            "cuantas hay dentro en este momento.",
+    "cdemo_como_appear":    "Cada pieza nueva suma una vez, aparezca donde "
+                            "aparezca. Las que ya conto no vuelven a contar.",
+    "cdemo_como_disappear": "Suma cuando una pieza deja de estar. Se puede "
+                            "limitar al lado por el que de verdad se van.",
+
+    "cdemo_uso_screen":    "Cuando lo que importa es el estado de ahora mismo: "
+                           "12 tortillas en la charola, 8 pines en el conector, "
+                           "4 cajas en la tarima. Con un rango esperado, salirse "
+                           "del rango es un defecto.",
+    "cdemo_uso_line":      "La banda transportadora. Cada pieza suma una vez al "
+                           "cruzar la meta, y el sentido separa lo que entra de "
+                           "lo que sale: el neto es la produccion real.",
+    "cdemo_uso_zone":      "Una celda de trabajo o una zona de carga. Dice "
+                           "cuantas pasaron y cuantas hay dentro en este momento, "
+                           "que es lo que avisa de un cuello de botella.",
+    "cdemo_uso_appear":    "Piezas que llegan sin un lado fijo: caen, se "
+                           "destapan, se imprimen. Cada una suma una sola vez, "
+                           "aparezca donde aparezca.",
+    "cdemo_uso_disappear": "Piezas que alguien retira o que salen del encuadre. "
+                           "Con un borde elegido, cuenta solo las que salen por "
+                           "el lado que importa.",
+
     # ── pantalla de demo (expo) ──────────────────────────────────────────────
     "demo_title":     "Demo en vivo",
     "demo_hint":      "Dibuja un defecto sobre la tela de la derecha. Eyve lo encuentra solo.",

@@ -12,6 +12,54 @@ STRINGS = {
     "nav_production": "Production",
     "nav_demo": "Demo",
 
+    # ── counting module demo ─────────────────────────────────────────────────
+    "nav_cdemo":   "Counting",
+    "cdemo_title": "Counting, five ways",
+    "cdemo_sub":   "One module, five different questions",
+    "cdemo_paso":  "Method {n} of {total}",
+    "cdemo_count": "Counted so far",
+    "cdemo_donde": "Where it fits",
+    "cdemo_auto_on":  "Advancing on its own",
+    "cdemo_auto_off": "Holding on this one",
+    "cdemo_dir":      "{a} one way, {b} the other",
+    "cdemo_zona":     "{n} inside the area right now",
+    "cdemo_esperado": "Expecting between {lo} and {hi}",
+
+    "cdemo_q_screen":    "How many are there RIGHT NOW?",
+    "cdemo_q_line":      "How many have gone past here?",
+    "cdemo_q_zone":      "How many entered the area, and how many are inside?",
+    "cdemo_q_appear":    "How many new parts have shown up?",
+    "cdemo_q_disappear": "How many have left?",
+
+    "cdemo_como_screen":    "Looks at the frame and says how many are there "
+                            "right now. The number goes up and down; it does "
+                            "not accumulate.",
+    "cdemo_como_line":      "A line across the belt. Each part counts once as "
+                            "it crosses, even if it stays in view afterwards.",
+    "cdemo_como_zone":      "A marked area. It counts on entry, and separately "
+                            "reports how many are inside right now.",
+    "cdemo_como_appear":    "Each new part counts once, wherever it shows up. "
+                            "The ones already counted never count again.",
+    "cdemo_como_disappear": "Counts when a part stops being there. It can be "
+                            "limited to the side they actually leave by.",
+
+    "cdemo_uso_screen":    "When what matters is the state right now: 12 "
+                           "tortillas on the tray, 8 pins in the connector, 4 "
+                           "boxes on the pallet. With an expected range, falling "
+                           "outside it is a defect.",
+    "cdemo_uso_line":      "The conveyor. Each part counts once as it crosses "
+                           "the finish line, and the sense separates what comes "
+                           "in from what goes out: the net is real output.",
+    "cdemo_uso_zone":      "A work cell or a loading area. It tells you how many "
+                           "went through and how many are inside right now, which "
+                           "is what warns you about a bottleneck.",
+    "cdemo_uso_appear":    "Parts that arrive with no fixed side: they drop, get "
+                           "uncovered, get printed. Each counts once, wherever it "
+                           "shows up.",
+    "cdemo_uso_disappear": "Parts someone removes, or that leave the frame. With "
+                           "an edge selected, it counts only the ones leaving "
+                           "through the side that matters.",
+
     # ── demo screen (trade show) ─────────────────────────────────────────────
     "demo_title":     "Live demo",
     "demo_hint":      "Draw a defect on the fabric at right. Eyve finds it on its own.",

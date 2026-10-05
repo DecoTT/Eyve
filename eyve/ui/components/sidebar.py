@@ -18,6 +18,7 @@ NAV_ITEMS = [
     ("nav_training",   "▶"),
     ("nav_production", "◉"),
     ("nav_demo",       "◱"),
+    ("nav_cdemo",      "∑"),
 ]
 
 
