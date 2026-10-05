@@ -93,6 +93,10 @@ Qué entra, de cara al usuario:
   de **~12.5 a ~31 fps**, y en ventana de ~21 a 40. La tela se ve igual:
   la diferencia es de 0.87 niveles sobre 255, siempre hacia arriba, por
   pasar de truncar a redondear.
+- **Ajuste nuevo**: Settings → Rendimiento → "Demo: llenar la pantalla"
+  (`demo_fill_screen`, por defecto apagado). Encendido la demo se ve más
+  grande en monitores grandes, a cambio de la mitad de los fps. En
+  1920×1080 no cambia nada.
 - Antes de esto: módulo de conteo con 5 métodos, módulo Patrón, demo
   textil, demo de conteo y el propio actualizador.
 

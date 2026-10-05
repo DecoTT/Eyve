@@ -455,6 +455,22 @@ se ve más pequeña, con margen alrededor. En **1920×1080 no se nota** —
 comprobado abriendo la app: el panel mide ~940 px y la tela de 960 lo
 llena de lado a lado. El tope sólo recorta donde antes se estiraba.
 
+### El interruptor, para decidirlo en el stand
+
+Como cuál conviene depende del monitor que haya delante, no es una
+constante sino un ajuste:
+
+- **`demo_fill_screen`** en `~/.eyve/config.json`, por defecto `false`
+  (rápido).
+- **Settings → Rendimiento → "Demo: llenar la pantalla"**, con su
+  explicación en las dos lenguas.
+
+`T.max_escala_demo()` consulta la config en **cada repintado** —es una
+búsqueda en un dict, no cuesta nada— para que el cambio se vea al momento.
+En mitad de una expo nadie quiere reiniciar. Afecta a las dos pantallas de
+demo. Comprobado a ojo: encenderlo llena el panel al instante, apagarlo lo
+devuelve a tamaño nativo.
+
 **Dos avisos para el stand:**
 
 - Estos números son de una máquina de desarrollo (20 núcleos). **En la NUC
