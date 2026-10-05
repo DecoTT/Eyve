@@ -593,19 +593,43 @@ class TextilePattern:
         La ventana que ve la cámara: tela + defectos, con el viaje aplicado,
         rotación pequeña y viñeteado.
         """
-        off = int(self.offset)
+        # El viaje de la tela es un desplazamiento circular, y eso es una
+        # REBANADA, no un indexado.  np.take hacia indexado avanzado y
+        # copiaba los cuatro arrays enteros: 4.55 ms de los 10.66 que
+        # costaba frame().  Mientras la ventana cabe sin dar la vuelta —lo
+        # normal, 960 de 3840— las rebanadas son vistas y no cuestan nada;
+        # solo cuando la ventana cruza el final hay que pegar dos trozos.
+        #
+        # OJO: `base` puede ser una VISTA de la tela guardada, y mas abajo
+        # se compone sobre ella en el sitio.  Por eso se copia: sin la
+        # copia, cada frame pintaria los defectos DENTRO de self._base y la
+        # tela se iria ensuciando para siempre.
+        capas = (self._base, self._layer, self._alpha, self._weave)
         if self.axis == "x":
-            idx = (np.arange(self.width) + off) % self.fw
-            base = np.take(self._base, idx, axis=1)
-            lay = np.take(self._layer, idx, axis=1)
-            alp = np.take(self._alpha, idx, axis=1)
-            wv = np.take(self._weave, idx, axis=1)
+            off = int(self.offset) % self.fw
+            n, total, eje = self.width, self.fw, 1
         else:
-            idx = (np.arange(self.height) + off) % self.fh
-            base = np.take(self._base, idx, axis=0)
-            lay = np.take(self._layer, idx, axis=0)
-            alp = np.take(self._alpha, idx, axis=0)
-            wv = np.take(self._weave, idx, axis=0)
+            off = int(self.offset) % self.fh
+            n, total, eje = self.height, self.fh, 0
+
+        if off + n <= total:
+            r = (slice(off, off + n) if eje == 1
+                 else slice(off, off + n))
+            if eje == 1:
+                base, lay, alp, wv = (c[:, r] for c in capas)
+            else:
+                base, lay, alp, wv = (c[r] for c in capas)
+        else:
+            k = total - off
+            if eje == 1:
+                base, lay, alp, wv = (
+                    np.concatenate((c[:, off:], c[:, :n - k]), axis=1)
+                    for c in capas)
+            else:
+                base, lay, alp, wv = (
+                    np.concatenate((c[off:], c[:n - k]), axis=0)
+                    for c in capas)
+        base = base.copy()      # ver el OJO de arriba
 
         # El compuesto alfa solo donde hay algo que componer.  `_alpha` es
         # casi todo ceros —un par de defectos en un encuadre de medio
@@ -614,8 +638,8 @@ class TextilePattern:
         # pixeles no nulos en una sola pasada en C.  Medido: 31.3 -> 20.3
         # ms, y la imagen sale IDENTICA pixel a pixel.
         #
-        # `base` ya es un array nuevo (np.take copia), asi que escribir
-        # sobre el en el sitio no toca la tela guardada.
+        # `base` se copio arriba a proposito, asi que escribir sobre el en
+        # el sitio no toca la tela guardada.
         out = base
         x0, y0, bw, bh = cv2.boundingRect(alp)
         if bw and bh:

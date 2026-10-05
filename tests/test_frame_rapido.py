@@ -41,6 +41,12 @@ from eyve.demo.textile import MOTIFS, WEAVES, TextilePattern
 TOLERANCIA = 3
 TOLERANCIA_MEDIA = 1.0
 
+#: Contra QUE se compara: el commit justo anterior a optimizar la tela,
+#: no HEAD.  Con HEAD la prueba se vuelve trivial en cuanto se hace
+#: commit —compararia el codigo consigo mismo y daria 0 siempre— y
+#: dejaria de proteger nada.  Pasó: por eso esta fijo.
+REF_ANTES = "d2f67c9"
+
 fails = []
 
 
@@ -110,7 +116,7 @@ def construir(modulo, motif, weave, n_defectos, semilla, pasos):
 
 
 def main() -> int:
-    anterior = cargar_version_anterior("HEAD")
+    anterior = cargar_version_anterior(REF_ANTES)
     if anterior is None:
         print("  no se pudo leer el textile.py de HEAD; nada que comparar")
         return 1
@@ -145,7 +151,55 @@ def main() -> int:
                   40, 99, 3)
     peor = max(peor, comparar("40 defectos", a, b))
 
-    print("\n[5] Y la comprobacion que impide que esto pase por casualidad")
+    print("\n[5] La tela guardada NO se ensucia al generar frames")
+    # Las capas se desplazan por REBANADAS, que son vistas de la tela
+    # guardada.  Si no se copiara antes de componer los defectos encima,
+    # cada frame los pintaria DENTRO de self._base y la tela se iria
+    # ensuciando sola, un poco mas en cada vuelta, para siempre.  Es el
+    # tipo de fallo que no se ve en un minuto y arruina una tarde de expo.
+    nuevo = sys.modules["eyve.demo.textile"]
+    p = nuevo.TextilePattern(width=960, height=540, axis="x",
+                             motif="diamantes", weave="sarga", speed=110.0,
+                             tilt_deg=1.8, seed=55)
+    p.streak(400, 250, length=220, thickness=8)
+    p.blob(900, 300, size=110)
+    base_al_empezar = p._base.copy()
+    for _ in range(120):
+        p.frame()
+        p.advance(1 / 30)
+    dif = int(np.abs(p._base.astype(np.int16)
+                     - base_al_empezar.astype(np.int16)).max())
+    check("la tela guardada no cambio tras 120 frames", dif == 0,
+          f"diferencia maxima {dif}")
+
+    # Y el mismo desplazamiento tiene que dar el mismo frame: si la tela se
+    # ensuciara poco a poco, esto cambiaria aunque lo de arriba no lo pille.
+    p.offset = 0.0
+    a1 = p.frame()
+    for _ in range(30):
+        p.advance(1 / 30)
+    p.offset = 0.0
+    a2 = p.frame()
+    dif = int(np.abs(a1.astype(np.int16) - a2.astype(np.int16)).max())
+    check("el mismo desplazamiento da el mismo frame", dif == 0,
+          f"diferencia maxima {dif}")
+
+    print("\n[6] Da la vuelta al final del rollo sin costuras")
+    # Cuando la ventana cruza el final hay que pegar dos trozos: es el
+    # camino que NO son vistas, y el que se olvida al probar porque el
+    # desplazamiento casi siempre cae en medio.
+    p2 = nuevo.TextilePattern(width=960, height=540, axis="x", motif="rayas",
+                              weave="tafetan", speed=110.0, tilt_deg=1.8,
+                              seed=3)
+    v2 = anterior.TextilePattern(width=960, height=540, axis="x",
+                                 motif="rayas", weave="tafetan", speed=110.0,
+                                 tilt_deg=1.8, seed=3)
+    for despl in (p2.fw - 1500, p2.fw - 500, p2.fw - 100, p2.fw - 1, 0, 5):
+        p2.offset = float(despl)
+        v2.offset = float(despl)
+        comparar(f"desplazamiento {despl} de {p2.fw}", v2.frame(), p2.frame())
+
+    print("\n[7] Y la comprobacion que impide que esto pase por casualidad")
     # Si la comparacion estuviera mal montada —por ejemplo comparando un
     # frame consigo mismo— todo saldria 0 y no probaria nada.  Dos telas
     # DISTINTAS tienen que salir muy distintas.
