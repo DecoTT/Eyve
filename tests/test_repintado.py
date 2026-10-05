@@ -28,6 +28,7 @@ import numpy as np
 import tkinter as tk
 import customtkinter as ctk
 
+from eyve.ui import theme as T
 from eyve.ui.screens.demo_screen import DemoScreen
 
 fails = []
@@ -109,10 +110,10 @@ check("del tamano nuevo", photo3.width() != photo1.width(),
 check("y sigue habiendo un solo item", len(canvas.find_all()) == 1,
       str(len(canvas.find_all())))
 
-print("\n[4] El mapeo lienzo→tela, en puntos absolutos")
-# Lienzo 1000x1000 y frame 960x540: la escala es min(1000/960, 1000/540)
-# = 1.0417, asi que la imagen sale 1000x562 y queda centrada en vertical
-# con una banda de (1000-562)//2 = 219 px arriba.
+print("\n[4] El tope de ampliacion: no estirar lo que no tiene mas detalle")
+# Lienzo 1000x1000 y frame 960x540. Sin tope la escala seria
+# min(1000/960, 1000/540) = 1.0417 y la imagen saldria 1000x562; con el
+# tope en 1.0 se queda en 960x540 y sobra margen por los cuatro lados.
 canvas.configure(width=1000, height=1000)
 root.geometry("1000x1000+0+0")
 for _ in range(6):
@@ -121,17 +122,39 @@ for _ in range(6):
 obj2 = Falso()
 vista = DemoScreen._paint(obj2, canvas, rojo, "_ph2")
 fw, fh, nw, nh, ox, oy = vista
-check("la imagen se escala a lo ancho", (nw, nh) == (1000, 562), f"{nw}x{nh}")
-check("y se centra en vertical", (ox, oy) == (0, 219), f"({ox},{oy})")
+check("el lienzo es MAS GRANDE que el frame (si no, no se prueba nada)",
+      1000 > fw and 1000 > fh, f"lienzo 1000x1000 vs frame {fw}x{fh}")
+check("no se amplia: la imagen se queda en su tamano",
+      (nw, nh) == (fw, fh), f"{nw}x{nh} (frame {fw}x{fh})")
+check("y queda centrada", (ox, oy) == (20, 230), f"({ox},{oy})")
+check("el tope del tema es 1.0", T.MAX_ESCALA_DEMO == 1.0,
+      str(T.MAX_ESCALA_DEMO))
 
+print("\n[4b] Reducir SI se permite: un lienzo pequeno encoge la imagen")
+canvas.configure(width=480, height=480)
+root.geometry("480x480+0+0")
+for _ in range(6):
+    root.update()
+    root.update_idletasks()
+obj3 = Falso()
+v3 = DemoScreen._paint(obj3, canvas, rojo, "_ph3")
+check("con lienzo chico la imagen se reduce", v3[2] < v3[0],
+      f"{v3[2]} < {v3[0]}")
+
+print("\n[5] El mapeo lienzo→tela, en puntos absolutos")
+canvas.configure(width=1000, height=1000)
+root.geometry("1000x1000+0+0")
+for _ in range(6):
+    root.update()
+    root.update_idletasks()
 esc = DemoScreen.__new__(DemoScreen)
 esc._view = vista
 check("la esquina de la imagen cae en la esquina de la tela",
-      esc._canvas_to_frame(0, 219) == (0, 0),
-      str(esc._canvas_to_frame(0, 219)))
+      esc._canvas_to_frame(20, 230) == (0, 0),
+      str(esc._canvas_to_frame(20, 230)))
 check("el centro de la imagen cae en el centro de la tela",
-      esc._canvas_to_frame(500, 219 + 281) == (480, 270),
-      str(esc._canvas_to_frame(500, 219 + 281)))
+      esc._canvas_to_frame(20 + 480, 230 + 270) == (480, 270),
+      str(esc._canvas_to_frame(20 + 480, 230 + 270)))
 # ── el caso malo: fuera de la imagen no debe devolver un punto ──────────
 check("por encima de la imagen devuelve None",
       esc._canvas_to_frame(500, 10) is None,
@@ -139,6 +162,9 @@ check("por encima de la imagen devuelve None",
 check("por debajo de la imagen devuelve None",
       esc._canvas_to_frame(500, 990) is None,
       str(esc._canvas_to_frame(500, 990)))
+check("a la izquierda de la imagen devuelve None",
+      esc._canvas_to_frame(5, 500) is None,
+      str(esc._canvas_to_frame(5, 500)))
 
 try:
     root.destroy()

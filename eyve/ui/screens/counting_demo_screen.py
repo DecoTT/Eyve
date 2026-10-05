@@ -361,7 +361,7 @@ class CountingDemoScreen(ctk.CTkFrame):
             if cw < 10 or ch < 10:
                 return
             fh, fw = frame.shape[:2]
-            esc = min(cw / fw, ch / fh)
+            esc = min(cw / fw, ch / fh, T.MAX_ESCALA_DEMO)
             nw, nh = max(1, int(fw * esc)), max(1, int(fh * esc))
             chico = cv2.resize(frame, (nw, nh), interpolation=cv2.INTER_LINEAR)
             rgb = cv2.cvtColor(chico, cv2.COLOR_BGR2RGB)

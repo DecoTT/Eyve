@@ -54,6 +54,21 @@ FONT_XXL = 32
 
 SIDEBAR_W = 180
 
+#: Cuanto se permite AMPLIAR el frame de la demo al pintarlo.
+#:
+#: La tela se genera a 960x540.  En un monitor grande el lienzo pide
+#: 1696 px de ancho, y estirar hasta ahi triplica los pixeles que hay
+#: que volcar a Tk —de 2.8 a 18.9 ms por lienzo, y la demo pinta dos
+#: por frame— sin anadir ni un detalle, porque no hay mas detalle que
+#: anadir.  Con el tope en 1.0 la imagen se queda en su tamano y sobra
+#: margen alrededor.
+#:
+#: En pantallas donde el panel mide 960 px o menos esto no cambia nada:
+#: ahi ya se reducia, y reducir si se permite.  Subirlo da una demo mas
+#: grande y mas lenta; es una decision de como se ve, no un ajuste
+#: tecnico.
+MAX_ESCALA_DEMO = 1.0
+
 
 def _apply_palette(mode: str) -> None:
     global BG_DARK, BG_CARD, BG_PANEL, BG_INPUT, TEXT_PRI, TEXT_SEC, TEXT_DIM, BORDER
