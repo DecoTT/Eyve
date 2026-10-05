@@ -86,11 +86,13 @@ Qué entra, de cara al usuario:
   avanzar sola si la dejan detenida en un método.
 - **Botón de "empezar de cero"** en la demo textil, con recalibrado del
   módulo Patrón.
-- **La demo va al doble de fps**: generar la tela pasa de ~31 a ~10 ms y
-  el repintado reutiliza el PhotoImage. En pantalla completa a 3440×1440
-  va de ~12.5 a ~20 fps, y en ventana de ~21 a los 30 que pide el bucle.
-  La tela se ve igual: la diferencia es de 0.87 niveles sobre 255, siempre
-  hacia arriba, por pasar de truncar a redondear.
+- **La demo va al doble y medio de fps**: generar la tela pasa de ~31 a
+  6.2 ms (componer sólo donde hay defectos, `cv2.multiply` y desplazar por
+  rebanadas) y el repintado reutiliza el PhotoImage y deja de ampliar el
+  frame más allá de su tamaño nativo. En pantalla completa a 3440×1440 va
+  de **~12.5 a ~31 fps**, y en ventana de ~21 a 40. La tela se ve igual:
+  la diferencia es de 0.87 niveles sobre 255, siempre hacia arriba, por
+  pasar de truncar a redondear.
 - Antes de esto: módulo de conteo con 5 métodos, módulo Patrón, demo
   textil, demo de conteo y el propio actualizador.
 

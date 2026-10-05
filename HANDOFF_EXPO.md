@@ -426,15 +426,44 @@ se crean una vez y después se hace `paste()`; sólo se rehacen al cambiar
 de tamaño. De los 18.2 ms que costaba repintar un lienzo en kiosco, 14.4
 se iban en tirar y rehacer lo que podía reutilizarse.
 
+### Segunda ronda, porque el stand corre en una NUC
+
+Con la primera ronda el kiosco subió a 19.9 fps, todavía por debajo de los
+30 que pide el bucle. Dos recortes más:
+
+- **Desplazar la tela por rebanadas** en vez de `np.take`. El viaje es un
+  desplazamiento circular, o sea una rebanada: mientras la ventana cabe
+  sin dar la vuelta (960 px de un rollo de 3840) son vistas y salen
+  gratis. `frame()`: 10.7 → 6.2 ms.
+- **No ampliar el frame más allá de su tamaño nativo**
+  (`T.MAX_ESCALA_DEMO = 1.0`). Repintar un lienzo en kiosco: 13.3 → 5.4 ms.
+
 ### El resultado, medido (`tests/perf_kiosco.py`)
 
 | | tela | Patrón | 2 lienzos | TOTAL | fps |
 |---|---|---|---|---|---|
-| ventana | 9.9 ms | 13.8 ms | 2.9 ms | 26.5 ms | **37.7** |
-| kiosco 3440×1440 | 9.9 ms | 13.8 ms | 26.7 ms | 50.4 ms | **19.9** |
+| ventana | 6.2 ms | 15.2 ms | 3.6 ms | 25.0 ms | **40.0** |
+| kiosco 3440×1440 | 6.2 ms | 15.2 ms | 10.7 ms | 32.1 ms | **31.1** |
 
-Antes: ~21 fps en ventana y ~12.5 en kiosco. **El kiosco va ahora más
-rápido de lo que iba la demo en ventana.**
+De donde se partía: ~21 fps en ventana y **~12.5 en kiosco**. El kiosco
+cabe ahora dentro de los 33 ms que pide el bucle, que es el umbral que
+importa: por encima, `update()` no termina de drenar la cola de eventos y
+la interfaz se arrastra.
+
+**Lo que cuesta el tope de ampliación:** en un monitor muy grande la tela
+se ve más pequeña, con margen alrededor. En **1920×1080 no se nota** —
+comprobado abriendo la app: el panel mide ~940 px y la tela de 960 lo
+llena de lado a lado. El tope sólo recorta donde antes se estiraba.
+
+**Dos avisos para el stand:**
+
+- Estos números son de una máquina de desarrollo (20 núcleos). **En la NUC
+  serán peores.** `tests/perf_kiosco.py` corre solo y sin dependencias de
+  la interfaz: conviene ejecutarlo en la NUC con la pantalla del stand
+  conectada antes de dar la demo por lista.
+- El módulo Patrón pasa a ser el mayor coste: 15.2 de los 32.1 ms, casi la
+  mitad. Si en la NUC no llega, ahí es donde habría que mirar — y eso ya
+  es tocar el producto, no la demo.
 
 Efecto secundario que lo confirma: las suites que generan tela bajaron
 solas — `test_conteo_anomalias_fiabilidad` de 311 a 129 s y `test_textile`
