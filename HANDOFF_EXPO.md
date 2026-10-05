@@ -332,7 +332,7 @@ puede volver a correr con más minutos cuando se quiera.
 Los tracks y los defectos quedan acotados, y la limpieza automática de la
 tela a los 4 defectos funciona. Esto deja de ser un riesgo.
 
-### T5 — Lo que sí salió: la demo va a 24 fps, y no es por la inspección
+### T5 — La demo iba a 24 fps, y no era por la inspección — HECHO
 
 42 ms por frame, **sin YOLO**. Perfilado:
 
@@ -373,7 +373,7 @@ Tres arreglos, de mayor a menor beneficio y ninguno arriesgado:
 Medir antes y después con el mismo perfilado — y comprobar a ojo que la tela
 sigue viéndose igual, porque el punto 2 cambia el orden de dos efectos.
 
-### T5b — Y en kiosco cuesta el doble (medido al hacer T1)
+### T5b — Y en kiosco costaba el doble (medido al hacer T1) — HECHO
 
 El repintado de los lienzos no era sospechoso porque en ventana no se
 nota. A pantalla completa sí: `tests/perf_kiosco.py`, 40 repeticiones.
@@ -397,3 +397,85 @@ Dos avisos para quien lo optimice:
   no añade detalle, sólo coste; pero recortar el tamaño mostrado encoge la
   demo en la pantalla grande, que es justo lo que el stand no quiere. Es
   un compromiso, no un arreglo obvio.
+
+---
+
+## 5. Lo que se hizo con T5 y T5b
+
+**Decisión del dueño:** el kiosco se queda —la pantalla completa ayuda a
+que el visitante se familiarice con Eyve— y lo que se optimiza es el
+coste.
+
+### Lo que se cambió
+
+**La tela, 4× más rápida** (`eyve/demo/textile.py`). Dos cosas:
+
+| | |
+|---|---|
+| componer sólo donde hay defectos | 31.3 → 20.3 ms, imagen **idéntica** |
+| `cv2.multiply` en vez de float32 de numpy | 20.3 → **3.5 ms**, diferencia ≤ 2 |
+
+`_alpha` es casi todo ceros, así que componer el encuadre entero era pagar
+el 100 % por el 1 %. Y `cv2.multiply` hace conversión, producto y
+saturación en una pasada SIMD donde numpy hacía cuatro pasadas y dos
+reservas grandes por modulador. El tejido y la viñeta pasan a 3 canales
+porque OpenCV no difunde canales: cuesta 17 MB más y ahorra 17 ms.
+
+**El repintado** (`_paint` y `_pintar`). El PhotoImage y el item del canvas
+se crean una vez y después se hace `paste()`; sólo se rehacen al cambiar
+de tamaño. De los 18.2 ms que costaba repintar un lienzo en kiosco, 14.4
+se iban en tirar y rehacer lo que podía reutilizarse.
+
+### El resultado, medido (`tests/perf_kiosco.py`)
+
+| | tela | Patrón | 2 lienzos | TOTAL | fps |
+|---|---|---|---|---|---|
+| ventana | 9.9 ms | 13.8 ms | 2.9 ms | 26.5 ms | **37.7** |
+| kiosco 3440×1440 | 9.9 ms | 13.8 ms | 26.7 ms | 50.4 ms | **19.9** |
+
+Antes: ~21 fps en ventana y ~12.5 en kiosco. **El kiosco va ahora más
+rápido de lo que iba la demo en ventana.**
+
+Efecto secundario que lo confirma: las suites que generan tela bajaron
+solas — `test_conteo_anomalias_fiabilidad` de 311 a 129 s y `test_textile`
+de 166 a 125 s.
+
+### Lo que se descartó, y por qué
+
+El tercer arreglo que proponía T5 —fundir tejido y viñeta en un solo
+multiplicador aplicando la viñeta antes de rotar— **se midió y no sirve**:
+sale más lento (4.4 ms contra 3.5, porque hay que combinar los dos
+moduladores cada frame y eso cuesta lo mismo que aplicarlos) y además
+cambia la imagen hasta 70 niveles, porque rotar después arrastra las
+esquinas oscuras.
+
+También estaba mal el orden de prioridad: T5 ponía el recorte del
+compuesto como la mayor ganancia y `cv2.multiply` como el remate. Es al
+revés — el recorte ahorra 11 ms y `cv2.multiply` otros 17.
+
+### La diferencia de imagen, caracterizada
+
+`tests/test_frame_rapido.py` carga el `textile.py` anterior desde git y
+compara píxel a píxel con 4 ligamentos, 4 estampados, 8 semillas de
+defectos y una tela saturada. La diferencia es **siempre +0, +1 o +2,
+nunca negativa**, y vale 0.87 niveles de media sobre 255 (0.34 % de
+brillo, uniforme): es el cambio de truncar a redondear al más cercano, que
+es aritmética más correcta. Como es uniforme, el contraste local no cambia
+y el módulo Patrón no lo nota.
+
+Exigir que la diferencia **nunca sea negativa** es más severo que una
+tolerancia simétrica: un cambio de verdad en la tela movería píxeles en
+los dos sentidos.
+
+### Lo que queda sobre la mesa
+
+En kiosco el repintado sigue siendo 26.7 de los 50.4 ms, y la única
+palanca que queda es el número de píxeles: el frame nativo es 960×540 y se
+amplía a 1696×954, un 3× de píxeles que no añade ni un detalle. Bajar el
+tamaño mostrado a ~1.4× daría unos 25 fps, a cambio de una imagen un 21 %
+más pequeña con márgenes laterales. **Es una decisión de cómo se ve la
+demo, no un arreglo técnico**, y por eso no se tomó sola.
+
+El otro camino sería generar la tela a más resolución nativa (ahora se
+puede, cuesta 9.9 ms), pero eso toca el modelo entrenado, la geometría del
+conteo y el coste del módulo Patrón, que crece con los píxeles.

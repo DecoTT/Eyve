@@ -86,6 +86,11 @@ Qué entra, de cara al usuario:
   avanzar sola si la dejan detenida en un método.
 - **Botón de "empezar de cero"** en la demo textil, con recalibrado del
   módulo Patrón.
+- **La demo va al doble de fps**: generar la tela pasa de ~31 a ~10 ms y
+  el repintado reutiliza el PhotoImage. En pantalla completa a 3440×1440
+  va de ~12.5 a ~20 fps, y en ventana de ~21 a los 30 que pide el bucle.
+  La tela se ve igual: la diferencia es de 0.87 niveles sobre 255, siempre
+  hacia arriba, por pasar de truncar a redondear.
 - Antes de esto: módulo de conteo con 5 métodos, módulo Patrón, demo
   textil, demo de conteo y el propio actualizador.
 
@@ -94,7 +99,7 @@ Checklist de esta versión:
 - [x] `eyve/__init__.py` → `__version__ = "2.1.1"`.
 - [x] `Release\build_release.ps1` → `$Version = "2.1.1"`; `$AssetName` sin
       tocar.
-- [x] Suite completa en verde: 20 de 20, incluida `test_demo_e2e.py` (la
+- [x] Suite completa en verde: 22 de 22, incluida `test_demo_e2e.py` (la
       que carga YOLO).
 - [x] `cd Release && .\build_release.ps1` → `Eyve-2.1-setup.zip` +
       `SHA256SUMS.txt`, con los 8 checks de estructura y la validación de
