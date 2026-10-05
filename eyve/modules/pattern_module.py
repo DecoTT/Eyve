@@ -99,12 +99,19 @@ class PatternModule(InspectionModule):
         self.sensitivity: float = 50.0
         #: área mínima de una región, en % del frame
         self.min_area_pct: float = 0.08
-        #: margen de borde, en % del ancho.  Una región pegada a la orilla
-        #: es un defecto a medio entrar o a medio salir: su forma cambia en
-        #: cada frame, se parte y se vuelve a unir, y cada pedazo nuevo se
-        #: vuelve una instancia distinta.  Medido, es de donde salian los
-        #: conteos absurdos (29 por dos fallos).  0 = no filtrar.
-        self.edge_margin_pct: float = 2.0
+        #: área MÁXIMA de una región, en % del frame.  Una región que cubre
+        #: medio encuadre no es un defecto: es la referencia rompiéndose
+        #: porque ya casi no queda material sano con el que comparar.
+        #: Medido: al salir un fallo del encuadre aparecía una región de
+        #: 797x317 px —casi todo— que se contaba como un defecto nuevo.
+        #: Decirlo como "material fuera de control" es trabajo de la UI; el
+        #: módulo no lo reporta como una pieza más.  0 = no filtrar.
+        #: Es un AVISO, no un filtro: ver `out_of_control`.  Se probo
+        #: descartar estas regiones —mejoraba algo el conteo acumulado, de
+        #: 9 a 13 aciertos de 24— pero rompia la deteccion de los defectos
+        #: grandes legitimos, y con la sensibilidad alta dejaba de marcar
+        #: todo. El dano era mayor que el beneficio.
+        self.max_area_pct: float = 20.0
         #: periodo en píxeles de trabajo; None = estimarlo solo
         self.period: Optional[Tuple[int, int]] = None
         self.auto_period: bool = True
@@ -130,6 +137,7 @@ class PatternModule(InspectionModule):
         #: con el método layout, qué tipo es cada región de _regions
         self._kinds: list[str] = []
         self._score_max: float = 0.0
+        self._fuera_de_control: bool = False
         self._verdict = ModuleVerdict()
         self._last_period: Optional[Tuple[int, int]] = None
         #: diferencia con signo del último frame (método layout)
@@ -435,6 +443,7 @@ class PatternModule(InspectionModule):
             self._score_max = 0.0
             return []
         self._score_max = float(score.max())
+        self._fuera_de_control = False
         gh, gw = score.shape
         escala = frame.shape[1] / float(gw)
 
@@ -457,7 +466,8 @@ class PatternModule(InspectionModule):
             cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kc, kc)))
 
         min_area = max(12.0, (self.min_area_pct / 100.0) * gh * gw)
-        m_borde = int((self.edge_margin_pct / 100.0) * gw)
+        max_area = ((self.max_area_pct / 100.0) * gh * gw
+                    if self.max_area_pct > 0 else float("inf"))
         n, etiquetas, stats, _ = cv2.connectedComponentsWithStats(mask, 8)
         regiones = []
         tipos = []
@@ -465,18 +475,29 @@ class PatternModule(InspectionModule):
             x, y, w_, h_, area = stats[i]
             if area < min_area:
                 continue
-            # Pegada a la orilla: el defecto esta a medio entrar o a medio
-            # salir. Se reporta cuando acabe de entrar, no antes.
-            if m_borde > 0 and (x <= m_borde or y <= m_borde
-                                or x + w_ >= gw - m_borde
-                                or y + h_ >= gh - m_borde):
-                continue
+            # Region desmesurada: la referencia se esta rompiendo porque
+            # ya casi no queda material sano con el que comparar. Se AVISA
+            # pero NO se descarta: filtrarla rompia la deteccion de los
+            # defectos grandes de verdad, y con la sensibilidad alta —donde
+            # las regiones crecen— dejaba de marcar absolutamente todo.
+            if area > max_area:
+                self._fuera_de_control = True
             caja = self._unrotate((x, y, x + w_, y + h_), gw, gh)
             regiones.append(tuple(int(v * escala) for v in caja))
             tipos.append(self._kind_of(etiquetas == i))
         self._regions = regiones
         self._kinds = tipos
         return regiones
+
+    @property
+    def out_of_control(self) -> bool:
+        """
+        True si en el último frame hubo una región tan grande que no puede
+        ser una pieza.  Significa que ya no queda material sano suficiente
+        para compararse: la respuesta no es afinar el umbral, es mirar la
+        línea.
+        """
+        return self._fuera_de_control
 
     def _unrotate(self, caja, gw: int, gh: int):
         """

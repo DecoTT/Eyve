@@ -90,7 +90,13 @@ class DemoScreen(ctk.CTkFrame):
             process_conf_min=0.30))
         self._counting = CountingModule()
         self._counting.enabled = True
-        self._counting.set_method("appear")
+        # "En pantalla" y no "al aparecer" a proposito. Medido: acumular
+        # anomalias no es exacto —un defecto que cruza cambia de forma, su
+        # region se parte y cada pedazo es una instancia— mientras que
+        # contar las VISIBLES AHORA no depende de mantener una identidad en
+        # el tiempo y nunca ve de mas. En un stand ademas se explica mejor
+        # en voz alta: "cuantos defectos hay ahora mismo en la tela".
+        self._counting.set_method("screen")
         self._patternmod = PatternModule()
         self._patternmod.enabled = True
         self._patternmod.sensitivity = 70.0
