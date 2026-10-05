@@ -73,6 +73,8 @@ STRINGS = {
     "demo_tool_rayon":           "Rayon",
     "demo_tool_mancha":          "Mancha",
     "demo_clear":   "Limpiar tela",
+    "demo_restart":      "EMPEZAR DE CERO",
+    "demo_restart_done": "Todo de cero: tela limpia, contadores a cero y recalibrando",
     "demo_pause":   "Pausar tela",
     "demo_resume":  "Reanudar",
     "demo_speed":   "Velocidad",

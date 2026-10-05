@@ -73,6 +73,14 @@ _INACTIVIDAD_S = 180.0
 #: cuanto se queda en pantalla el aviso de la vuelta
 _AVISO_S = 6.0
 
+#: metodo de conteo con el que arranca la pantalla, y al que vuelve el
+#: boton de empezar de cero
+_METODO_INICIAL = "screen"
+
+#: segundos de tela limpia que deja el boton de empezar de cero antes
+#: de que el modo automatico vuelva a poner defectos
+_MARGEN_TRAS_REINICIO = 6.0
+
 _W, _H = 960, 540
 
 
@@ -103,7 +111,7 @@ class DemoScreen(ctk.CTkFrame):
         # contar las VISIBLES AHORA no depende de mantener una identidad en
         # el tiempo y nunca ve de mas. En un stand ademas se explica mejor
         # en voz alta: "cuantos defectos hay ahora mismo en la tela".
-        self._counting.set_method("screen")
+        self._counting.set_method(_METODO_INICIAL)
         self._patternmod = PatternModule()
         self._patternmod.enabled = True
         self._patternmod.sensitivity = 70.0
@@ -312,9 +320,19 @@ class DemoScreen(ctk.CTkFrame):
             command=self._toggle_auto)
         self._auto_btn.pack(side="left", expand=True, fill="x", padx=3)
 
+        # ── empezar de cero ──────────────────────────────────────────────
+        # Fila propia, todo el ancho y mas alto que los demas: quien
+        # atiende el stand tiene que acertarle sin buscar.
+        self._restart_btn = ctk.CTkButton(
+            right, text=t("demo_restart"), height=54, corner_radius=12,
+            font=T.bold(T.FONT_LG), fg_color=T.ACCENT, text_color="#000",
+            hover_color=T.ACCENT2, command=self.empezar_de_cero)
+        self._restart_btn.grid(row=6, column=0, sticky="ew",
+                               padx=12, pady=(6, 10))
+
         # ── material: estampado y tejido ─────────────────────────────────
         mat = ctk.CTkFrame(right, fg_color="transparent")
-        mat.grid(row=5, column=0, sticky="ew", padx=12, pady=(2, 10))
+        mat.grid(row=5, column=0, sticky="ew", padx=12, pady=(2, 2))
         ctk.CTkLabel(mat, text=t("demo_material"), font=T.font(T.FONT_XS),
                      text_color=T.TEXT_DIM).pack(side="left")
         self._weave = ctk.CTkOptionMenu(
@@ -625,6 +643,56 @@ class DemoScreen(ctk.CTkFrame):
         self._refresh_count_label()
         self._yolo_lbl.configure(text="—")
         self._pat_lbl.configure(text="—")
+
+    def empezar_de_cero(self) -> None:
+        """
+        Deja la demo como recien abierta, desde el estado que sea.
+
+        Tres cosas que no son obvias:
+
+        - Si se pulsa MIENTRAS alguien dibuja, hay que olvidar el ultimo
+          punto.  Sin eso, al mover el raton despues se pinta un segmento
+          desde donde estaba la mano antes del reinicio.  El trazo abierto
+          no se cierra aqui a proposito: `reset_demo()` llama a
+          `clear_defects()`, que ya lo deja en None.  Una llamada a
+          `end_stroke()` sobraba — medido con una mutacion: quitarla no
+          cambiaba nada.
+        - La tela vuelve a correr aunque estuviera pausada, porque recien
+          abierta corre; y `_pausa_previa` se olvida, o al soltar el raton
+          la volveria a pausar.
+        - Recalibrar es imprescindible: el piso de ruido depende del
+          material, y sin recalibrar tras cambiar de tela el modulo Patron
+          o grita o se queda callado.  Va DESPUES de limpiar, porque se
+          calibra con material bueno.
+        """
+        self._touch()
+        # 1. el trazo a medias, si lo hay
+        self._drawing = False
+        self._last_pt = None
+        self._pausa_previa = False
+        # 2. la tela corriendo
+        self._source.set_paused(False)
+        self._pause_btn.configure(text=t("demo_pause"))
+        # 3. tela limpia, tracker y contadores a cero
+        self.reset_demo()
+        self._counting.set_method(_METODO_INICIAL)
+        self._count_method.set(t("count_m_" + _METODO_INICIAL))
+        self._refresh_count_label()
+        # 4. el automatico otra vez, pero con margen
+        #
+        # Visto en la app: con los 2 s que usa el boton de Modo auto, el
+        # primer defecto automatico cae antes de que quien atiende el stand
+        # termine de girar la pantalla hacia el visitante, y el "de cero"
+        # no se llega a ver.  _MARGEN_TRAS_REINICIO da tiempo a enseñar la
+        # tela limpia sin que la demo parezca muerta.
+        self._auto = True
+        self._auto_next = time.time() + _MARGEN_TRAS_REINICIO
+        self._auto_placed = 0
+        self._refresh_auto_label()
+        # 5. y recalibrar, ya con la tela limpia
+        self._start_calibration()
+        self._aviso(t("demo_restart_done"))
+        log.info("Demo: empezar de cero")
 
     def _reset_counting(self) -> None:
         self._touch()

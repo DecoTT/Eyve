@@ -73,6 +73,8 @@ STRINGS = {
     "demo_tool_rayon":           "Scratch",
     "demo_tool_mancha":          "Stain",
     "demo_clear":   "Clean fabric",
+    "demo_restart":      "START OVER",
+    "demo_restart_done": "Fresh start: clean fabric, counters at zero, recalibrating",
     "demo_pause":   "Pause fabric",
     "demo_resume":  "Resume",
     "demo_speed":   "Speed",
