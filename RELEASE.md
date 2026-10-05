@@ -67,7 +67,7 @@ Todo está preparado y apagado; se prende con dos valores iguales:
 - [ ] Versión siguiente (2.1.x): subir `__version__`, tag nuevo, release nuevo con el **mismo nombre de asset**. La URL fija no cambia; la tienda no se toca.
 - [ ] Renovaciones y cortesías: desde el admin (Emitir manual / Renovar); Eyve recibe la llave nueva sola en su check-in semanal.
 
-## 6. Versión 2.1.1 (pendiente de publicar)
+## 6. Versión 2.1.1 — PUBLICADA (5-oct-2026)
 
 `__version__ = "2.1.1"` y `$Version = "2.1.1"` en `build_release.ps1`. **El
 nombre del asset no cambia** (`$AssetName` es fijo y no depende de
@@ -117,16 +117,31 @@ Checklist de esta versión:
 - [x] `cd Release && .\build_release.ps1` → `Eyve-2.1-setup.zip` +
       `SHA256SUMS.txt`, con los 8 checks de estructura y la validación de
       los `.bat`.
-- [ ] **Falta decidir**: tag `v2.1.1`, `git push`, y
-      `gh release create v2.1.1 --latest` con los dos assets. Es la acción
-      pública e irreversible: en cuanto el release sea `latest`, la URL
-      fija de la tienda sirve 2.1.1 sola.
-- [ ] Después de publicar: probar el actualizador de verdad — instalar
-      2.1.0 en una carpeta limpia, abrirlo y comprobar que detecta 2.1.1,
-      la instala y conserva `projects/`. **Ojo**: en la máquina de
-      desarrollo, `~/.eyve/config.json` tiene `update_last_installed:
-      "2.2.0"`; conviene mirar de dónde sale antes de fiarse de la prueba
-      en esa máquina.
+- [x] `main` subido (`118de77`), tag `v2.1.1` subido y release publicado
+      con `gh release create --latest` (no borrador, no pre-release):
+      <https://github.com/DecoTT/Eyve/releases/tag/v2.1.1>
+- [x] Verificado contra lo PUBLICADO, no contra lo local:
+      - la API dice que `latest` es `v2.1.1`, sin borrador ni pre-release,
+        con los dos assets;
+      - la URL fija hace `302 → /v2.1.1/ → 302 → CDN → 200`, y los
+        259 612 bytes que bajan son **byte a byte** los construidos, con el
+        `SHA256SUMS.txt` publicado cuadrando
+        (`d2201ef0d2fff801…`);
+      - bajado el ZIP a una carpeta limpia: estructura plana, `projects/`
+        vacía, el código importa y dice `2.1.1` y lleva el `Accept`
+        arreglado.
+- [x] El actualizador, contra la API real: desde 2.1.0 diría que **sí** hay
+      actualización y bajaría `.../v2.1.1/Eyve-2.1-setup.zip`; desde 2.1.1
+      dice que no (no se ofrece a sí misma).
+- [ ] **Pendiente y sabido**: una instalación 2.1.0 **de verdad no verá la
+      2.1.1 sola**, porque lleva dentro el fallo del 415 (comprobado: su
+      consulta sigue dando 415 hoy). Esa primera actualización hay que
+      hacerla a mano desde la URL fija. De 2.1.1 en adelante ya es
+      automática. Queda por probar el ciclo completo instalando una 2.1.1
+      y publicando una 2.1.2 de prueba.
+- [ ] Mirar de dónde sale `update_last_installed: "2.2.0"` en el
+      `~/.eyve/config.json` de la máquina de desarrollo: no corresponde a
+      ninguna versión publicada.
 - [ ] Pendiente de antes, sin hacer: Settings → Licencia… con una llave
       real (necesita una llave de verdad).
 
