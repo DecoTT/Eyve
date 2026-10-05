@@ -223,11 +223,60 @@ Todo texto visible va en `eyve/i18n/es.py` y `en.py`, **siempre en los dos**.
 
 ---
 
-## 4. Pendiente de confirmar
+## 4. Maratón de stand: resultado
 
-Al cerrar este documento quedaba corriendo una **maratón de 8 horas
-simuladas** de stand (`scratchpad/maraton.py`) midiendo memoria, tiempo por
-frame, tracks vivos y defectos acumulados. Es el riesgo que no se había
-tocado: una fuga no se nota en 20 minutos de pruebas y sí a media tarde de
-expo. **Revisar su resultado antes de dar la demo por lista**, y si muestra
-degradación, eso pasa a ser T0.
+Se simularon **30 minutos de stand desatendido** con el modo automático
+poniendo defectos (`scratchpad/maraton.py`, reutilizable con más minutos).
+
+**No hay fuga ni degradación:**
+
+| | inicio | final |
+|---|---|---|
+| memoria | 80.7 MB | 75.5 MB |
+| ms/frame | 42.5 | 41.9 |
+| tracks vivos | 0 | 2 |
+| defectos en la tela | 1 | 4 |
+
+Los tracks y los defectos quedan acotados, y la limpieza automática de la
+tela a los 4 defectos funciona. Esto deja de ser un riesgo.
+
+### T5 — Lo que sí salió: la demo va a 24 fps, y no es por la inspección
+
+42 ms por frame, **sin YOLO**. Perfilado:
+
+| parte | ms |
+|---|---|
+| **generar el frame de tela** | **40.4** |
+| Patrón `analyze()` completo | 14.6 |
+| tracker + conteo | ~0 |
+
+Y dentro de generar el frame, los 40 ms son **tres pasadas float32 sobre el
+frame entero**:
+
+| paso | ms |
+|---|---|
+| compuesto alfa de la capa de defectos | 17.8 |
+| multiplicar por el tejido | 9.1 |
+| multiplicar por la viñeta | 9.1 |
+| slices, rotación y el resto | 4.5 |
+
+La tela se genera en su propio hilo (`SyntheticSource`), así que no bloquea
+la interfaz, pero compite por el GIL con la UI y con la inferencia. En la
+máquina del stand la demo se verá a ~20 fps en vez de 30. No es fatal, pero
+una demo que se arrastra se nota.
+
+Tres arreglos, de mayor a menor beneficio y ninguno arriesgado:
+
+1. **Componer sólo donde hay defectos** (ahorra la mayor parte de los
+   17.8 ms). `_alpha` es casi todo ceros: basta recortar al rectángulo que
+   contiene los píxeles no nulos y componer ahí. Ya existe el atajo
+   `if alp.any()` para el caso sin defectos; falta el caso con pocos.
+2. **Fundir tejido y viñeta en un solo multiplicador** (ahorra ~9 ms). Hoy
+   son dos pasadas porque el tejido va antes de rotar y la viñeta después;
+   con una inclinación de 1.8° aplicar la viñeta antes de rotar es
+   visualmente idéntico y permite una sola multiplicación.
+3. **Usar `cv2.multiply` en vez de float32 de numpy** para lo que quede:
+   está vectorizado con SIMD.
+
+Medir antes y después con el mismo perfilado — y comprobar a ojo que la tela
+sigue viéndose igual, porque el punto 2 cambia el orden de dos efectos.
