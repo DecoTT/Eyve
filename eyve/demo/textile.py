@@ -8,10 +8,11 @@ por debajo, y el tracker lo vería como un objeto estático. Pintado sobre la
 tela, el defecto entra por un lado del encuadre, cruza y sale — que es
 exactamente lo que el módulo de conteo necesita para contarlo una vez.
 
-La ventana que ve "la cámara" se saca con np.take(..., mode="wrap"), así
-que el viaje es infinito y sin costura, sin copiar la tela entera cada
-frame. Después se aplica una rotación pequeña y un viñeteado para que el
-frame se parezca a una toma real y no a un render perfecto.
+La ventana que ve "la cámara" se saca con una rebanada del rollo, y dos
+pegadas cuando cruza el final, así que el viaje es infinito y sin costura
+sin copiar la tela entera cada frame. Después se aplica una rotación
+pequeña y un viñeteado para que el frame se parezca a una toma real y no
+a un render perfecto.
 
 El generador de dataset (eyve.demo.dataset) usa ESTA MISMA clase y estas
 mismas primitivas de pintura, para que lo que dibuje el visitante en la
