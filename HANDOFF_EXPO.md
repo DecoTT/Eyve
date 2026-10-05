@@ -75,7 +75,7 @@ Verificado: YOLO no reclama ninguno de los tres.
 
 ## 2. Las cuatro tareas
 
-### T1 — Modo kiosco (pantalla completa)
+### T1 — Modo kiosco (pantalla completa) — HECHO
 
 **Por qué:** en un stand, que un visitante se salga a "Etiquetado" y no sepa
 volver es el fallo más probable. Además el dueño comentó que la pantalla
@@ -94,7 +94,32 @@ Criterios:
 - No debe poderse navegar a otra pantalla con el teclado estando en kiosco.
 - Verificarlo **abriendo la app**, no sólo con pruebas.
 
-### T2 — Vuelta sola a modo automático
+**Cómo quedó.** `KIOSK_SCREENS` en `eyve/ui/app.py`; `F11` entra y sale,
+`Esc` sólo sale, y los dos se enlazan en la raíz con `add=True` para no
+pisar los atajos de las pantallas. Al entrar sale un aviso centrado que se
+desvanece a los 6 s, y el rótulo de la esquina de las dos demos cambia de
+"F11 pantalla completa" a "pulsa F11 o Esc para salir" (hook `on_kiosk`).
+
+41 comprobaciones en `tests/test_kiosco.py` y 12 mutaciones deliberadas,
+todas cazadas. Dos cosas que conviene no repetir:
+
+- La comprobación de "al salir vuelve a su geometría" **pasaba igual con
+  la restauración desactivada**: Tk ya devuelve la ventana solo al quitar
+  `-fullscreen`. Sólo distingue si algo toca la geometría *durante* el
+  kiosco; ahí Tk sale a la geometría nueva y hace falta restaurar a mano.
+- `Esc` quedó **sin verificar a mano, y no porque falle**: la
+  automatización de escritorio no entrega Escape a ninguna ventana
+  (probado con una ventana Tk mínima: `F11` y la letra `a` llegan, Escape
+  no llega ni al cazatodo `<Key>`). `F11` sí se comprobó a ojo. **Hay que
+  pulsar Esc con el teclado de verdad.**
+
+Pendiente relacionado, pre-existente: `_on_close` guarda `winfo_width()`
+estando maximizada, así que el config acaba con `window_width: 3440` y la
+ventana se sale del monitor por la derecha, escondiendo el rótulo de la
+esquina. El kiosco esquiva el problema (guarda lo de antes de entrar) pero
+el caso normal sigue ahí.
+
+### T2 — Vuelta sola a modo automático — HECHO
 
 **Por qué:** si el último visitante deja la tela llena de garabatos, el
 siguiente se encuentra un desastre y la demo pierde fuerza.
@@ -110,6 +135,31 @@ Criterios:
 - La vuelta debe ser visible (un aviso breve), no un salto brusco.
 - La demo de conteo (`nav_cdemo`) ya vuelve sola por su propio bucle; revisar
   si necesita algo equivalente cuando alguien la deja detenida en un método.
+
+**Cómo quedó.** `_INACTIVIDAD_S = 180.0` en las dos pantallas de demo. El
+reloj vive en `_last_touch` y **sólo lo mueve `_touch()`**, que se llama
+desde los manejadores de la interfaz y de ningún otro sitio — en
+particular nunca desde `_auto_tick`. Los dos sitios donde eso se podía
+colar llevan envoltorio: el botón "Limpiar tela" llama a
+`_on_clear_click()` (porque `reset_demo()` la usa también la vuelta
+automática) y, en la de conteo, los botones ‹ › y Auto llaman a
+`_on_saltar()` y `_on_auto_click()` (porque `_saltar()` la usa el bucle al
+avanzar solo). La vuelta limpia la tela, pone los contadores a cero,
+enciende el automático y lo avisa 6 s en la cabecera.
+
+**Sí hacía falta en la de conteo:** su bucle avanza solo, pero el botón de
+Auto lo para y entonces se queda en ese método para siempre.
+
+No recalibra el módulo Patrón, y es a propósito: `calibrate()` sólo se
+llama explícitamente, así que los garabatos del visitante no contaminan la
+calibración. El material no cambia, la referencia sigue valiendo. (T4 sí
+tiene que recalibrar, porque allí se puede haber cambiado de tela.)
+
+36 comprobaciones en `tests/test_inactividad.py` y 13 mutaciones, todas
+cazadas. La que encontró un agujero real: la prueba llamaba a los
+*métodos*, no a los *botones*, así que recablear un botón al callback
+equivocado pasaba desapercibido. Ahora los pulsa de verdad con
+`.invoke()`.
 
 ### T3 — Publicar 2.1.1
 
@@ -134,7 +184,7 @@ fijos. Resumen:
 irreversible; el repo es `DecoTT/Eyve` y la tienda apunta a
 `releases/latest/download/`.
 
-### T4 — Botón grande de "empezar de cero"
+### T4 — Botón grande de "empezar de cero" — HECHO
 
 **Por qué:** quien atiende el stand necesita resetear sin buscar entre
 controles pequeños.
@@ -148,6 +198,47 @@ Criterios:
   recalibrar tras cambiar de tela el módulo o grita o se queda callado.
 - Debe funcionar estando en cualquier estado (pausado, dibujando, con el
   automático apagado).
+
+**Cómo quedó.** `empezar_de_cero()` en `DemoScreen`, con el botón en su
+propia fila, a todo el ancho del panel derecho y de 54 px de alto frente a
+los 36 de los demás controles. Hace, por este orden: olvida el trazo a
+medias y el último punto, quita la pausa, limpia tela / tracker /
+contadores, devuelve el método de conteo al inicial, enciende el
+automático y **recalibra** el módulo Patrón — recalibrar va al final,
+porque se calibra con material bueno y para eso la tela ya tiene que estar
+limpia.
+
+Lo que no era obvio y por eso está comentado en el código:
+
+- Si se pulsa **a mitad de un trazo**, hay que olvidar `_last_pt`, o el
+  siguiente movimiento del ratón pinta una raya desde donde estaba la mano
+  antes del reinicio. Y hay que olvidar `_pausa_previa`, o al soltar el
+  ratón la tela se vuelve a pausar sola.
+- El método de conteo vuelve al inicial (`_METODO_INICIAL = "screen"`).
+  **Esto no estaba en la lista de criterios**: se añadió porque "como
+  recién abierto" incluye el panel de conteo. El material (estampado,
+  tejido) y la velocidad **no** se tocan, porque cambiarlos obliga a una
+  recalibración más larga y son una elección deliberada de quien atiende.
+- `_MARGEN_TRAS_REINICIO = 6.0`. Salió de abrir la app: con los 2 s que
+  usa el botón de Modo auto, el primer defecto automático caía antes de
+  que diera tiempo a enseñar la tela limpia, y el "de cero" no se veía.
+
+36 comprobaciones en `tests/test_empezar_de_cero.py`, todas con su
+condición previa afirmada (si la tela no estuviera sucia antes, "queda
+limpia" no probaría nada), y 12 mutaciones, todas cazadas. Dos cosas que
+salieron de las mutaciones:
+
+- La llamada a `end_stroke()` que había puesto era **código muerto**:
+  `reset_demo()` → `clear_defects()` ya deja el trazo en `None`. Quitarla
+  no cambiaba ninguna comprobación, así que se quitó.
+- La comprobación de "olvida que la tela estaba pausada" **pasaba sola**,
+  porque en la prueba se empezaba a dibujar con la tela corriendo y
+  entonces `_pausa_previa` ya valía `False`. Ahora la prueba pausa la tela
+  antes de dibujar, que es el caso que de verdad distingue.
+
+Una prueba que se cuelga tampoco informa: la mutación "el recalibrado
+nunca termina" dejaba colgado el bucle que espera a la calibración, así
+que ese bucle lleva tope y ahora falla limpio.
 
 ---
 
@@ -226,7 +317,8 @@ Todo texto visible va en `eyve/i18n/es.py` y `en.py`, **siempre en los dos**.
 ## 4. Maratón de stand: resultado
 
 Se simularon **30 minutos de stand desatendido** con el modo automático
-poniendo defectos (`scratchpad/maraton.py`, reutilizable con más minutos).
+poniendo defectos. `tests/maraton_stand.py` quedó en el repo, así que se
+puede volver a correr con más minutos cuando se quiera.
 
 **No hay fuga ni degradación:**
 
@@ -280,3 +372,28 @@ Tres arreglos, de mayor a menor beneficio y ninguno arriesgado:
 
 Medir antes y después con el mismo perfilado — y comprobar a ojo que la tela
 sigue viéndose igual, porque el punto 2 cambia el orden de dos efectos.
+
+### T5b — Y en kiosco cuesta el doble (medido al hacer T1)
+
+El repintado de los lienzos no era sospechoso porque en ventana no se
+nota. A pantalla completa sí: `tests/perf_kiosco.py`, 40 repeticiones.
+
+| lienzo | repintar uno | los dos por frame |
+|---|---|---|
+| ventana 1200x800 | 2.8 ms | 5.6 ms |
+| kiosco 3440x1440 | **18.9 ms** | **37.7 ms** |
+
+Sumado a los 42 ms de tela e inspección: **~21 fps en ventana, ~12.5 fps
+en kiosco**. Y como el stand va a correr en kiosco, el número que importa
+es el de abajo.
+
+Dos avisos para quien lo optimice:
+
+- La primera medición dio 1.5 ms planos para los dos tamaños y era falsa:
+  la ventana de prueba era de 200x100 y recortaba el lienzo, así que Tk no
+  dibujaba lo que no se veía. El script lleva ahora un `assert` que lo
+  impide.
+- El frame nativo es de 960x540 y en kiosco se amplía a ~1700x950. Ampliar
+  no añade detalle, sólo coste; pero recortar el tamaño mostrado encoge la
+  demo en la pantalla grande, que es justo lo que el stand no quiere. Es
+  un compromiso, no un arreglo obvio.
