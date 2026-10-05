@@ -56,8 +56,36 @@ cd "D:\Desarrollo\Claude Code\Eyve\2.1-dev\Release"
 Todo está preparado y apagado; se prende con dos valores iguales:
 
 - [x] **Secret** `EYVE_DOWNLOAD_URL` (21-sep) = la URL fija, en Supabase Dashboard → Edge Functions → Secrets. La function `licencias-emitir` lo lee al vuelo (no hay que redesplegar): desde ese momento el correo de licencia lleva el botón **Descargar Eyve 2.1** en vez de "se está publicando".
+  **Revisado por el dueño el 5-oct tras publicar la 2.1.1** (no verificado desde el repo: el secret no se puede leer desde fuera de Supabase).
 - [x] **Front** (PR #27, 21-sep): `src/modules/store/lib/eyve.ts` → `EYVE_DOWNLOAD_URL = '<la misma URL>'`; PR a `main`, Netlify publica. Con eso aparece el botón en la thank-you (`LicenciasEyve.tsx`) y en `/store/cuenta/licencias`.
-- [ ] Probar: pedido Free desde `https://sbcgroup.com.mx/prueba-eyve/` con un correo tuyo → el correo trae botón y la thank-you también. Borrar el pedido de prueba después.
+  **Verificado el 5-oct en el bundle que sirve sbcsuite.com.mx**, no sólo en el repo: `assets/index-BcMDYLvn.js` contiene la URL fija, y esa URL resuelve a `/v2.1.1/` con los bytes exactos del build.
+
+### Qué pasó al publicar la 2.1.1 (5-oct)
+
+**La tienda cambió sola.** Como la URL apunta a `releases/latest/download/` y
+el nombre del asset no cambia entre versiones, no hubo que tocar ni el front
+ni el secret: dashboard y thank-you empezaron a servir 2.1.1 en cuanto el
+release pasó a ser `latest`. Esa era justo la razón de elegir esta forma de
+distribuir (§0).
+
+Dos condiciones de visibilidad, por si alguien reporta que no ve el botón:
+
+- en `/store/cuenta/licencias` sólo aparece si la cuenta tiene **al menos una
+  licencia** (`lics.length > 0`);
+- en la thank-you aparece siempre que la URL esté puesta; si faltara, sale el
+  texto "se está publicando".
+
+**Cuidado con el camino de reserva del correo.** Si `EYVE_DOWNLOAD_URL`
+estuviera vacío, `licencias-emitir` genera una URL firmada de 72 h al bucket
+`eyve-builds` apuntando a `eyve-2.1/Eyve-2.1-setup.exe` — un **`.exe`**, y lo
+que se publica es un **`.zip`**. O sea: si el secret se borra, el correo sale
+con un enlace a un archivo que no existe, no con un error visible.
+
+- [ ] **Lo único sin comprobar de punta a punta**: pedido Free desde
+      `https://sbcgroup.com.mx/prueba-eyve/` con un correo propio → que el
+      correo traiga el botón y la thank-you también. Borrar el pedido de
+      prueba después. Es la única forma de confirmar el camino del correo,
+      porque el secret no se puede leer desde fuera.
 - [ ] Opcional: en `/prueba-eyve/` (HostGator, fuera del repo) un enlace "¿Ya tienes llave? Descarga Eyve 2.1" al pie, con la misma URL.
 - [ ] Marcar hecho en `qr-lead-connect/docs/licencias-eyve.md` §6 ("Subir el instalador…") y en `ESTADO.md`.
 
