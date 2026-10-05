@@ -15,7 +15,7 @@
 | Asset del release | `Eyve-2.1-setup.zip` (el ZIP de `Release\build_release.ps1`, renombrado) |
 | URL fija de descarga | `https://github.com/DecoTT/Eyve/releases/latest/download/Eyve-2.1-setup.zip` |
 | Checksum | `SHA256SUMS.txt` junto al asset |
-| Tag | `v2.1.0` (= `eyve/__init__.py: __version__`) |
+| Tag | `v<version>` (= `eyve/__init__.py: __version__`); hoy `v2.1.1` |
 
 `releases/latest/download/<asset>` siempre resuelve a la última versión publicada
 (no pre-release), así que la tienda no se toca al sacar 2.1.1.
@@ -66,6 +66,51 @@ Todo está preparado y apagado; se prende con dos valores iguales:
 - [ ] Vigilar `/store/admin/licencias`: "Activadas alguna vez" contra "Emitidas" dice si la gente llega a pegar la llave (embudo-eyve.md §08).
 - [ ] Versión siguiente (2.1.x): subir `__version__`, tag nuevo, release nuevo con el **mismo nombre de asset**. La URL fija no cambia; la tienda no se toca.
 - [ ] Renovaciones y cortesías: desde el admin (Emitir manual / Renovar); Eyve recibe la llave nueva sola en su check-in semanal.
+
+## 6. Versión 2.1.1 (pendiente de publicar)
+
+`__version__ = "2.1.1"` y `$Version = "2.1.1"` en `build_release.ps1`. **El
+nombre del asset no cambia** (`$AssetName` es fijo y no depende de
+`$Version`), así que la URL de la tienda no se toca.
+
+Motivo del release: desde la 2.1.0 hay 26 commits y el actualizador **no
+tenía a qué actualizar** — con `__version__` en 2.1.0 contestaba "ya tienes
+la última versión". Publicar lo vuelve demostrable.
+
+Qué entra, de cara al usuario:
+
+- **Modo kiosco** (`F11` entra y sale, `Esc` sale) en las dos pantallas de
+  demo, sin barra lateral ni barra de estado.
+- **Vuelta sola a modo automático** en la demo textil tras 3 minutos sin
+  que nadie toque, con la tela limpia; y la demo de conteo vuelve a
+  avanzar sola si la dejan detenida en un método.
+- **Botón de "empezar de cero"** en la demo textil, con recalibrado del
+  módulo Patrón.
+- Antes de esto: módulo de conteo con 5 métodos, módulo Patrón, demo
+  textil, demo de conteo y el propio actualizador.
+
+Checklist de esta versión:
+
+- [x] `eyve/__init__.py` → `__version__ = "2.1.1"`.
+- [x] `Release\build_release.ps1` → `$Version = "2.1.1"`; `$AssetName` sin
+      tocar.
+- [x] Suite completa en verde: 20 de 20, incluida `test_demo_e2e.py` (la
+      que carga YOLO).
+- [x] `cd Release && .\build_release.ps1` → `Eyve-2.1-setup.zip` +
+      `SHA256SUMS.txt`, con los 8 checks de estructura y la validación de
+      los `.bat`.
+- [ ] **Falta decidir**: tag `v2.1.1`, `git push`, y
+      `gh release create v2.1.1 --latest` con los dos assets. Es la acción
+      pública e irreversible: en cuanto el release sea `latest`, la URL
+      fija de la tienda sirve 2.1.1 sola.
+- [ ] Después de publicar: probar el actualizador de verdad — instalar
+      2.1.0 en una carpeta limpia, abrirlo y comprobar que detecta 2.1.1,
+      la instala y conserva `projects/`. **Ojo**: en la máquina de
+      desarrollo, `~/.eyve/config.json` tiene `update_last_installed:
+      "2.2.0"`; conviene mirar de dónde sale antes de fiarse de la prueba
+      en esa máquina.
+- [ ] Pendiente de antes, sin hacer: Settings → Licencia… con una llave
+      real (necesita una llave de verdad).
 
 ## Lo que NO hay que hacer
 
