@@ -66,6 +66,20 @@ PROTECTED = {"projects", ".venv", "venv", ".git", "sessions", "runs", "models"}
 _TIMEOUT = 20
 _UA = f"Eyve/{__version__} (+https://github.com/{GITHUB_REPO})"
 
+#: Accept para preguntarle a la API de GitHub.
+#:
+#: NO vale "application/octet-stream": la API contesta 415 Unsupported
+#: Media Type.  Es lo que mandaba Eyve hasta 2.1.0 para TODO, asi que la
+#: consulta fallaba siempre — y como check() se traga los errores a
+#: proposito (abrir Eyve sin internet no debe dar un dialogo), el
+#: actualizador contestaba "no hay actualizacion" para siempre, sin
+#: ruido.  Comprobado contra la API real: octet-stream da 415 y
+#: vnd.github+json da 200.
+_ACCEPT_API = "application/vnd.github+json"
+
+#: Accept para bajar un asset, que ahi si es un binario.
+_ACCEPT_BIN = "application/octet-stream"
+
 
 # ── versiones ────────────────────────────────────────────────────────────────
 def parse_version(text: str) -> tuple[int, ...]:
@@ -101,9 +115,13 @@ class UpdateInfo:
     error: str = ""
 
 
-def _get(url: str, timeout: int = _TIMEOUT) -> bytes:
-    req = Request(url, headers={"User-Agent": _UA,
-                                "Accept": "application/octet-stream"})
+def _get(url: str, timeout: int = _TIMEOUT,
+         accept: str = _ACCEPT_BIN) -> bytes:
+    """
+    Descarga *url*.  `accept` por defecto es el de un binario; la consulta
+    a la API tiene que pasar `_ACCEPT_API` o GitHub responde 415.
+    """
+    req = Request(url, headers={"User-Agent": _UA, "Accept": accept})
     ctx = ssl.create_default_context()
     with urlopen(req, timeout=timeout, context=ctx) as r:
         return r.read()
@@ -118,7 +136,7 @@ def check(timeout: int = _TIMEOUT) -> UpdateInfo:
     """
     info = UpdateInfo()
     try:
-        raw = _get(_API, timeout)
+        raw = _get(_API, timeout, accept=_ACCEPT_API)
         data = json.loads(raw.decode("utf-8"))
     except (HTTPError, URLError, OSError, ValueError) as e:
         info.error = str(e)

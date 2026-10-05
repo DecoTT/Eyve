@@ -97,6 +97,13 @@ Qué entra, de cara al usuario:
   (`demo_fill_screen`, por defecto apagado). Encendido la demo se ve más
   grande en monitores grandes, a cambio de la mitad de los fps. En
   1920×1080 no cambia nada.
+- **El actualizador vuelve a funcionar.** Hasta 2.1.0 pedía la API de
+  GitHub con `Accept: application/octet-stream`, que la API rechaza con
+  **415**; como `check()` se traga los errores a propósito, contestaba "no
+  hay actualización" para siempre y en silencio. **Consecuencia: quien ya
+  tenga 2.1.0 instalado NO verá la 2.1.1 solo** — lleva el fallo dentro.
+  Esa primera actualización hay que hacerla a mano; de 2.1.1 en adelante
+  ya es automática.
 - Antes de esto: módulo de conteo con 5 métodos, módulo Patrón, demo
   textil, demo de conteo y el propio actualizador.
 
