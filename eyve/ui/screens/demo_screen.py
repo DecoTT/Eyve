@@ -135,9 +135,16 @@ class DemoScreen(ctk.CTkFrame):
         self._hint = ctk.CTkLabel(hdr, text=t("demo_hint"),
                                   font=T.font(T.FONT_SM), text_color=T.TEXT_SEC)
         self._hint.pack(side="left", padx=8)
+        # Pista del kiosco. Sin esto nadie descubre F11: quien atiende el
+        # stand no lee documentacion.  En TEXT_SEC y no en TEXT_DIM porque
+        # a un metro de la pantalla el gris oscuro no se lee.
+        self._kiosk_lbl = ctk.CTkLabel(hdr, text=t("kiosk_enter_hint"),
+                                       font=T.font(T.FONT_XS),
+                                       text_color=T.TEXT_SEC)
+        self._kiosk_lbl.pack(side="right", padx=(0, 16))
         self._auto_lbl = ctk.CTkLabel(hdr, text="", font=T.bold(T.FONT_SM),
                                       text_color=T.ACCENT2)
-        self._auto_lbl.pack(side="right", padx=20)
+        self._auto_lbl.pack(side="right", padx=8)
 
         body = ctk.CTkFrame(self, fg_color="transparent")
         body.grid(row=1, column=0, sticky="nsew", padx=10, pady=6)
@@ -315,6 +322,11 @@ class DemoScreen(ctk.CTkFrame):
         self._speed.pack(side="right", padx=8)
 
         self._set_tool("rayon")
+
+    def on_kiosk(self, activo: bool) -> None:
+        """La pista dice como SALIR cuando ya se esta dentro."""
+        self._kiosk_lbl.configure(
+            text=t("kiosk_exit_hint") if activo else t("kiosk_enter_hint"))
 
     # ── ciclo de vida ─────────────────────────────────────────────────────
     def on_show(self) -> None:

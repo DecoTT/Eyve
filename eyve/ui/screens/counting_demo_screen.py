@@ -76,6 +76,12 @@ class CountingDemoScreen(ctk.CTkFrame):
                      text_color=T.TEXT_PRI).pack(side="left", padx=20, pady=10)
         ctk.CTkLabel(hdr, text=t("cdemo_sub"), font=T.font(T.FONT_SM),
                      text_color=T.TEXT_SEC).pack(side="left", padx=6)
+        # TEXT_SEC y no TEXT_DIM: a un metro de la pantalla el gris
+        # oscuro sobre fondo oscuro no se lee.
+        self._kiosk_lbl = ctk.CTkLabel(hdr, text=t("kiosk_enter_hint"),
+                                       font=T.font(T.FONT_XS),
+                                       text_color=T.TEXT_SEC)
+        self._kiosk_lbl.pack(side="right", padx=16)
 
         body = ctk.CTkFrame(self, fg_color="transparent")
         body.grid(row=1, column=0, sticky="nsew", padx=12, pady=8)
@@ -164,6 +170,11 @@ class CountingDemoScreen(ctk.CTkFrame):
                                          progress_color=T.ACCENT2)
         self._barra.set(0)
         self._barra.grid(row=13, column=0, sticky="ew", padx=20, pady=(0, 16))
+
+    def on_kiosk(self, activo: bool) -> None:
+        """La pista dice como SALIR cuando ya se esta dentro."""
+        self._kiosk_lbl.configure(
+            text=t("kiosk_exit_hint") if activo else t("kiosk_enter_hint"))
 
     # ── ciclo de vida ─────────────────────────────────────────────────────
     def on_show(self) -> None:

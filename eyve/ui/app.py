@@ -16,6 +16,12 @@ from eyve.core import config
 from eyve.core.project_manager import Project
 from eyve.core.logger import log
 
+#: Pantallas que pueden ir a pantalla completa.  Solo las dos de demo: en
+#: las demas, esconder la navegacion deja al usuario encerrado sin forma
+#: obvia de volver, que es exactamente el fallo que el kiosco evita en el
+#: stand.
+KIOSK_SCREENS = ("nav_demo", "nav_cdemo")
+
 
 class EyveApp(ctk.CTk):
     def __init__(self) -> None:
@@ -41,6 +47,18 @@ class EyveApp(ctk.CTk):
 
         self._project: Optional[Project] = None
         self._screens: dict[str, ctk.CTkFrame] = {}
+        #: pantalla visible ahora; el kiosco necesita saberlo para no
+        #: dejarse activar donde no toca
+        self._current: Optional[str] = None
+
+        # ── kiosco ───────────────────────────────────────────────────────
+        self._kiosk = False
+        #: tamano Y posicion de antes de entrar, para devolver la ventana
+        #: donde estaba al salir
+        self._kiosk_geom: Optional[str] = None
+        self._kiosk_zoomed = False
+        self._kiosk_toast: Optional[ctk.CTkFrame] = None
+        self._kiosk_toast_job: Optional[str] = None
 
         self._build_layout()
         self._navigate("nav_home")
@@ -66,13 +84,28 @@ class EyveApp(ctk.CTk):
         self.status_bar = StatusBar(self)
         self.status_bar.grid(row=1, column=0, columnspan=2, sticky="ew")
 
+        # Kiosco: F11 entra y sale, Esc solo sale.  Con add=True a
+        # proposito: las pantallas tambien enlazan en la raiz (ver
+        # eyve/ui/hotkeys.py) y un bind sin add les borraria el suyo —
+        # Etiquetado perderia su Escape.
+        self.bind("<F11>", self._on_f11, add=True)
+        self.bind("<Escape>", self._on_escape, add=True)
+
         # Version nueva: se consulta una vez al dia, en segundo plano. El
         # arranque no espera a la red — una planta con el proxy caido no
         # puede quedarse mirando un splash.
         self.after(2500, self.check_for_updates)
 
     # ── navigation ───────────────────────────────────────────────────────────
-    def _navigate(self, key: str) -> None:
+    def _navigate(self, key: str, force: bool = False) -> None:
+        # En kiosco no se sale de la demo con el teclado.  Es el fallo mas
+        # probable del stand: un visitante acaba en "Etiquetado" y no sabe
+        # volver.  force=True es para quien apaga el kiosco a proposito
+        # (cambio de idioma o de tema), que reconstruye todo.
+        if self._kiosk and not force and key != self._current:
+            log.debug(f"Kiosco activo: navegacion a {key} ignorada")
+            return
+
         # Pause every currently-visible screen before hiding it.
         # grid_remove() only hides the widget — without on_hide() all camera
         # grab loops, display pollers and production inference loops keep
@@ -93,7 +126,124 @@ class EyveApp(ctk.CTk):
         if hasattr(screen, "on_show"):
             screen.on_show()
         self.sidebar.set_active(key)
+        self._current = key
         log.debug(f"Navigate → {key}")
+
+    # ── kiosco ───────────────────────────────────────────────────────────────
+    # Pantalla completa sin barra lateral ni barra de estado, para el stand.
+    # No es solo cosmetico: con la navegacion a la vista, un visitante se
+    # mete en "Etiquetado", no sabe volver y la demo se queda muerta hasta
+    # que alguien del stand se da cuenta.
+
+    @property
+    def kiosk(self) -> bool:
+        return self._kiosk
+
+    def kiosk_available(self) -> bool:
+        """Si la pantalla visible admite pantalla completa."""
+        return self._current in KIOSK_SCREENS
+
+    def _on_f11(self, _event=None) -> None:
+        self.toggle_kiosk()
+
+    def _on_escape(self, _event=None) -> None:
+        # Esc NO entra, solo sale.  Etiquetado usa Esc para lo suyo y su
+        # handler esta guardado por pantalla visible (guard_hotkey), asi
+        # que basta con no hacer nada cuando el kiosco esta apagado.
+        if self._kiosk:
+            self.exit_kiosk()
+
+    def toggle_kiosk(self) -> None:
+        if self._kiosk:
+            self.exit_kiosk()
+        else:
+            self.enter_kiosk()
+
+    def enter_kiosk(self) -> None:
+        if self._kiosk or not self.kiosk_available():
+            return
+        # Tamano Y posicion: al salir la ventana vuelve donde estaba, no
+        # solo del tamano que tenia.
+        #
+        # Se guarda con geometry() y no con winfo_*: el geometry() de
+        # CustomTkinter divide por el escalado de DPI al leer y multiplica
+        # al escribir, asi que leer y escribir por ahi es exacto.  Mezclar
+        # winfo_* (pixeles de verdad) con el setter escalado devolveria la
+        # ventana con el tamano multiplicado por la escala del monitor.
+        self._kiosk_zoomed = self.state() == "zoomed"
+        self._kiosk_geom = self.geometry()
+        # grid_remove (no grid_forget) conserva la configuracion de fila y
+        # columna, asi que al volver se restaura en el mismo sitio.  La
+        # columna de la barra lateral tiene weight=0 y sin minsize, de modo
+        # que al quedarse vacia se encoge a cero y no deja franja.
+        self.sidebar.grid_remove()
+        self.status_bar.grid_remove()
+        self.attributes("-fullscreen", True)
+        self._kiosk = True
+        self._show_kiosk_toast()
+        self._notify_kiosk()
+        log.info("Kiosco: pantalla completa")
+
+    def exit_kiosk(self) -> None:
+        if not self._kiosk:
+            return
+        self._kiosk = False
+        self._hide_kiosk_toast()
+        self.attributes("-fullscreen", False)
+        self.sidebar.grid(row=0, column=0, sticky="nsw")
+        self.status_bar.grid(row=1, column=0, columnspan=2, sticky="ew")
+        if self._kiosk_zoomed:
+            self.state("zoomed")
+        elif self._kiosk_geom:
+            self.geometry(self._kiosk_geom)
+        self._notify_kiosk()
+        log.info("Kiosco: ventana normal")
+
+    def _notify_kiosk(self) -> None:
+        """
+        Avisar a la pantalla visible de que el kiosco cambio, para que
+        ajuste su pista.  El aviso grande se desvanece a los 6 s y quien
+        llega al stand mas tarde no vio nada: la pista de la esquina
+        tiene que decir en todo momento como se sale.
+        """
+        screen = self._screens.get(self._current or "")
+        fn = getattr(screen, "on_kiosk", None)
+        if callable(fn):
+            try:
+                fn(self._kiosk)
+            except Exception:
+                log.debug("on_kiosk fallo", exc_info=True)
+
+    def _show_kiosk_toast(self) -> None:
+        """
+        Pista de como salir, encima de la demo y unos segundos.
+
+        Se muestra CADA vez que se entra y no solo la primera: en un stand
+        quien atiende cambia a lo largo del dia y no es necesariamente
+        quien puso la pantalla completa.  Va con place() y no con grid()
+        para no tocar el layout que el kiosco acaba de dejar limpio.
+        """
+        self._hide_kiosk_toast()
+        box = ctk.CTkFrame(self, fg_color=T.BG_CARD, corner_radius=10)
+        ctk.CTkLabel(box, text=t("kiosk_exit_hint"), font=T.bold(T.FONT_SM),
+                     text_color=T.TEXT_PRI).pack(padx=18, pady=10)
+        box.place(relx=0.5, y=16, anchor="n")
+        self._kiosk_toast = box
+        self._kiosk_toast_job = self.after(6000, self._hide_kiosk_toast)
+
+    def _hide_kiosk_toast(self) -> None:
+        if self._kiosk_toast_job is not None:
+            try:
+                self.after_cancel(self._kiosk_toast_job)
+            except Exception:
+                pass
+            self._kiosk_toast_job = None
+        if self._kiosk_toast is not None:
+            try:
+                self._kiosk_toast.destroy()
+            except Exception:
+                pass
+            self._kiosk_toast = None
 
     # ── actualizaciones ──────────────────────────────────────────────────────
     def check_for_updates(self, force: bool = False) -> None:
@@ -198,14 +348,21 @@ class EyveApp(ctk.CTk):
 
     # ── language ─────────────────────────────────────────────────────────────
     def switch_language(self, lang: str) -> None:
+        # Fuera del kiosco primero: esto tira todas las pantallas y vuelve
+        # a Inicio, que en pantalla completa y sin navegacion seria una
+        # ventana sin salida.
+        self.exit_kiosk()
         set_language(lang)
         config.set("language", lang)
         self.sidebar.refresh_labels()
         self._teardown_all_screens()
-        self._navigate("nav_home")
+        self._navigate("nav_home", force=True)
 
     # ── theme ─────────────────────────────────────────────────────────────────
     def switch_theme(self, mode: str) -> None:
+        # Antes de nada: aqui se destruyen y se recrean la barra lateral y
+        # la de estado, y el kiosco las tiene fuera del grid.
+        self.exit_kiosk()
         T.set_mode(mode)
         config.set("theme", mode)
         # update persistent containers
@@ -224,7 +381,7 @@ class EyveApp(ctk.CTk):
         self._check_license()
         # rebuild screens
         self._teardown_all_screens()
-        self._navigate("nav_home")
+        self._navigate("nav_home", force=True)
 
     # ── license ──────────────────────────────────────────────────────────────
     # Por honor: nada de esto bloquea. Se lee la llave sin red, se pinta el
@@ -258,8 +415,16 @@ class EyveApp(ctk.CTk):
 
     # ── close ────────────────────────────────────────────────────────────────
     def _on_close(self) -> None:
-        config.set("window_width", self.winfo_width())
-        config.set("window_height", self.winfo_height())
+        # Si se cierra estando en kiosco, winfo_width() es el monitor
+        # entero: guardarlo dejaria la ventana del proximo arranque del
+        # tamano de la pantalla.  Se guarda lo de antes de entrar.
+        if self._kiosk and self._kiosk_geom:
+            tam = self._kiosk_geom.split("+")[0].split("x")
+            config.set("window_width", int(tam[0]))
+            config.set("window_height", int(tam[1]))
+        else:
+            config.set("window_width", self.winfo_width())
+            config.set("window_height", self.winfo_height())
         # stop any running camera/workers
         for screen in self._screens.values():
             if hasattr(screen, "on_close"):

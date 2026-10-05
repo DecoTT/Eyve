@@ -60,6 +60,10 @@ STRINGS = {
                            "Con un borde elegido, cuenta solo las que salen por "
                            "el lado que importa.",
 
+    # ── modo kiosco (pantalla completa para el stand) ────────────────────────
+    "kiosk_enter_hint": "F11  pantalla completa",
+    "kiosk_exit_hint":  "Pantalla completa - pulsa F11 o Esc para salir",
+
     # ── pantalla de demo (expo) ──────────────────────────────────────────────
     "demo_title":     "Demo en vivo",
     "demo_hint":      "Dibuja un defecto sobre la tela de la derecha. Eyve lo encuentra solo.",

@@ -60,6 +60,10 @@ STRINGS = {
                            "an edge selected, it counts only the ones leaving "
                            "through the side that matters.",
 
+    # ── kiosk mode (full screen for the trade show booth) ────────────────────
+    "kiosk_enter_hint": "F11  full screen",
+    "kiosk_exit_hint":  "Full screen - press F11 or Esc to exit",
+
     # ── demo screen (trade show) ─────────────────────────────────────────────
     "demo_title":     "Live demo",
     "demo_hint":      "Draw a defect on the fabric at right. Eyve finds it on its own.",
