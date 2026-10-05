@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Cuanto cuesta repintar la demo en ventana y a pantalla completa.
+Presupuesto de tiempo por frame de la demo textil, en ventana y en kiosco.
 
-Salio solo: al probar el kiosco en un monitor de 3440x1440, la prueba se
-quedaba girando porque repintar los dos lienzos tardaba mas que los 33 ms
-del bucle.  El coste del repintado crece con el area del lienzo, y en
-kiosco el lienzo es el triple de grande.
+Salio de una sorpresa: al probar el kiosco en un monitor de 3440x1440 la
+demo se arrastraba, y el culpable no era la inspeccion sino generar la
+tela y repintar los lienzos.  Esto mide las tres partes por separado para
+que no haya que adivinar cual duele.
 
-Se mide el `_paint` REAL de DemoScreen (el mismo cv2.resize, el mismo
-cvtColor, el mismo PhotoImage y el mismo create_image), no una
-reimplementacion.  Varias repeticiones y se reporta la distribucion: una
-sola medida de tiempo en Windows no dice nada.
+Se mide el codigo REAL (`TextilePattern.frame`, `PatternModule.analyze` y
+`DemoScreen._paint`), no una reimplementacion, y con varias repeticiones:
+una sola medida de tiempo en Windows no dice nada.
 
     .venv\\Scripts\\python.exe tests\\perf_kiosco.py
 """
@@ -29,22 +28,38 @@ import tkinter as tk
 import customtkinter as ctk
 
 from eyve.demo.textile import TextilePattern
+from eyve.modules import PatternModule
 from eyve.ui.screens.demo_screen import DemoScreen
 
-#: lienzos a comparar, medidos en la app de verdad con una ventana de
-#: 1200x800 y con el kiosco en un monitor de 3440x1440
+#: lienzos medidos en la app de verdad
 LIENZOS = [
     ("ventana 1200x800", 486, 574),
     ("kiosco 3440x1440", 1696, 1392),
 ]
-REPS = 40
+REPS = 30
 
 
 class Falso:
-    """`_paint` solo escribe el PhotoImage en un atributo del objeto."""
+    """`_paint` solo necesita poder guardarse atributos."""
 
 
-def medir(root, cw, ch, frame) -> list[float]:
+def resumen(ts):
+    ts = sorted(ts)
+    return statistics.median(ts), ts[int(0.9 * len(ts)) - 1]
+
+
+def medir(fn, reps=REPS, calentar=5):
+    ts = []
+    for i in range(reps + calentar):
+        t = time.perf_counter()
+        fn()
+        dt = (time.perf_counter() - t) * 1000
+        if i >= calentar:
+            ts.append(dt)
+    return resumen(ts)
+
+
+def medir_repintado(root, cw, ch, frame):
     # La ventana TIENE que ser del tamano del lienzo. Con una ventana mas
     # chica el lienzo queda recortado, Tk no dibuja lo que no se ve y la
     # medida sale plana con cualquier tamano — ese fue el primer intento y
@@ -59,51 +74,60 @@ def medir(root, cw, ch, frame) -> list[float]:
         f"el lienzo salio de {canvas.winfo_width()}px y se pidio {cw}px: "
         f"la ventana lo esta recortando y la medida no valdria")
     falso = Falso()
-    tiempos = []
-    for i in range(REPS + 5):
-        t0 = time.perf_counter()
+
+    def una():
         DemoScreen._paint(falso, canvas, frame, "_photo")
         root.update_idletasks()
-        dt = (time.perf_counter() - t0) * 1000
-        if i >= 5:          # las primeras son de calentamiento
-            tiempos.append(dt)
+
+    r = medir(una)
     canvas.destroy()
-    return tiempos
+    return r
 
 
 def main() -> int:
     pat = TextilePattern(width=960, height=540, axis="x", motif="diamantes",
-                         weave="sarga", speed=110.0)
+                         weave="sarga", speed=110.0, tilt_deg=1.8, seed=7)
+    pat.streak(300, 200, length=180, thickness=6)
+    pat.blob(600, 300, size=90)
     frame = pat.frame()
+
+    print("── las dos partes que no dependen del tamano del lienzo ──\n")
+    f_med, f_p90 = medir(lambda: pat.frame())
+    print(f"{'generar la tela':<22} {f_med:>7.1f}ms  (p90 {f_p90:.1f})")
+
+    pm = PatternModule()
+    pm.enabled = True
+    pm.sensitivity = 70.0
+    for _ in range(10):
+        pm.calibrate(pat.frame())
+        pat.advance(1 / 30)
+    p_med, p_p90 = medir(lambda: pm.analyze(frame), reps=15)
+    print(f"{'inspeccion (Patron)':<22} {p_med:>7.1f}ms  (p90 {p_p90:.1f})")
 
     root = ctk.CTk()
     root.geometry("200x100+0+0")
     root.update()
 
-    print(f"repintado de UN lienzo, {REPS} repeticiones\n")
-    print(f"{'lienzo':<20} {'mediana':>9} {'p90':>8} {'min':>7} {'max':>7}")
-    resumen = {}
+    print("\n── repintar UN lienzo ──\n")
+    print(f"{'lienzo':<20} {'mediana':>9} {'p90':>8}")
+    repintado = {}
     for nombre, cw, ch in LIENZOS:
-        ts = medir(root, cw, ch, frame)
-        ts_ord = sorted(ts)
-        med = statistics.median(ts)
-        p90 = ts_ord[int(0.9 * len(ts_ord)) - 1]
-        resumen[nombre] = med
-        print(f"{nombre:<20} {med:>8.1f}ms {p90:>7.1f}ms "
-              f"{min(ts):>6.1f}ms {max(ts):>6.1f}ms")
-
+        med, p90 = medir_repintado(root, cw, ch, frame)
+        repintado[nombre] = med
+        print(f"{nombre:<20} {med:>8.1f}ms {p90:>7.1f}ms")
     root.destroy()
 
-    print("\nla demo textil repinta DOS lienzos por frame:\n")
-    print(f"{'lienzo':<20} {'2 lienzos':>11} {'+ 42 ms de tela e inspeccion':>30}")
-    for nombre, med in resumen.items():
-        dos = med * 2
-        total = dos + 42.0
-        print(f"{nombre:<20} {dos:>10.1f}ms {total:>21.1f}ms "
-              f"= {1000 / total:>4.1f} fps")
+    print("\n── presupuesto por frame (la demo repinta DOS lienzos) ──\n")
+    print(f"{'':<20} {'tela':>7} {'Patron':>8} {'2 lienzos':>10} "
+          f"{'TOTAL':>8} {'fps':>6}")
+    for nombre, _, _ in LIENZOS:
+        dos = repintado[nombre] * 2
+        total = f_med + p_med + dos
+        print(f"{nombre:<20} {f_med:>6.1f}ms {p_med:>7.1f}ms {dos:>9.1f}ms "
+              f"{total:>7.1f}ms {1000/total:>5.1f}")
 
-    a, b = (resumen[n] for n, _, _ in LIENZOS)
-    print(f"\nel kiosco multiplica el repintado por {b / a:.1f}")
+    print("\nEl bucle pide 30 fps (after de 33 ms). Si el TOTAL pasa de 33 ms,")
+    print("la demo va mas lenta y update() deja de drenar la cola de eventos.")
     return 0
 
 
