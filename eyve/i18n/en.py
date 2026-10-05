@@ -61,6 +61,9 @@ STRINGS = {
                            "an edge selected, it counts only the ones leaving "
                            "through the side that matters.",
 
+    "set_demo_fill":      "Demo: fill the screen",
+    "set_demo_fill_hint": "The fabric is generated at 960x540. Off means no upscaling and twice the frame rate; on fills the panel, bigger and slower. At 1920x1080 it makes no difference.",
+
     # ── kiosk mode (full screen for the trade show booth) ────────────────────
     "kiosk_enter_hint": "F11  full screen",
     "kiosk_exit_hint":  "Full screen - press F11 or Esc to exit",

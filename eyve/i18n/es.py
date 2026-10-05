@@ -61,6 +61,9 @@ STRINGS = {
                            "Con un borde elegido, cuenta solo las que salen por "
                            "el lado que importa.",
 
+    "set_demo_fill":      "Demo: llenar la pantalla",
+    "set_demo_fill_hint": "La tela se genera a 960x540. Apagado no se amplia y la demo va al doble de fps; encendido llena el panel, mas grande y mas lento. En 1920x1080 no cambia nada.",
+
     # ── modo kiosco (pantalla completa para el stand) ────────────────────────
     "kiosk_enter_hint": "F11  pantalla completa",
     "kiosk_exit_hint":  "Pantalla completa - pulsa F11 o Esc para salir",

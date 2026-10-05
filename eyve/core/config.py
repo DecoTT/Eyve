@@ -14,6 +14,18 @@ _DEFAULTS: dict = {
     "theme": "dark",
     "offline_mode": False,
     "models_dir": str(_APP_DIR / "models"),
+    # Demo: ¿ampliar el frame hasta llenar el panel?
+    #
+    # La tela se genera a 960x540. Apagado (lo normal) no se amplia:
+    # estirarla en un monitor grande triplica los pixeles que hay que
+    # volcar a Tk sin anadir ni un detalle, y la demo pierde la mitad de
+    # los fps. Encendido se llena el panel: mas grande y mas lento.
+    #
+    # En 1920x1080 da igual: la tela de 960 ya llena el panel de ~940 px,
+    # asi que el interruptor no cambia nada. Importa en monitores
+    # grandes, donde hay que elegir.
+    "demo_fill_screen": False,
+
     # Production loop FPS cap.
     # 0  = uncapped (after(1, …) — camera & inference are the bottleneck)
     # n  = target frames per second → delay = 1000 // n  ms

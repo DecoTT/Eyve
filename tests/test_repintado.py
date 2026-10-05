@@ -28,6 +28,7 @@ import numpy as np
 import tkinter as tk
 import customtkinter as ctk
 
+from eyve.core import config
 from eyve.ui import theme as T
 from eyve.ui.screens.demo_screen import DemoScreen
 
@@ -52,6 +53,11 @@ def pixel(root, photo, x, y):
         v = v.split()
     return tuple(int(c) for c in v)
 
+
+# La paleta del tema se aplica al crear EyveApp; aqui no hay app, asi
+# que hay que aplicarla a mano o los colores quedan en cadena vacia y
+# Tk se queja con 'unknown color name'.
+T.apply("dark")
 
 root = ctk.CTk()
 root.geometry("1000x1000+0+0")
@@ -127,8 +133,64 @@ check("el lienzo es MAS GRANDE que el frame (si no, no se prueba nada)",
 check("no se amplia: la imagen se queda en su tamano",
       (nw, nh) == (fw, fh), f"{nw}x{nh} (frame {fw}x{fh})")
 check("y queda centrada", (ox, oy) == (20, 230), f"({ox},{oy})")
-check("el tope del tema es 1.0", T.MAX_ESCALA_DEMO == 1.0,
-      str(T.MAX_ESCALA_DEMO))
+check("por defecto el interruptor viene apagado",
+      not config.get("demo_fill_screen", False))
+check("y con el apagado el tope es 1.0", T.max_escala_demo() == 1.0,
+      str(T.max_escala_demo()))
+
+# ── el caso malo: encendido TIENE que ampliar ──────────────────────────
+# Sin esto, "no se amplia" pasaria igual si el interruptor no estuviera
+# conectado a nada: la prueba no distinguiria entre un tope que funciona
+# y un tope clavado a 1.0.
+# Se toca config.get y no config.set a proposito: set escribe en el
+# config de verdad del usuario, y una prueba no debe dejar rastro.
+_get = config.get
+config.get = lambda k, d=None: (True if k == "demo_fill_screen"
+                                else _get(k, d))
+try:
+    check("encendido, el tope desaparece", T.max_escala_demo() > 1.0,
+          str(T.max_escala_demo()))
+    obj_fill = Falso()
+    v_fill = DemoScreen._paint(obj_fill, canvas, rojo, "_ph_fill")
+    check("encendido, la imagen SI se amplia hasta llenar",
+          v_fill[2] > v_fill[0], f"{v_fill[2]} > {v_fill[0]}")
+    check("y sigue cabiendo en el lienzo",
+          v_fill[2] <= 1000 and v_fill[3] <= 1000,
+          f"{v_fill[2]}x{v_fill[3]}")
+finally:
+    config.get = _get
+check("al apagarlo vuelve a no ampliar", T.max_escala_demo() == 1.0,
+      str(T.max_escala_demo()))
+
+print("\n[4c] El interruptor de Settings escribe la clave")
+# Que la casilla exista no basta: tiene que escribir en la config, que
+# es lo que lee el repintado.
+guardado = {}
+_set = config.set
+config.set = lambda k, v: guardado.__setitem__(k, v)
+try:
+    from eyve.ui.screens.settings_popup import SettingsPopup
+    pop = SettingsPopup(root, app=None)
+    root.update()
+    check("Settings tiene el interruptor", hasattr(pop, "_fill_var"))
+    pop._fill_var.set(True)
+    pop._toggle_fill()
+    check("encenderlo guarda demo_fill_screen=True",
+          guardado.get("demo_fill_screen") is True,
+          str(guardado.get("demo_fill_screen")))
+    pop._fill_var.set(False)
+    pop._toggle_fill()
+    check("apagarlo guarda demo_fill_screen=False",
+          guardado.get("demo_fill_screen") is False,
+          str(guardado.get("demo_fill_screen")))
+    pop.destroy()
+    root.update()
+except Exception as e:
+    import traceback
+    traceback.print_exc()
+    fails.append(f"Settings: {e}")
+finally:
+    config.set = _set
 
 print("\n[4b] Reducir SI se permite: un lienzo pequeno encoge la imagen")
 canvas.configure(width=480, height=480)

@@ -2,6 +2,8 @@
 from __future__ import annotations
 import customtkinter as ctk
 
+from eyve.core import config
+
 # ── palettes ──────────────────────────────────────────────────────────────────
 _DARK = {
     "BG_DARK":  "#0f1117",
@@ -54,6 +56,10 @@ FONT_XXL = 32
 
 SIDEBAR_W = 180
 
+#: Tope de ampliacion del frame de la demo cuando NO se llena la
+#: pantalla, que es lo normal.  Lo elige max_escala_demo() segun la
+#: config; aqui solo esta el valor.
+#:
 #: Cuanto se permite AMPLIAR el frame de la demo al pintarlo.
 #:
 #: La tela se genera a 960x540.  En un monitor grande el lienzo pide
@@ -68,6 +74,24 @@ SIDEBAR_W = 180
 #: grande y mas lenta; es una decision de como se ve, no un ajuste
 #: tecnico.
 MAX_ESCALA_DEMO = 1.0
+
+#: Con el interruptor encendido no hay tope de verdad: se llena el
+#: panel.  Un numero grande es mas simple que un None que haya que
+#: filtrar en el min() de cada repintado.
+_SIN_TOPE = 1e6
+
+
+def max_escala_demo() -> float:
+    """
+    Cuanto puede ampliarse el frame de la demo, segun la config.
+
+    Se consulta en CADA repintado —es una busqueda en un dict, no
+    cuesta nada— para que cambiarlo en Settings se vea al momento y no
+    haya que reiniciar en mitad de una expo.
+    """
+    if config.get("demo_fill_screen", False):
+        return _SIN_TOPE
+    return MAX_ESCALA_DEMO
 
 
 def _apply_palette(mode: str) -> None:

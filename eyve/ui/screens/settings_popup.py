@@ -261,6 +261,23 @@ class SettingsPopup(ctk.CTkToplevel):
             btn.pack(side="left", padx=(0, 6))
             self._fps_btns[cap] = btn
 
+        # ── demo: llenar la pantalla o ir rapido ─────────────────────
+        # Es un intercambio y cual conviene depende del monitor, asi que
+        # se decide donde este la maquina y no en el codigo.
+        self._fill_var = ctk.BooleanVar(
+            value=bool(config.get("demo_fill_screen", False)))
+        ctk.CTkSwitch(
+            self, text=t("set_demo_fill"), variable=self._fill_var,
+            font=T.font(T.FONT_SM), command=self._toggle_fill,
+            progress_color=T.ACCENT).pack(anchor="w", padx=PX, pady=(6, 2))
+        ctk.CTkLabel(
+            self, text=t("set_demo_fill_hint"), font=T.font(T.FONT_XS),
+            text_color=T.TEXT_DIM, wraplength=360, justify="left",
+            anchor="w").pack(anchor="w", padx=PX, pady=(0, 8))
+
+    def _toggle_fill(self) -> None:
+        config.set("demo_fill_screen", bool(self._fill_var.get()))
+
     # ── models section (compact) ──────────────────────────────────────────────
     def _build_models_section(self, PX: int) -> None:
         ctk.CTkLabel(self, text=t("set_models_title"),

@@ -869,7 +869,7 @@ class DemoScreen(ctk.CTkFrame):
             if cw < 10 or ch < 10:
                 return None
             fh, fw = frame.shape[:2]
-            scale = min(cw / fw, ch / fh, T.MAX_ESCALA_DEMO)
+            scale = min(cw / fw, ch / fh, T.max_escala_demo())
             nw, nh = max(1, int(fw * scale)), max(1, int(fh * scale))
             small = cv2.resize(frame, (nw, nh), interpolation=cv2.INTER_LINEAR)
             rgb = cv2.cvtColor(small, cv2.COLOR_BGR2RGB)
