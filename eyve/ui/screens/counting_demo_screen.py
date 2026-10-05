@@ -41,6 +41,13 @@ if TYPE_CHECKING:
 #: cuánto dura cada método antes de pasar al siguiente
 _SEGUNDOS_POR_METODO = 14.0
 
+#: cuanto aguanta detenida en un metodo antes de seguir sola.  El bucle
+#: ya avanza por su cuenta, pero el boton de Auto lo para y entonces la
+#: pantalla se queda en ese metodo hasta que alguien vuelva.
+_INACTIVIDAD_S = 180.0
+#: cuanto se queda en pantalla el aviso de la vuelta
+_AVISO_S = 6.0
+
 _W, _H = 960, 540
 
 
@@ -55,6 +62,13 @@ class CountingDemoScreen(ctk.CTkFrame):
         self._t_metodo = 0.0
         self._ultimo = time.perf_counter()
         self._resumen_last = ""
+        #: cuando toco una PERSONA por ultima vez
+        self._last_touch = time.time()
+        self._idle_seconds = _INACTIVIDAD_S
+        self._aviso_job: Optional[str] = None
+        self._sub_previo: Optional[tuple[str, str]] = None
+        #: cuantas veces ha seguido sola, para las pruebas
+        self._vueltas_solas = 0
 
         self._scene = CountingScene(method=SCENES[0], width=_W, height=_H)
         self._tracker = InstanceTracker(config=TrackerConfig(
@@ -74,8 +88,10 @@ class CountingDemoScreen(ctk.CTkFrame):
         hdr.grid(row=0, column=0, sticky="ew")
         ctk.CTkLabel(hdr, text=t("cdemo_title"), font=T.bold(T.FONT_XL),
                      text_color=T.TEXT_PRI).pack(side="left", padx=20, pady=10)
-        ctk.CTkLabel(hdr, text=t("cdemo_sub"), font=T.font(T.FONT_SM),
-                     text_color=T.TEXT_SEC).pack(side="left", padx=6)
+        self._sub_lbl = ctk.CTkLabel(hdr, text=t("cdemo_sub"),
+                                     font=T.font(T.FONT_SM),
+                                     text_color=T.TEXT_SEC)
+        self._sub_lbl.pack(side="left", padx=6)
         # TEXT_SEC y no TEXT_DIM: a un metro de la pantalla el gris
         # oscuro sobre fondo oscuro no se lee.
         self._kiosk_lbl = ctk.CTkLabel(hdr, text=t("kiosk_enter_hint"),
@@ -155,16 +171,16 @@ class CountingDemoScreen(ctk.CTkFrame):
         ctk.CTkButton(ctrl, text="‹", width=48, height=40,
                       font=T.bold(T.FONT_LG), fg_color=T.BG_INPUT,
                       text_color=T.TEXT_PRI,
-                      command=lambda: self._saltar(-1)).pack(side="left", padx=3)
+                      command=lambda: self._on_saltar(-1)).pack(side="left", padx=3)
         self._auto_btn = ctk.CTkButton(
             ctrl, text=t("cdemo_auto_on"), height=40, corner_radius=10,
             font=T.bold(T.FONT_SM), fg_color=T.ACCENT2, text_color="#000",
-            command=self._toggle_auto)
+            command=self._on_auto_click)
         self._auto_btn.pack(side="left", expand=True, fill="x", padx=3)
         ctk.CTkButton(ctrl, text="›", width=48, height=40,
                       font=T.bold(T.FONT_LG), fg_color=T.BG_INPUT,
                       text_color=T.TEXT_PRI,
-                      command=lambda: self._saltar(1)).pack(side="left", padx=3)
+                      command=lambda: self._on_saltar(1)).pack(side="left", padx=3)
 
         self._barra = ctk.CTkProgressBar(der, height=4,
                                          progress_color=T.ACCENT2)
@@ -178,6 +194,7 @@ class CountingDemoScreen(ctk.CTkFrame):
 
     # ── ciclo de vida ─────────────────────────────────────────────────────
     def on_show(self) -> None:
+        self._touch()          # entrar cuenta como tocar
         self._ultimo = time.perf_counter()
         if not self._running:
             self._running = True
@@ -221,6 +238,54 @@ class CountingDemoScreen(ctk.CTkFrame):
     def _saltar(self, paso: int) -> None:
         self._idx = (self._idx + paso) % len(SCENES)
         self._aplicar_metodo(SCENES[self._idx])
+
+    # ── inactividad ───────────────────────────────────────────────────
+    def _on_saltar(self, paso: int) -> None:
+        """Los botones. `_saltar` la usa tambien el bucle al avanzar."""
+        self._touch()
+        self._saltar(paso)
+
+    def _on_auto_click(self) -> None:
+        """El boton. `_toggle_auto` la usa tambien la vuelta sola."""
+        self._touch()
+        self._toggle_auto()
+
+    def _touch(self) -> None:
+        """Marca que acaba de tocar una PERSONA, y solo eso."""
+        self._last_touch = time.time()
+
+    def _idle_tick(self) -> None:
+        if self._idle_seconds <= 0:
+            return
+        if time.time() - self._last_touch < self._idle_seconds:
+            return
+        self._last_touch = time.time()
+        if self._auto:
+            return                      # ya sigue solo
+        self._vueltas_solas += 1
+        self._toggle_auto()             # vuelve a avanzar solo
+        self._aviso(t("cdemo_idle_back"))
+
+    def _aviso(self, texto: str) -> None:
+        if self._aviso_job is not None:
+            try:
+                self.after_cancel(self._aviso_job)
+            except Exception:
+                pass
+            self._aviso_job = None
+        else:
+            self._sub_previo = (self._sub_lbl.cget("text"),
+                                self._sub_lbl.cget("text_color"))
+        self._sub_lbl.configure(text=texto, text_color=T.ACCENT2)
+        self._aviso_job = self.after(int(_AVISO_S * 1000), self._quitar_aviso)
+
+    def _quitar_aviso(self) -> None:
+        self._aviso_job = None
+        if self._sub_previo is None or not self.winfo_exists():
+            return
+        texto, color = self._sub_previo
+        self._sub_previo = None
+        self._sub_lbl.configure(text=texto, text_color=color)
 
     def _toggle_auto(self) -> None:
         self._auto = not self._auto
@@ -275,6 +340,7 @@ class CountingDemoScreen(ctk.CTkFrame):
                     extra = t("cdemo_esperado", lo=lo, hi=hi)
             self._detalle_lbl.configure(text=extra)
 
+        self._idle_tick()
         self._t_metodo += dt
         self._barra.set(min(1.0, self._t_metodo / _SEGUNDOS_POR_METODO))
         if self._auto and self._t_metodo >= _SEGUNDOS_POR_METODO:

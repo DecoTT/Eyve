@@ -66,6 +66,13 @@ _AUTO_MIN, _AUTO_MAX = 11.0, 18.0
 #: defectos automáticos antes de limpiar la tela
 _AUTO_MAX_DEFECTS = 4
 
+#: cuanto aguanta sin que nadie toque antes de volverse sola al modo
+#: automatico con la tela limpia.  Si el ultimo visitante deja la tela
+#: llena de garabatos, el siguiente se encuentra un desastre.
+_INACTIVIDAD_S = 180.0
+#: cuanto se queda en pantalla el aviso de la vuelta
+_AVISO_S = 6.0
+
 _W, _H = 960, 540
 
 
@@ -120,6 +127,14 @@ class DemoScreen(ctk.CTkFrame):
         self._auto_placed = 0
         # calibración del módulo Patrón
         self._cal_left = 0
+        # ── vuelta sola por inactividad ──────────────────────────────
+        #: cuando toco una PERSONA por ultima vez
+        self._last_touch = time.time()
+        self._idle_seconds = _INACTIVIDAD_S
+        self._aviso_job: Optional[str] = None
+        self._hint_previo: Optional[tuple[str, str]] = None
+        #: cuantas veces se ha vuelto sola, para las pruebas
+        self._vueltas_solas = 0
 
         self._build()
 
@@ -284,7 +299,7 @@ class DemoScreen(ctk.CTkFrame):
         ctrl.grid(row=4, column=0, sticky="ew", padx=12, pady=(6, 2))
         ctk.CTkButton(ctrl, text=t("demo_clear"), height=36, corner_radius=10,
                       font=T.bold(T.FONT_SM), fg_color=T.BG_INPUT,
-                      text_color=T.TEXT_PRI, command=self.reset_demo).pack(
+                      text_color=T.TEXT_PRI, command=self._on_clear_click).pack(
             side="left", expand=True, fill="x", padx=3)
         self._pause_btn = ctk.CTkButton(
             ctrl, text=t("demo_pause"), height=36, corner_radius=10,
@@ -330,6 +345,7 @@ class DemoScreen(ctk.CTkFrame):
 
     # ── ciclo de vida ─────────────────────────────────────────────────────
     def on_show(self) -> None:
+        self._touch()          # entrar cuenta como tocar
         self._source.start()
         if self._worker is None and not self._worker_loading:
             self._load_model()
@@ -396,6 +412,7 @@ class DemoScreen(ctk.CTkFrame):
 
     # ── herramientas del lienzo ───────────────────────────────────────────
     def _set_tool(self, cls: str) -> None:
+        self._touch()
         self._tool = cls
         for c, btn in self._tool_btns.items():
             btn.configure(border_width=3 if c == cls else 0,
@@ -451,6 +468,7 @@ class DemoScreen(ctk.CTkFrame):
         self._last_pt = fab
 
     def _on_release(self, _event) -> None:
+        self._touch()
         if self._drawing:
             self._pattern.end_stroke()
             if not self._pausa_previa:
@@ -479,14 +497,76 @@ class DemoScreen(ctk.CTkFrame):
             self._pattern.ink_starved(fx, fy, size=self._rng.randint(120, 200),
                                       severity=self._rng.uniform(0.5, 1.0))
 
+    # ── inactividad ───────────────────────────────────────────────────────
+    def _touch(self) -> None:
+        """
+        Marca que acaba de tocar una PERSONA.
+
+        Se llama desde los manejadores de la interfaz y de ningun otro
+        sitio.  En particular NO se llama desde `_auto_tick`: si el modo
+        automatico contara como tocar, el stand vacio no se limpiaria
+        nunca, que es justo lo que esto viene a arreglar.
+        """
+        self._last_touch = time.time()
+
+    def _idle_tick(self) -> None:
+        if self._idle_seconds <= 0:
+            return
+        if time.time() - self._last_touch < self._idle_seconds:
+            return
+        # El reloj se reinicia aunque no haya nada que hacer, o se
+        # intentaria la vuelta en cada frame una vez pasado el plazo.
+        self._last_touch = time.time()
+        if self._auto and not self._pattern.defects:
+            return                      # ya esta como debe quedar
+        self._volver_a_automatico()
+
+    def _volver_a_automatico(self) -> None:
+        """Tela limpia, contadores a cero y el automático otra vez."""
+        self._vueltas_solas += 1
+        self.reset_demo()
+        if not self._auto:
+            self._auto = True
+            self._auto_next = time.time() + 2.0
+            self._refresh_auto_label()
+        # Visible, no un salto brusco: la tela se vacia sola y sin aviso
+        # parece que la demo se colgo.
+        self._aviso(t("demo_idle_back"))
+        log.info("Demo: vuelta sola a modo automatico por inactividad")
+
+    def _aviso(self, texto: str) -> None:
+        """Mensaje breve en la cabecera, que se borra solo."""
+        if self._aviso_job is not None:
+            try:
+                self.after_cancel(self._aviso_job)
+            except Exception:
+                pass
+            self._aviso_job = None
+        else:
+            # solo se guarda el texto de verdad, no otro aviso
+            self._hint_previo = (self._hint.cget("text"),
+                                 self._hint.cget("text_color"))
+        self._hint.configure(text=texto, text_color=T.ACCENT2)
+        self._aviso_job = self.after(int(_AVISO_S * 1000), self._quitar_aviso)
+
+    def _quitar_aviso(self) -> None:
+        self._aviso_job = None
+        if self._hint_previo is None or not self.winfo_exists():
+            return
+        texto, color = self._hint_previo
+        self._hint_previo = None
+        self._hint.configure(text=texto, text_color=color)
+
     # ── modo automático ───────────────────────────────────────────────────
     def _hand_over(self) -> None:
         """Alguien tocó: a partir de aquí manda la persona, no el automático."""
+        self._touch()
         if self._auto:
             self._auto = False
             self._refresh_auto_label()
 
     def _toggle_auto(self) -> None:
+        self._touch()
         self._auto = not self._auto
         if self._auto:
             self._auto_next = time.time() + 2.0
@@ -530,6 +610,11 @@ class DemoScreen(ctk.CTkFrame):
             self._paint_fault(self._rng.choice(PRINT_FAULTS), fx, fy)
 
     # ── controles ─────────────────────────────────────────────────────────
+    def _on_clear_click(self) -> None:
+        """El boton. `reset_demo` tambien la llama la vuelta automatica."""
+        self._touch()
+        self.reset_demo()
+
     def reset_demo(self) -> None:
         self._pattern.clear_defects()
         self._tracker.reset()
@@ -542,19 +627,23 @@ class DemoScreen(ctk.CTkFrame):
         self._pat_lbl.configure(text="—")
 
     def _reset_counting(self) -> None:
+        self._touch()
         self._counting.reset()
         self._count_total = -1
         self._refresh_count_label()
 
     def _toggle_pause(self) -> None:
+        self._touch()
         self._source.set_paused(not self._source.paused)
         self._pause_btn.configure(
             text=t("demo_resume") if self._source.paused else t("demo_pause"))
 
     def _on_speed(self, value: float) -> None:
+        self._touch()
         self._source.set_speed(float(value))
 
     def _on_count_method(self, label: str) -> None:
+        self._touch()
         key = next((k for k in CountingModule.METHODS
                     if t("count_m_" + k) == label), None)
         if key is None:
@@ -583,12 +672,14 @@ class DemoScreen(ctk.CTkFrame):
         self._start_calibration()
 
     def _on_motif(self, label: str) -> None:
+        self._touch()
         key = next((m for m in MOTIFS if t("motif_" + m) == label), None)
         if key:
             self._rebuild_fabric(key, self._pattern.weave)
             self._motif.set(t("motif_" + key))
 
     def _on_weave(self, label: str) -> None:
+        self._touch()
         key = next((w for w in WEAVES if t("weave_" + w) == label), None)
         if key:
             self._rebuild_fabric(self._pattern.motif, key)
@@ -607,6 +698,7 @@ class DemoScreen(ctk.CTkFrame):
                     text=t("demo_calibrating") if self._cal_left else "")
             else:
                 self._auto_tick()
+                self._idle_tick()
             self._view = self._paint(self._draw_canvas, frame, "_photo_canvas")
             annotated = self._inspect(frame)
             self._paint(self._eyve_canvas, annotated, "_photo_eyve")
