@@ -75,6 +75,7 @@ def _point_in_rect(p, rect) -> bool:
 
 class CountingModule(InspectionModule):
     name = "Conteo"
+    key = "counting"
 
     #: internal method keys (the UI translates them via i18n: count_m_<key>)
     METHODS = ("screen", "line", "zone", "appear", "disappear")
@@ -116,6 +117,46 @@ class CountingModule(InspectionModule):
         self._frame_wh: Optional[Tuple[int, int]] = None
 
     # ── configuration ─────────────────────────────────────────────────────
+    # ── configuracion guardable (jobs) ────────────────────────────────────
+    def config(self) -> dict:
+        d = super().config()
+        d.update(
+            method=self.method,
+            line=list(self.line) if self.line else None,
+            zone=list(self.zone) if self.zone else None,
+            direction=self.direction,
+            zone_trigger=self.zone_trigger,
+            edge=self.edge,
+            expect_min=self.expect_min,
+            expect_max=self.expect_max,
+            # Con que encuadre se dibujo la geometria. La linea y la zona
+            # van en coordenadas del frame, asi que si la camara cambia
+            # de resolucion dejan de caer donde el operador las puso.
+            # Guardarlo permite avisar en vez de inspeccionar mal.
+            frame_wh=list(self._frame_wh) if self._frame_wh else None,
+        )
+        return d
+
+    def apply_config(self, cfg: dict) -> None:
+        super().apply_config(cfg)
+        if cfg.get("method") in self.METHODS:
+            self.set_method(cfg["method"])
+        self.line = tuple(cfg["line"]) if cfg.get("line") else None
+        self.zone = tuple(cfg["zone"]) if cfg.get("zone") else None
+        if cfg.get("direction") in self.DIRECTIONS:
+            self.direction = cfg["direction"]
+        if cfg.get("zone_trigger") in self.ZONE_TRIGGERS:
+            self.zone_trigger = cfg["zone_trigger"]
+        if cfg.get("edge") in self.EDGES:
+            self.edge = cfg["edge"]
+        self.expect_min = cfg.get("expect_min")
+        self.expect_max = cfg.get("expect_max")
+
+    @property
+    def geometry_frame_wh(self):
+        """Encuadre con el que se dibujo la geometria guardada."""
+        return self._frame_wh
+
     def set_method(self, method: str) -> None:
         """
         Switching method clears the accumulated count: showing a tally that

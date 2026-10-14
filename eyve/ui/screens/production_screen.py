@@ -26,6 +26,8 @@ from eyve.ui import theme as T
 from eyve.i18n import t
 from eyve.inference.detector import YOLOWorker, VideoSource
 from eyve.inference.polarity import PolarityAnalyzer
+from eyve.core import job as J
+from eyve.core.logger import log
 from eyve.inference.tracker import InstanceTracker, RawDetection, TrackerConfig
 from eyve.modules import PolarityModule, CountingModule, PatternModule
 from eyve.production.ok_nok_logic import decide, InspectionStatus, InspectionResult
@@ -136,6 +138,10 @@ class ProductionScreen(ctk.CTkFrame):
         self._polarity = PolarityModule()
         self._counting = CountingModule()
         self._pattern = PatternModule()
+        #: job (SKU) cargado ahora mismo, o None
+        self._job = None
+        #: texto de la marca de agua (job Pro sin licencia Pro), o ""
+        self._wm_text = ""
         self._pat_last = ""
         self._pat_cal_left = 0
         self._mod_last_status = ""     # cache to avoid configure() every frame
@@ -198,6 +204,320 @@ class ProductionScreen(ctk.CTkFrame):
         right.grid(row=0, column=1, sticky="ns", padx=(10, 0))
         self._build_right(right)
 
+    # ── jobs (parametros de produccion por SKU) ───────────────────────────
+    # El proyecto trae el modelo y las clases; el job trae COMO se inspecciona
+    # esa pieza: que modulos van encendidos, con que metodo, donde esta la
+    # linea de conteo, con que sensibilidad mira el Patron. Varios SKU
+    # comparten proyecto y modelo, y cada uno tiene su job.
+
+    def _modulos(self):
+        return [self._polarity, self._counting, self._pattern]
+
+    def _jobs_dir(self):
+        """
+        La carpeta de jobs del proyecto abierto, o None.
+
+        Defensivo a propósito: esto se llama al CONSTRUIR la pantalla, y un
+        proyecto a medias —o un objeto que sólo se parece a uno— no puede
+        tirar Producción abajo entera por no poder listar los jobs.
+        """
+        proj = self._app.get_project() if self._app else None
+        paths = getattr(proj, "paths", None)
+        return getattr(paths, "jobs", None)
+
+    def _build_job_bar(self, parent) -> None:
+        ctk.CTkLabel(parent, text=t("job_section"),
+                     font=T.bold(T.FONT_SM), text_color=T.TEXT_SEC).pack(
+            padx=12, anchor="w", pady=(6, 0))
+        row = ctk.CTkFrame(parent, fg_color="transparent")
+        row.pack(fill="x", padx=12, pady=(2, 2))
+        self._job_row = row
+        self._job_menu = ctk.CTkOptionMenu(
+            row, values=[t("job_none")], width=130, height=26,
+            fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
+            dropdown_fg_color=T.BG_CARD, font=T.font(T.FONT_XS),
+            command=self._on_job_selected)
+        self._job_menu.pack(side="left")
+        ctk.CTkButton(row, text=t("job_save"), width=54, height=26,
+                      font=T.font(T.FONT_XS), fg_color=T.BG_INPUT,
+                      text_color=T.TEXT_PRI,
+                      command=self._save_job).pack(side="right", padx=(4, 0))
+        ctk.CTkButton(row, text="+", width=26, height=26,
+                      font=T.bold(T.FONT_XS), fg_color=T.BG_INPUT,
+                      text_color=T.TEXT_PRI,
+                      command=self._toggle_nuevo_job).pack(side="right")
+        # Fila para el nombre, oculta hasta que se pulsa "+". Un campo en
+        # linea y no un dialogo: los modales de eyve/ui/components/dialogs.py
+        # NO llegan a verse en esta pantalla —el CTkToplevel se crea, agarra
+        # el foco y se queda invisible, y ask_string bloquea para siempre—.
+        # Observado tres veces en la app; no se reproduce en aislamiento, asi
+        # que esta sin arreglar (ver HANDOFF_EXPO.md). En produccion, ademas,
+        # un campo en linea estorba menos que un modal.
+        self._job_new_row = ctk.CTkFrame(parent, fg_color="transparent")
+        self._job_new_entry = ctk.CTkEntry(
+            self._job_new_row, width=130, height=26,
+            placeholder_text=t("job_ask_name"), font=T.font(T.FONT_XS),
+            fg_color=T.BG_INPUT, border_color=T.BORDER)
+        self._job_new_entry.pack(side="left")
+        self._job_new_entry.bind("<Return>", lambda e: self._crear_job())
+        self._job_new_entry.bind("<Escape>", lambda e: self._toggle_nuevo_job(False))
+        ctk.CTkButton(self._job_new_row, text=t("job_create"), width=54,
+                      height=26, font=T.font(T.FONT_XS), fg_color=T.ACCENT,
+                      text_color="#000",
+                      command=self._crear_job).pack(side="right", padx=(4, 0))
+
+        #: avisos del job: calibracion vieja, geometria de otro encuadre,
+        #: modulos Pro sin licencia. Vacio = nada que decir.
+        self._job_warn = ctk.CTkLabel(parent, text="", font=T.font(T.FONT_XS),
+                                      text_color=T.WARN, wraplength=220,
+                                      justify="left", anchor="w")
+        self._job_warn.pack(padx=12, anchor="w")
+        self._refresh_job_list()
+
+    def _refresh_job_list(self, seleccionar: str = "") -> None:
+        d = self._jobs_dir()
+        nombres = [j.name for j in J.list_jobs(d)] if d else []
+        self._job_menu.configure(values=[t("job_none")] + nombres)
+        if seleccionar and seleccionar in nombres:
+            self._job_menu.set(seleccionar)
+        elif self._job and self._job.name in nombres:
+            self._job_menu.set(self._job.name)
+        else:
+            self._job_menu.set(t("job_none"))
+
+    def _on_job_selected(self, nombre: str) -> None:
+        if nombre == t("job_none"):
+            self._job = None
+            self._wm_text = ""
+            self._job_warn.configure(text="")
+            return
+        d = self._jobs_dir()
+        job = J.find(d, nombre) if d else None
+        if job is None:
+            return
+        J.apply(job, self._modulos(), self._tracker)
+        self._job = job
+        self._apply_job_to_ui()
+        self._recordar_ultimo_job(nombre)
+        log.info(f"Job cargado: {nombre}")
+
+    def _recordar_ultimo_job(self, nombre: str) -> None:
+        """El ultimo job usado se reabre solo la proxima vez."""
+        proj = self._app.get_project()
+        if proj is None:
+            return
+        try:
+            proj.last_job = nombre
+            proj.save()
+        except Exception:
+            log.debug("no se pudo recordar el ultimo job", exc_info=True)
+
+    def _cargar_ultimo_job(self) -> None:
+        proj = self._app.get_project()
+        nombre = getattr(proj, "last_job", "") if proj else ""
+        if not nombre or self._job is not None:
+            return
+        d = self._jobs_dir()
+        if d and J.find(d, nombre) is not None:
+            self._job_menu.set(nombre)
+            self._on_job_selected(nombre)
+
+    def _capturar_job(self, nombre: str):
+        fuente = {
+            "camera_source": self._cam_index(),
+            "video_path": str(self._prod_video_path or ""),
+            "conf": round(float(self._conf_slider.get()) / 100.0, 2),
+        }
+        return J.capture(self._modulos(), self._tracker, source=fuente,
+                         name=nombre, base=self._job)
+
+    def _cam_index(self) -> int:
+        try:
+            return int(str(self._cam_idx.get()).split()[-1])
+        except (ValueError, IndexError):
+            return 0
+
+    def _save_job(self) -> None:
+        """Guarda encima del job cargado; si no hay, pide nombre."""
+        d = self._jobs_dir()
+        if d is None:
+            self._aviso_job(t("job_need_project"), T.WARN)
+            return
+        if self._job is None:
+            self._toggle_nuevo_job(True)
+            return
+        job = self._capturar_job(self._job.name)
+        job._stem = self._job._stem
+        job.save(d)
+        self._job = job
+        self._refresh_job_list(job.name)
+        self._avisos_del_job()
+        self._aviso_job(t("job_saved", n=job.name), T.ACCENT)
+
+    def _toggle_nuevo_job(self, mostrar=None) -> None:
+        """Enseña u oculta el campo para nombrar un job nuevo."""
+        if mostrar is None:
+            mostrar = not self._job_new_row.winfo_ismapped()
+        if mostrar:
+            self._job_new_row.pack(fill="x", padx=12, pady=(0, 2),
+                                   after=self._job_row)
+            self._job_new_entry.delete(0, "end")
+            self._job_new_entry.focus_set()
+        else:
+            self._job_new_row.pack_forget()
+
+    def _crear_job(self) -> None:
+        d = self._jobs_dir()
+        if d is None:
+            self._aviso_job(t("job_need_project"), T.WARN)
+            return
+        nombre = self._job_new_entry.get().strip()
+        if not nombre:
+            return
+        job = self._capturar_job(nombre)
+        job.save(d)
+        self._job = job
+        self._toggle_nuevo_job(False)
+        self._refresh_job_list(job.name)
+        self._recordar_ultimo_job(job.name)
+        self._avisos_del_job()
+        self._aviso_job(t("job_saved", n=job.name), T.ACCENT)
+
+    def _aviso_job(self, texto: str, color: str) -> None:
+        """
+        Confirmacion breve en el propio panel, no en un dialogo.
+
+        Se borra sola: un aviso que se queda puesto deja de leerse, y en
+        produccion lo que importa es la pieza, no el mensaje.
+        """
+        job = self._job_warn
+        job.configure(text=texto, text_color=color)
+        if getattr(self, "_aviso_job_id", None):
+            try:
+                self.after_cancel(self._aviso_job_id)
+            except Exception:
+                pass
+        self._aviso_job_id = self.after(4000, self._avisos_del_job)
+
+    def _apply_job_to_ui(self) -> None:
+        """
+        Deja los controles mostrando lo que acaba de aplicarse.
+
+        Hace falta porque J.apply() toca los MODULOS, no los widgets: sin
+        esto la pantalla seguiria enseñando los valores viejos mientras la
+        inspeccion corre con los nuevos — que es peor que no cargar nada.
+        .set() en los OptionMenu y los slider NO dispara su command, asi que
+        no se vuelve a aplicar en cascada.
+        """
+        pol, cnt, pat = self._polarity, self._counting, self._pattern
+
+        def poner(menu, valor, validos=None):
+            if valor and (validos is None or valor in validos):
+                menu.set(valor)
+
+        # polaridad
+        self._pol_var.set(bool(pol.enabled))
+        poner(self._pol_class, pol.target_class,
+              list(self._pol_class.cget("values")))
+        poner(self._pol_method, pol.method)
+        poner(self._pol_ref, pol.reference)
+        self._pol_arc.set(float(pol.arc_thickness) * 100.0)
+        self._pol_arc_val.configure(text=f"{int(pol.arc_thickness * 100)}%")
+
+        # conteo
+        self._count_var.set(bool(cnt.enabled))
+        poner(self._count_class, cnt.target_class,
+              list(self._count_class.cget("values")))
+        self._count_method.set(t("count_m_" + cnt.method))
+        self._count_dir.set(t("count_d_" + cnt.direction))
+        self._count_trig.set(t("count_z_" + cnt.zone_trigger))
+        self._count_edge.set(t("count_e_" + cnt.edge))
+        for entry, val in ((self._exp_min, cnt.expect_min),
+                           (self._exp_max, cnt.expect_max)):
+            entry.delete(0, "end")
+            if val is not None:
+                entry.insert(0, str(val))
+
+        # patron
+        self._pat_var.set(bool(pat.enabled))
+        self._pat_method.set(t("pat_m_" + pat.method))
+        self._pat_sens.set(float(pat.sensitivity))
+        self._pat_sens_val.configure(text=str(int(pat.sensitivity)))
+
+        # fuente y umbral
+        if self._job:
+            conf = float(self._job.source.get("conf", 0.5)) * 100.0
+            self._conf_slider.set(conf)
+            self._conf_val.configure(text=f"{int(conf)}%")
+            self._on_conf_change(conf)
+
+        # persistencia del tracker
+        for key, (sl, vlbl, fmt) in getattr(self, "_persist_sliders", {}).items():
+            campo = self._PERSIST_FIELDS[key]
+            v = getattr(self._tracker.config, campo, None)
+            if v is None:
+                continue
+            v = v * 100.0 if key in ("track_iou", "track_conf_min") else v
+            sl.set(v)
+            vlbl.configure(text=fmt(v))
+
+        self._refresh_count_rows()
+        self._avisos_del_job()
+
+    def _avisos_del_job(self) -> None:
+        """
+        Lo que el job no puede arreglar solo y el operador tiene que saber.
+
+        Son tres cosas que, calladas, hacen inspeccionar mal sin que nadie
+        lo note: una calibracion vieja (depende del material y de la luz),
+        una geometria dibujada con otro encuadre, y un modulo Pro que la
+        licencia de esta maquina no cubre.
+        """
+        avisos = []
+        self._wm_text = ""
+        self._job_warn.configure(text_color=T.WARN)
+        if self._job is None:
+            self._job_warn.configure(text="")
+            return
+        if self._job.calibrated_at:
+            avisos.append(t("job_calib_from", d=self._job.calibrated_at[:10]))
+        wh = self._counting.geometry_frame_wh
+        cfg_wh = (self._job.modules.get("counting") or {}).get("frame_wh")
+        if cfg_wh and wh and tuple(cfg_wh) != tuple(wh):
+            avisos.append(t("job_geom_warn", w=cfg_wh[0], h=cfg_wh[1],
+                            cw=wh[0], ch=wh[1]))
+        falta_pro = self._job.pro_modules(self._modulos())
+        if falta_pro and not self._pro_ok:
+            avisos.append(t("job_pro_warn", mods=", ".join(falta_pro)))
+            self._wm_text = t("wm_pro")
+        self._job_warn.configure(text="\n".join(avisos))
+
+    def _draw_watermark(self, img) -> None:
+        """
+        Marca de agua cuando el job usa un modulo Pro y la licencia no lo
+        cubre.  No bloquea —la licencia de Eyve es por honor— pero deja
+        constancia en pantalla de que se esta inspeccionando con una funcion
+        sin licenciar, que es lo que una auditoria tiene que ver.
+        """
+        if not self._wm_text:
+            return
+        try:
+            h, w = img.shape[:2]
+            esc = max(0.5, w / 1400.0)
+            (tw, th), _ = cv2.getTextSize(self._wm_text,
+                                          cv2.FONT_HERSHEY_SIMPLEX, esc, 2)
+            x, y = w - tw - 16, h - 16
+            # sombra primero: sobre una pieza clara el texto blanco solo no
+            # se lee, y una marca que no se lee no sirve de nada
+            cv2.putText(img, self._wm_text, (x + 1, y + 1),
+                        cv2.FONT_HERSHEY_SIMPLEX, esc, (0, 0, 0), 3,
+                        cv2.LINE_AA)
+            cv2.putText(img, self._wm_text, (x, y),
+                        cv2.FONT_HERSHEY_SIMPLEX, esc, (210, 210, 210), 1,
+                        cv2.LINE_AA)
+        except Exception:
+            log.debug("marca de agua no dibujada", exc_info=True)
+
     def _build_right(self, parent) -> None:
         # ── big status display ────────────────────────────────────────────────
         self._status_frame = ctk.CTkFrame(parent, fg_color=T.BG_INPUT,
@@ -224,6 +544,8 @@ class ProductionScreen(ctk.CTkFrame):
                       font=T.font(T.FONT_XS), fg_color="transparent",
                       text_color=T.TEXT_DIM, hover_color=T.BG_INPUT,
                       command=self._reset_counts).pack(side="right")
+
+        self._build_job_bar(parent)
 
         # ── model section ─────────────────────────────────────────────────────
         ctk.CTkLabel(parent, text=t("prod_load_model"),
@@ -1366,6 +1688,7 @@ class ProductionScreen(ctk.CTkFrame):
                         if sh + 16 < fh2 and sw + 16 < fw2:
                             annotated[8:8 + sh, fw2 - sw - 8:fw2 - 8] = small
 
+                    self._draw_watermark(annotated)
                     self._last_result = inspection
                     if self._session:
                         self._session.record(
@@ -1507,6 +1830,8 @@ class ProductionScreen(ctk.CTkFrame):
 
     def on_show(self) -> None:
         """Auto-start camera preview when the user navigates back."""
+        self._refresh_job_list()
+        self._cargar_ultimo_job()
         self.after(100, self._auto_start_preview)
 
     def on_close(self) -> None:

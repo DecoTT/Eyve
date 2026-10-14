@@ -64,6 +64,19 @@ STRINGS = {
     "set_demo_fill":      "Demo: fill the screen",
     "set_demo_fill_hint": "The fabric is generated at 960x540. Off means no upscaling and twice the frame rate; on fills the panel, bigger and slower. At 1920x1080 it makes no difference.",
 
+    # ── jobs (per-SKU production parameters) ─────────────────────────────────
+    "job_section":   "Job (SKU)",
+    "job_none":      "— no job —",
+    "job_save":      "Save",
+    "job_create":    "Create",
+    "job_ask_name":  "Job name (usually the SKU)",
+    "job_saved":     "Job \u201c{n}\u201d saved",
+    "job_need_project": "Open a project before saving a job.",
+    "job_calib_from": "Pattern calibration taken on {d}. Recalibrate if the material or the lighting changed.",
+    "job_geom_warn": "The counting geometry was drawn for a {w}×{h} frame and the camera gives {cw}×{ch}: draw it again.",
+    "job_pro_warn":  "This job uses {mods}, which is Eyve Pro and this licence does not cover it.",
+    "wm_pro":        "Eyve Pro unlicensed",
+
     # ── kiosk mode (full screen for the trade show booth) ────────────────────
     "kiosk_enter_hint": "F11  full screen",
     "kiosk_exit_hint":  "Full screen - press F11 or Esc to exit",

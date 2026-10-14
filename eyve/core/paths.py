@@ -96,6 +96,12 @@ class ProjectPaths:
     def screenshots(self) -> Path:
         return self.production / "screenshots"
 
+    # ── jobs ─────────────────────────────────────────────────────────────────
+    @property
+    def jobs(self) -> Path:
+        """Un YAML por SKU con los parametros de produccion."""
+        return self.root / "jobs"
+
     # ── config files ─────────────────────────────────────────────────────────
     @property
     def project_yaml(self) -> Path:

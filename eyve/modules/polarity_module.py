@@ -21,6 +21,8 @@ from eyve.modules.base import InspectionModule, ModuleVerdict
 
 class PolarityModule(InspectionModule):
     name = "Polaridad"
+    key = "polarity"
+    pro = True
 
     #: analyzer methods surfaced in the UI (subset of PolarityAnalyzer.METHODS)
     METHODS = ("stripe", "auto", "dot", "notch")
@@ -55,6 +57,33 @@ class PolarityModule(InspectionModule):
     @property
     def arc_thickness(self) -> float:
         return self._analyzer.arc_thickness
+
+    # ── configuracion guardable (jobs) ────────────────────────────────────
+    @property
+    def method(self) -> str:
+        return self._analyzer.method
+
+    @property
+    def reference(self) -> str:
+        return self._reference
+
+    def config(self) -> dict:
+        d = super().config()
+        d.update(method=self.method, reference=self._reference,
+                 arc_thickness=float(self.arc_thickness))
+        return d
+
+    def apply_config(self, cfg: dict) -> None:
+        super().apply_config(cfg)
+        if cfg.get("method") in self.METHODS:
+            self.set_method(cfg["method"])
+        if cfg.get("reference") in self.REFERENCES:
+            self.set_reference(cfg["reference"])
+        if cfg.get("arc_thickness") is not None:
+            try:
+                self.set_arc_thickness(float(cfg["arc_thickness"]))
+            except (TypeError, ValueError):
+                pass
 
     def reset(self) -> None:
         if self._reference == "auto":

@@ -74,6 +74,7 @@ _WORK_W = 480
 
 class PatternModule(InspectionModule):
     name = "Patrón"
+    key = "pattern"
 
     #: métodos del módulo:
     #:   periodo     ¿esto se parece a sus vecinos?  No necesita nada.
@@ -146,6 +147,88 @@ class PatternModule(InspectionModule):
         self._angle: float = 0.0
 
     # ── configuración ─────────────────────────────────────────────────────
+    # ── configuracion guardable (jobs) ────────────────────────────────────
+    def config(self) -> dict:
+        d = super().config()
+        d.update(
+            method=self.method,
+            sensitivity=float(self.sensitivity),
+            min_area_pct=float(self.min_area_pct),
+            max_area_pct=float(self.max_area_pct),
+            auto_period=bool(self.auto_period),
+            period=list(self.period) if self.period else None,
+            calib=self.calibration_data(),
+        )
+        return d
+
+    def apply_config(self, cfg: dict) -> None:
+        super().apply_config(cfg)
+        # El metodo PRIMERO: set_method llama a reset() y borraria la
+        # calibracion que se restaura justo despues.
+        if cfg.get("method") in self.METHODS:
+            self.set_method(cfg["method"])
+        for k in ("sensitivity", "min_area_pct", "max_area_pct"):
+            if cfg.get(k) is not None:
+                try:
+                    setattr(self, k, float(cfg[k]))
+                except (TypeError, ValueError):
+                    pass
+        if cfg.get("auto_period") is not None:
+            self.auto_period = bool(cfg["auto_period"])
+        try:
+            self.period = tuple(cfg["period"]) if cfg.get("period") else None
+        except TypeError:
+            # Un periodo mal escrito no debe tirar el resto del job:
+            # mejor estimarlo solo que no aplicar nada.
+            self.period = None
+        self.load_calibration(cfg.get("calib"))
+
+    def calibration_data(self) -> Optional[dict]:
+        """
+        La calibracion como numeros sueltos, o None si no hay.
+
+        La referencia aprendida del metodo "referencia" NO va aqui: es
+        una imagen, y el Job la guarda aparte en un .npy.
+        """
+        if self._baseline is None or self._norm is None:
+            return None
+        return {
+            "baseline": float(self._baseline),
+            "baseline_n": int(self._baseline_n),
+            "norm": [float(self._norm[0]), float(self._norm[1])],
+            "peaks": [float(x) for x in self._cal_peaks],
+            "angle": float(self._angle),
+        }
+
+    def load_calibration(self, d: Optional[dict]) -> bool:
+        """Restaura una calibracion guardada. Devuelve si quedo calibrado."""
+        if not d:
+            return False
+        try:
+            self._baseline = float(d["baseline"])
+            self._baseline_n = int(d.get("baseline_n", 0))
+            n = d["norm"]
+            self._norm = (float(n[0]), float(n[1]))
+            self._cal_peaks = [float(x) for x in d.get("peaks", [])]
+            self._angle = float(d.get("angle", 0.0))
+        except (KeyError, TypeError, ValueError, IndexError):
+            # Una calibracion a medias es peor que ninguna: dejaria el
+            # modulo decidiendo con un piso de ruido inventado.
+            self._baseline = None
+            self._norm = None
+            self._cal_peaks = []
+            return False
+        return True
+
+    @property
+    def reference_image(self):
+        """La referencia aprendida (metodo "referencia"), o None."""
+        return self._ref
+
+    def load_reference_image(self, img, count: int = 1) -> None:
+        self._ref = img
+        self._ref_n = int(count)
+
     def set_method(self, method: str) -> None:
         if method in self.METHODS and method != self.method:
             self.method = method

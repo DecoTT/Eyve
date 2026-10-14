@@ -64,6 +64,19 @@ STRINGS = {
     "set_demo_fill":      "Demo: llenar la pantalla",
     "set_demo_fill_hint": "La tela se genera a 960x540. Apagado no se amplia y la demo va al doble de fps; encendido llena el panel, mas grande y mas lento. En 1920x1080 no cambia nada.",
 
+    # ── jobs (parametros de produccion por SKU) ──────────────────────────────
+    "job_section":   "Job (SKU)",
+    "job_none":      "— sin job —",
+    "job_save":      "Guardar",
+    "job_create":    "Crear",
+    "job_ask_name":  "Nombre del job (normalmente el SKU)",
+    "job_saved":     "Job «{n}» guardado",
+    "job_need_project": "Abre un proyecto antes de guardar un job.",
+    "job_calib_from": "Calibración del Patrón tomada el {d}. Si cambió el material o la luz, recalibra.",
+    "job_geom_warn": "La geometría del conteo se dibujó con un encuadre de {w}×{h} y la cámara da {cw}×{ch}: vuelve a dibujarla.",
+    "job_pro_warn":  "Este job usa {mods}, que es de Eyve Pro y esta licencia no lo cubre.",
+    "wm_pro":        "Eyve Pro sin licencia",
+
     # ── modo kiosco (pantalla completa para el stand) ────────────────────────
     "kiosk_enter_hint": "F11  pantalla completa",
     "kiosk_exit_hint":  "Pantalla completa - pulsa F11 o Esc para salir",

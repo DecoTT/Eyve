@@ -52,6 +52,10 @@ class Project:
     camera_source: int = 0
     classes: list[ClassDef] = field(default_factory=list)
     active_model: Optional[str] = None
+    #: ultimo job (SKU) usado en Produccion. Se reabre solo al volver:
+    #: en una linea se trabaja la misma pieza durante horas y volver a
+    #: elegirla en cada arranque es trabajo para nada.
+    last_job: str = ""
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
     last_modified: str = field(default_factory=lambda: datetime.now().isoformat())
 
@@ -77,6 +81,7 @@ class Project:
         return {
             "name": self.name,
             "target": self.target,
+            "last_job": self.last_job,
             "camera_source": self.camera_source,
             "active_model": self.active_model,
             "created_at": self.created_at,
@@ -203,6 +208,7 @@ def load_project(root: Path) -> Project:
         name=pd.get("name", root.name),
         root=root,
         target=pd.get("target", ""),
+        last_job=pd.get("last_job", ""),
         camera_source=pd.get("camera_source", 0),
         classes=classes,
         active_model=pd.get("active_model"),

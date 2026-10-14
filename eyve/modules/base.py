@@ -57,5 +57,33 @@ class InspectionModule(ABC):
         Returns a ModuleVerdict; ok=False vetoes the frame to NOT_OK.
         """
 
+    # ── configuracion guardable (jobs) ────────────────────────────────────
+    #: Nombre del modulo en el job. Es una CLAVE GUARDADA: cambiarlo deja
+    #: huerfanos los jobs ya escritos, asi que no se toca.
+    key: str = "module"
+
+    #: True si el modulo es de Eyve Pro. El job lo guarda igual aunque la
+    #: licencia no lo permita: perder los parametros por abrir el job en
+    #: una maquina sin Pro seria peor que no poder encenderlo.
+    pro: bool = False
+
+    def config(self) -> dict:
+        """
+        Lo que hay que guardar de este modulo, como datos sueltos.
+
+        Solo tipos que YAML entienda: nada de ndarray ni de objetos. Lo
+        que no quepa aqui (la referencia aprendida del Patron, que es una
+        imagen) lo guarda el Job aparte.
+        """
+        return {"enabled": bool(self.enabled),
+                "target_class": self.target_class}
+
+    def apply_config(self, cfg: dict) -> None:
+        """Deja el modulo como lo describe *cfg*. Nunca lanza."""
+        if "enabled" in cfg:
+            self.enabled = bool(cfg["enabled"])
+        if "target_class" in cfg:
+            self.target_class = cfg["target_class"]
+
     def reset(self) -> None:
         """Clear any learned state (called when production stops)."""
