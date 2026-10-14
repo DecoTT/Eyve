@@ -524,3 +524,87 @@ demo, no un arreglo técnico**, y por eso no se tomó sola.
 El otro camino sería generar la tela a más resolución nativa (ahora se
 puede, cuesta 9.9 ms), pero eso toca el modelo entrenado, la geometría del
 conteo y el coste del módulo Patrón, que crece con los píxeles.
+
+---
+
+## 6. Jobs por SKU (13-oct-2026)
+
+Salió de la expo: *"abro el programa, el proyecto, y en producción debo
+poner todo desde cero"*. Era cierto — nada de Producción se guardaba — y
+había algo peor sin ver.
+
+### Lo que no se guardaba, y lo que se guardaba mal
+
+`project.yaml` sólo tenía `name`, `target`, `camera_source`, `active_model`
+y las fechas. Ni un parámetro de producción.
+
+La excepción eran los cuatro deslizadores de persistencia del tracker, que
+sí persistían... en el config **global de la app**. Ajustarlos para un SKU
+se los cambiaba en silencio a todos los demás SKU y a todos los proyectos.
+Ahora viven en el job.
+
+### Cómo quedó
+
+    <proyecto>/jobs/<SKU>.yaml
+    <proyecto>/jobs/<SKU>.ref.npy    (sólo si el Patrón aprendió referencia)
+
+El proyecto trae el modelo y las clases; el job trae **cómo** se inspecciona
+esa pieza. Varios SKU comparten proyecto y modelo —el caso de los IC, donde
+el modelo va creciendo conforme se entrenan más— y cada uno tiene su job.
+
+El job guarda: fuente y umbral, la persistencia del tracker, qué módulos van
+encendidos, y la configuración de los tres (polaridad, conteo con su
+geometría, patrón con su calibración).
+
+Los módulos ganaron `config()` / `apply_config()`, que es el punto de
+extensión que el docstring de `InspectionModule` ya anticipaba: el job
+guarda un diccionario y no sabe nada de sus internos.
+
+### Cuatro trampas, cada una con su prueba
+
+- **`PatternModule.set_method()` llama a `reset()`, que borra la
+  calibración.** Al aplicar un job hay que poner el método *primero* y
+  restaurar la calibración *después*, o se guarda bien y se carga vacía.
+  Guardarla es lo que más tiempo ahorra: antes había que enseñarle material
+  bueno en cada arranque.
+- **Un SKU real trae puntos, espacios o barras.** `"SKU 1"` y `"SKU/1"`
+  caían en el mismo archivo: dos piezas inspeccionadas con los parámetros
+  de la otra. Ahora se desempata con un sufijo corto.
+- **Un `.npy` de una referencia vieja** que sobreviva a un job que ya no la
+  usa haría comparar contra material que no es el suyo. Se borra al guardar.
+- **La calibración depende del material y de la luz**, así que se guarda con
+  fecha y se avisa. Igual la geometría del conteo, que va en coordenadas del
+  encuadre: si la cámara cambia de resolución, se avisa en vez de
+  inspeccionar mal.
+
+### Licencia y marca de agua
+
+Un job guarda sus módulos Pro aunque la máquina no los cubra —perder los
+parámetros por abrirlo en una Free sería peor que no poder encenderlo— y en
+ese caso aparece una **marca de agua** sobre el vídeo. No bloquea, que la
+licencia es por honor, pero deja constancia de que se está inspeccionando
+con una función sin licenciar.
+
+**Ojo con esto:** significa que un job **sí** puede encender polaridad en
+una máquina sin Pro, cosa que la casilla de la interfaz no permitía. Es un
+aflojamiento deliberado de la puerta, coherente con la política por honor,
+pero es un cambio de comportamiento.
+
+### Pendiente: los diálogos modales no se ven
+
+`eyve/ui/components/dialogs.py` — los cuatro (`show_error`, `show_info`,
+`ask_confirm`, `ask_string`) crean un `CTkToplevel`, llaman a `grab_set()`
+y, en la pantalla de Producción, **la ventana se queda invisible**: existe,
+agarra el foco, y `ask_string` / `ask_confirm` bloquean para siempre porque
+esperan a una ventana que nadie puede cerrar.
+
+Observado tres veces en la app real (dos `CTkToplevel` con `Visible=False`
+y el título todavía sin aplicar). **No se reproduce en aislamiento**: con un
+`mainloop` de verdad, un bucle ocupado a `after(1)` y el mismo *frame* como
+padre, el diálogo aparece bien. Se probaron dos arreglos (`update()` +
+`deiconify()`, y diferirlo con `after`) y **ninguno lo soluciona en la app**,
+así que se revirtieron: no se deja en un componente compartido un cambio que
+no se puede demostrar.
+
+Importa más allá de los jobs: por `ask_string` y `ask_confirm` pasan **crear
+y borrar una categoría**. La barra de job lo esquiva con un campo en línea.
