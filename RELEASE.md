@@ -173,7 +173,7 @@ Checklist de esta versión:
 - [ ] Pendiente de antes, sin hacer: Settings → Licencia… con una llave
       real (necesita una llave de verdad).
 
-## 7. Versión 2.1.2 (pendiente de publicar)
+## 7. Versión 2.1.2 — PUBLICADA (16-oct-2026)
 
 `__version__ = "2.1.2"` y `$Version = "2.1.2"` en `build_release.ps1`. **El
 nombre del asset no cambia**, así que la tienda no se toca: dashboard,
@@ -201,12 +201,24 @@ Checklist de esta versión:
       tocar.
 - [x] Suite completa en verde: 27 de 27, incluida `test_demo_e2e.py`.
 - [x] `main` subido a `origin` (`9b4763b`).
-- [ ] **Falta decidir**: tag `v2.1.2`, push del tag y
-      `gh release create v2.1.2 --latest` con los dos assets.
-- [ ] Después de publicar, y ahora que el actualizador funciona: comprobar
-      el ciclo completo desde una **2.1.1** instalada —que detecte la
-      2.1.2, la instale y conserve `projects/`—. Es lo que no se pudo
-      probar en la 2.1.1, porque la 2.1.0 llevaba dentro el fallo del 415.
+- [x] `main` subido, tag `v2.1.2` subido y release publicado con
+      `gh release create --latest`:
+      <https://github.com/DecoTT/Eyve/releases/tag/v2.1.2>
+- [x] Verificado contra lo PUBLICADO: `latest` es `v2.1.2`, sin borrador ni
+      pre-release, con los dos assets; la URL fija hace
+      `302 → /v2.1.2/ → CDN → 200` y los 273 759 bytes que bajan son
+      **byte a byte** los construidos, con el `SHA256SUMS.txt` publicado
+      cuadrando (`4ca4d54d0520f88f…`).
+- [x] **El actualizador, probado por fin de verdad** — era lo que arrastraba
+      esta lista desde septiembre, imposible hasta ahora porque la 2.1.0
+      llevaba dentro el fallo del 415. Se bajó la **2.1.1 tal como está
+      publicada**, se extrajo en una carpeta limpia y se corrió **su**
+      actualizador: ve la 2.1.2, dice que sí hay actualización y apunta al
+      asset de `/v2.1.2/`. La instalación en sí (descarga, respaldo,
+      reemplazo y conservar `projects/`) no se ejecutó ahí porque
+      reemplazaría la carpeta; la cubre `tests/test_updater.py`.
+- [ ] Queda, para cuando toque: hacer la actualización completa a mano en
+      una máquina de pruebas y confirmar que `projects/` sobrevive.
 
 ### Pendiente conocido, sin arreglar
 
