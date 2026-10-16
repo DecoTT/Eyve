@@ -233,6 +233,39 @@ Lo que de verdad rompía era **abrir Ajustes con Producción corriendo**. La
 nota anterior decía que también bloqueaba crear y borrar una categoría;
 no es cierto: esa pantalla no usa los diálogos.
 
+## 8. Versión 2.1.3
+
+`__version__ = "2.1.3"` y `$Version = "2.1.3"` en `build_release.ps1`. **El
+nombre del asset no cambia**, así que la tienda no se toca: dashboard,
+thank-you y correo siguen apuntando a `releases/latest/download/`.
+
+Una sola cosa, y es la razón de sacarla tan pegada a la 2.1.2: **con
+Producción corriendo no se podía abrir Ajustes**. Ni Ajustes ni ningún otro
+`CTkToplevel` —los cuatro diálogos de `dialogs.py` incluidos—: la ventana se
+creaba, agarraba el foco y se quedaba invisible. La causa no era de Eyve,
+sino del constructor de `CTkToplevel` de CustomTkinter 6.0 en Windows, que
+hace `withdraw()` + `update()`; con `prod_fps_cap: 0` (que es `after(1)`)
+ese `update()` no vuelve nunca y el constructor no termina. Arreglado en
+`eyve/ui/ventanas.py`, que pinta la barra oscura sin esconder la ventana ni
+llamar a `update()`.
+
+Quien tenga la 2.1.2 instalada tiene el fallo. Por eso esta versión.
+
+Checklist de esta versión:
+
+- [x] `eyve/__init__.py` → `__version__ = "2.1.3"`.
+- [x] `Releaseuild_release.ps1` → `$Version = "2.1.3"`; `$AssetName` sin
+      tocar.
+- [x] Suite completa en verde: 28 de 28, con `test_dialogos.py` dentro.
+- [x] Mirado en la app, no sólo en las pruebas: con cámara y modelo reales y
+      Producción a `after(1)`, sin el parche el engrane no abre nada; con él
+      Ajustes sale con su título y la barra oscura.
+- [ ] Tag `v2.1.3`, push del tag y `gh release create v2.1.3 --latest` con
+      los dos assets.
+- [ ] Sigue pendiente de la 2.1.2: la actualización completa a mano en una
+      máquina de pruebas, confirmando que `projects/` sobrevive. Ahora se
+      puede hacer de verdad, porque la 2.1.2 instalada ya sabe actualizarse.
+
 ## Lo que NO hay que hacer
 
 - No poner el ZIP en Mega ni en el bucket público: un enlace suelto no tiene versión ni checksum y hay que reemplazarlo a mano cada vez.
