@@ -173,6 +173,51 @@ Checklist de esta versión:
 - [ ] Pendiente de antes, sin hacer: Settings → Licencia… con una llave
       real (necesita una llave de verdad).
 
+## 7. Versión 2.1.2 (pendiente de publicar)
+
+`__version__ = "2.1.2"` y `$Version = "2.1.2"` en `build_release.ps1`. **El
+nombre del asset no cambia**, así que la tienda no se toca: dashboard,
+thank-you y correo siguen apuntando a `releases/latest/download/`.
+
+Seis commits desde la 2.1.1. Qué entra, de cara al usuario:
+
+- **Jobs por SKU.** Los parámetros de producción —qué módulos van
+  encendidos, con qué método, la geometría del conteo, la sensibilidad y
+  la calibración del Patrón— se guardan por SKU dentro del proyecto
+  (`<proyecto>/jobs/<SKU>.yaml`) y se reabre solo el último usado. Antes
+  había que ponerlo todo de cero en cada arranque.
+- **El módulo Patrón, arreglado en la demo.** No marcaba el fantasma en
+  ningún estampado y en rayas no marcaba nada: el ángulo de la retícula
+  salía mal y la calibración se comía un frame de la tela anterior. Ahora
+  las 12 combinaciones de estampado y fallo se marcan en el 82-99 % de los
+  frames, con 0 falsas alarmas en 2560 frames de tela limpia.
+- **Esconder las demos** (Settings → Apariencia). Las quita del menú y las
+  descarga de memoria; apagado de fábrica.
+
+Checklist de esta versión:
+
+- [x] `eyve/__init__.py` → `__version__ = "2.1.2"`.
+- [x] `Release\build_release.ps1` → `$Version = "2.1.2"`; `$AssetName` sin
+      tocar.
+- [x] Suite completa en verde: 27 de 27, incluida `test_demo_e2e.py`.
+- [x] `main` subido a `origin` (`9b4763b`).
+- [ ] **Falta decidir**: tag `v2.1.2`, push del tag y
+      `gh release create v2.1.2 --latest` con los dos assets.
+- [ ] Después de publicar, y ahora que el actualizador funciona: comprobar
+      el ciclo completo desde una **2.1.1** instalada —que detecte la
+      2.1.2, la instale y conserve `projects/`—. Es lo que no se pudo
+      probar en la 2.1.1, porque la 2.1.0 llevaba dentro el fallo del 415.
+
+### Pendiente conocido, sin arreglar
+
+Los cuatro diálogos modales de `eyve/ui/components/dialogs.py` no llegan a
+verse en la pantalla de Producción: el `CTkToplevel` se crea, agarra el
+foco y se queda invisible, y `ask_string` / `ask_confirm` bloquean para
+siempre. Observado tres veces en la app; no se reproduce en aislamiento, y
+dos intentos de arreglo se revirtieron por no poder demostrarlos. Importa
+porque por ahí pasan **crear y borrar una categoría**. Detalle en
+`HANDOFF_EXPO.md` §6.
+
 ## Lo que NO hay que hacer
 
 - No poner el ZIP en Mega ni en el bucket público: un enlace suelto no tiene versión ni checksum y hay que reemplazarlo a mano cada vez.
