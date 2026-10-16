@@ -163,7 +163,8 @@ print("\n[4b] El fantasma, que era el punto ciego")
 # No era eso. Era que la reticula llega girada a la camara y un
 # desplazamiento de un periodo sobre una reticula girada 1.6 grados deja
 # 1.5 px de deriva — suficiente para enterrar un fallo tenue. Enderezando
-# la reticula antes de analizar, el fantasma sube a 3 de 4.
+# la reticula antes de analizar, el fantasma sube a 3 de 4; y midiendo el
+# angulo y el periodo sin redondear al pixel (16-oct-2026), a 4 de 4.
 n = 0
 for motif in MOTIFS:
     m = calibrado(motif)
@@ -172,19 +173,75 @@ for motif in MOTIFS:
     if m.analyze(p.frame()):
         n += 1
 print(f"        fantasma detectado en {n}/4 estampados")
-check_true("el fantasma ya no es el punto ciego", n >= 3, f"{n}/4")
+check_true("el fantasma ya no es el punto ciego", n >= 4, f"{n}/4")
 
-print("\n[4bb] Estima la inclinacion de la reticula")
-for real in (0.0, 1.6, -4.0, 7.0):
-    mm = PatternModule()
-    mm.enabled = True
-    pp = TextilePattern(width=960, height=540, axis="x", motif="diamantes",
-                        weave="sarga", tilt_deg=real, speed=110.0, seed=5)
-    pp.offset = 350.0
-    mm._prep(pp.frame())
-    check_true(f"inclinacion real {real:+.1f}",
-               abs(abs(mm._angle) - abs(real)) < 1.0,
-               f"estimado {mm._angle:+.2f}")
+print("\n[4ba] Rayas: los tres fallos de impresion")
+# Antes de enderezar bien las rayas, Patron no veia en ellas ni uno.
+for nombre, hacer in (
+        ("fantasma", lambda p, f: p.ghost(*f, size=165)),
+        ("falta tinta", lambda p, f: p.ink_starved(*f, size=160,
+                                                    severity=0.75)),
+        ("offset", lambda p, f: p.misregister(*f, size=170))):
+    n = 0
+    for x, y in ((480, 270), (330, 200), (640, 340)):
+        m = calibrado("rayas")
+        p = tela(motif="rayas")
+        hacer(p, p.screen_to_fabric(x, y))
+        if cubre(m.analyze(p.frame()), (x - 80, y - 60, x + 80, y + 60)):
+            n += 1
+    check_true(f"rayas, {nombre}: en al menos 2 de 3 posiciones", n >= 2,
+               f"{n}/3")
+
+print("\n[4bb] Estima la inclinacion de la reticula, en los 4 estampados")
+# Con precision de decimas, no de grados.  El pico de la autocorrelacion
+# cae entre dos pixeles —1.8 grados a 48 px son 1.5 px— y quedarse con el
+# pixel daba 1.19 o 2.39: medio grado de error, medio pixel de deriva a un
+# periodo —medido a dos periodos, la mitad—, y el fantasma desaparecia (flores y puntos: de 80-85 frames de
+# cada 100 a 0-2).  En rayas era peor: el maximo caia a 6 px sobre la
+# propia raya, salia de 45 grados, se descartaba y no se enderezaba nada.
+for motif in MOTIFS:
+    errores = []
+    for real in (0.0, 1.8, -4.0, 7.0, 0.7, -2.5):
+        for seed in (1, 2):
+            mm = PatternModule()
+            pp = TextilePattern(width=960, height=540, axis="x", motif=motif,
+                                weave="sarga", tilt_deg=real, speed=110.0,
+                                seed=seed)
+            pp.offset = 350.0 + 37 * seed
+            mm._prep(pp.frame())
+            # el modulo devuelve el giro que ENDEREZA: el opuesto
+            errores.append(abs(mm._angle + real))
+    check_true(f"inclinacion de {motif} con error < 0.5 grados",
+               max(errores) < 0.5, f"peor {max(errores):.2f}")
+
+print("\n[4bd] El periodo no lo decide un defecto grande")
+# Con un offset grande en el encuadre la autocorrelacion de los perfiles
+# baja sin parar desde el desfase cero, y el valor mas alto del tramo era
+# la orilla: periodo de 5-6 px en una tela de 48.  La tela entera "no se
+# parecia a si misma" y la region del defecto salia del tamano del frame.
+mm = PatternModule()
+pp = TextilePattern(width=960, height=540, axis="x", motif="diamantes",
+                    weave="sarga", speed=110.0, seed=0)
+pp.offset = 77.0
+pp.misregister(*pp.screen_to_fabric(544, 325), size=145)
+per = mm.estimate_period(mm._prep(pp.frame()))
+check_true("periodo de la tela, no el del defecto",
+           per is not None and 44 <= per[0] <= 52, str(per))
+
+print("\n[4be] Calibrar con la tela EN MOVIMIENTO no infla el piso")
+# Segun por donde pase la tela, el perfil de los diamantes da 47 en vez de
+# 48.  Ese pixel de menos multiplicaba por 13 el pico de ese frame, y como
+# el piso es el MAXIMO de los frames de calibracion, uno solo dejaba el
+# umbral en 4.3 en vez de 0.4: nada tenue se marcaba.
+mm = PatternModule()
+mm.sensitivity = 70.0
+pp = TextilePattern(width=960, height=540, axis="x", motif="diamantes",
+                    weave="sarga", speed=110.0, seed=1)
+for _ in range(30):
+    mm.calibrate(pp.frame())
+    pp.advance(0.07)
+check_true("piso de diamantes calibrado en movimiento < 1.0",
+           mm.baseline < 1.0, f"piso={mm.baseline:.2f}")
 
 print("\n[4bbb] Metodo LAYOUT: dice de que lado esta el error")
 # Mide menos que el metodo periodo (7 de 24 contra 21 de 24 en la misma
@@ -219,6 +276,25 @@ for motif in MOTIFS:
             b.advance(0.2)
 print(f"        {fa}/{tot} falsas alarmas tras calibrar")
 check_true("cero o casi cero falsas alarmas", fa <= tot * 0.03, f"{fa}/{tot}")
+
+print("\n[4d] Y a lo largo de TODO el rollo, no solo junto a la calibracion")
+# Calibrar ve 10 frames; la tela sigue pasando.  Midiendo el angulo solo al
+# pixel, en flores el pico saltaba de un pixel al de al lado segun por
+# donde pasara la tela, y 26 de 128 frames de tela LIMPIA daban falsa
+# alarma en una vuelta al rollo.
+m = PatternModule()
+m.enabled = True
+m.sensitivity = 70.0
+p = TextilePattern(width=960, height=540, axis="x", motif="flores",
+                   weave="sarga", speed=110.0, seed=3)
+for _ in range(10):
+    m.calibrate(p.frame())
+    p.advance(0.07)
+fa = 0
+for _ in range(128):                 # 3840 px de rollo a 30 px por frame
+    fa += bool(m.analyze(p.frame()))
+    p.advance(0.27)
+check("flores: una vuelta entera al rollo sin falsas alarmas", fa, 0)
 
 print("\n[5] Y algo que nadie programo como defecto: un garabato cualquiera")
 p = tela()

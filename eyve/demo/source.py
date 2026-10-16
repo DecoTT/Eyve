@@ -34,6 +34,9 @@ class SyntheticSource:
         self._paused = False
         self._lock = threading.Lock()
         self._thread: Optional[threading.Thread] = None
+        #: sube con cada refresh(); el hilo descarta el frame que estaba
+        #: renderizando si la tela cambio mientras tanto
+        self._gen = 0
 
     # ── interfaz de VideoSource ───────────────────────────────────────────
     def start(self) -> bool:
@@ -58,6 +61,22 @@ class SyntheticSource:
     def read(self) -> Optional[np.ndarray]:
         with self._lock:
             return self._frame.copy() if self._frame is not None else None
+
+    def refresh(self) -> None:
+        """
+        Rehace el frame YA, con la tela tal como esta ahora.
+
+        Hace falta tras cambiar `pattern` o limpiar sus defectos: sin esto
+        el siguiente read() devuelve el ultimo frame del hilo, que es de la
+        tela de ANTES.  Medido en la demo: la calibracion del modulo Patron
+        se comia ese frame viejo —diamantes calibrando puntos, o la tela
+        con defectos al empezar de cero— y el umbral salia de 2 a 9, con lo
+        que no marcaba ni un offset.
+        """
+        frame = self.pattern.frame()
+        with self._lock:
+            self._gen += 1
+            self._frame = frame
 
     # ── control de la demo ────────────────────────────────────────────────
     @property
@@ -85,11 +104,16 @@ class SyntheticSource:
             last = now
             # dt acotado: tras un congelamiento de la UI, un dt enorme
             # haría saltar la tela media vuelta de golpe
+            with self._lock:
+                gen = self._gen
             if not self._paused:
                 self.pattern.advance(min(dt, 0.2))
             frame = self.pattern.frame()
             with self._lock:
-                self._frame = frame
+                # si refresh() entro mientras se renderizaba, este frame es
+                # de la tela vieja: el de refresh() ya es el bueno
+                if gen == self._gen:
+                    self._frame = frame
             slack = period - (time.perf_counter() - now)
             if slack > 0:
                 time.sleep(slack)

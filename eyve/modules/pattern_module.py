@@ -47,11 +47,12 @@ Limitaciones, dichas de frente:
     encuadre la referencia robusta se degrada y empieza a marcar de más.
     Para material así de malo la respuesta no es afinar el umbral: es que
     la línea ya está fuera de control y hay que pararla.
-  - es ciego al FANTASMA tenue, y por construcción: compara el patrón
-    contra copias desplazadas de sí mismo, y un fantasma es justamente una
-    copia desplazada del patrón.  Medido, puntúa entre 0.93x y 1.03x del
-    ruido del propio material.  Para ese fallo sirven el método de
-    referencia o una clase entrenada.
+  - el FANTASMA tenue es lo que más le cuesta: compara el patrón contra
+    copias desplazadas de sí mismo, y un fantasma es justamente una copia
+    desplazada del patrón.  Se ve solo si la retícula queda bien
+    enderezada: medio grado de error en el ángulo, o un píxel en el
+    periodo, dejan un residuo que lo entierra.  Medido en la demo (16-oct):
+    se marca en los 4 estampados, en 82-97 de cada 100 frames.
 """
 from __future__ import annotations
 
@@ -376,7 +377,19 @@ class PatternModule(InspectionModule):
         if hi <= lo:
             return None
         seg = ac[lo:hi]
-        k = int(np.argmax(seg))
+        # Solo maximos LOCALES.  Con un defecto grande en el encuadre la
+        # autocorrelacion baja sin parar desde el desfase cero —el defecto
+        # es una mancha de baja frecuencia— y el valor mas alto del tramo
+        # era su orilla, lo: periodo de 6 px en una tela de 48.  Comparada
+        # contra si misma corrida 6 px, la tela entera "no se parecia" y la
+        # region del defecto salia del tamano del frame.
+        if len(seg) < 3:
+            return None
+        pico = (seg[1:-1] > seg[:-2]) & (seg[1:-1] >= seg[2:])
+        cand = np.nonzero(pico)[0] + 1
+        if cand.size == 0:
+            return None
+        k = int(cand[np.argmax(seg[cand])])
         # un pico flojo significa que el material no se repite de verdad
         if seg[k] < 0.25:
             return None
@@ -401,23 +414,92 @@ class PatternModule(InspectionModule):
         ac = np.fft.irfft2(F * np.conj(F), x.shape)
         ac = np.fft.fftshift(ac)
         cy, cx = h // 2, w // 2
-        r = min(h, w) // 3
+        # Media imagen y no un tercio: hace falta que quepa el SEGUNDO pico
+        # de la reticula (ver el brazo largo, abajo).
+        r = min(h, w) // 2
         ventana = ac[max(0, cy - r):cy + r, max(0, cx - r):cx + r].copy()
         vy, vx = ventana.shape
         oy, ox = vy // 2, vx // 2
-        # tapar el centro: el pico de lag cero no dice nada
+        # Tapar el centro: el pico de lag cero no dice nada, y tampoco sus
+        # alrededores.  Antes se tapaban 6 px y en rayas diagonales el
+        # maximo caia ahi mismo, a 5-7 px sobre la propia raya: el angulo
+        # salia de 45 grados, se descartaba por pasar de 30, la tela no se
+        # enderezaba y Patron no veia NI UN fallo en rayas.  A 20 px o mas
+        # el pico mas fuerte de las rayas es el de la reticula sobre el
+        # eje, igual que en los demas estampados; y a esa distancia un
+        # pixel son 3 grados y no 9.  Un periodo mas corto no se pierde:
+        # su segundo o tercer pico ya cae fuera de lo tapado.
         yy, xx = np.ogrid[:vy, :vx]
         d2 = (yy - oy) ** 2 + (xx - ox) ** 2
-        ventana[d2 < 36] = -np.inf
+        tapa = min(20, r // 2)
+        ventana[d2 < tapa * tapa] = -np.inf
         k = int(np.argmax(ventana))
         py_, px_ = divmod(k, vx)
-        dy, dx = py_ - oy, px_ - ox
-        if dx == 0 and dy == 0:
+        if px_ == ox and py_ == oy:
             return 0.0
-        ang = np.degrees(np.arctan2(dy, dx))
+
+        # Brazo largo: el angulo se mide en el pico de DOS o mas periodos,
+        # si cabe.  Con la reticula girada 1.8 grados, el pico a 48 px cae
+        # entre dos pixeles (1.5 px), y quedarse con uno daba 1.19 o 2.39
+        # grados: medio grado de error, medio pixel de deriva a un periodo,
+        # y eso basta para enterrar un fantasma (flores y puntos: de 80-85
+        # frames de cada 100 con el angulo exacto, a 0-2).  El error de
+        # ubicar un pico es de pixeles, no de grados, asi que medirlo el
+        # doble de lejos lo divide entre dos.
+        n = int((min(oy, ox) - 3) // max(1.0, math.hypot(px_ - ox, py_ - oy)))
+        if n >= 2:
+            ty, tx = oy + (py_ - oy) * n, ox + (px_ - ox) * n
+            m = 2 + n
+            y0, x0 = max(0, ty - m), max(0, tx - m)
+            zona = ventana[y0:ty + m + 1, x0:tx + m + 1]
+            if zona.size:
+                j = int(np.argmax(zona))
+                zy, zx = divmod(j, zona.shape[1])
+                # solo si de verdad es otro pico de la reticula
+                if zona[zy, zx] >= 0.6 * ventana[py_, px_]:
+                    py_, px_ = y0 + zy, x0 + zx
+
+        # Y ademas subpixel.  Sin esto el pico salta de un pixel al de al
+        # lado segun por donde pase la tela, el angulo con el, y el residuo
+        # de la tela buena cambia de un frame a otro: medido en flores, 26
+        # de 128 frames de tela LIMPIA daban falsa alarma a lo largo del
+        # rollo.  Con el ajuste, cero.  (A cambio el fantasma en flores
+        # baja de 91 a 48 de cada 100 frames sin interfaz; en la pantalla
+        # se sigue marcando: ver HANDOFF_EXPO §7.)
+        fy, fx = float(py_), float(px_)
+        if 0 < py_ < vy - 1 and 0 < px_ < vx - 1:
+            c = ventana[py_ - 1:py_ + 2, px_ - 1:px_ + 2]
+            if np.isfinite(c).all():
+                ox_, oy_ = PatternModule._subpixel(c)
+                fx += ox_
+                fy += oy_
+        dy, dx = fy - oy, fx - ox
+        ang = float(np.degrees(np.arctan2(dy, dx)))
         # llevar a la familia de ejes mas cercana (cada 90 grados)
         ang = (ang + 45.0) % 90.0 - 45.0
-        return float(ang) if abs(ang) <= 30.0 else 0.0
+        return ang if abs(ang) <= 30.0 else 0.0
+
+    @staticmethod
+    def _subpixel(c: np.ndarray) -> Tuple[float, float]:
+        """
+        Donde esta de verdad el maximo de un vecindario 3x3, en -1..1 px.
+
+        Cuadratica en 2D, con el termino cruzado: un pico estirado en
+        diagonal —el de una raya— no tiene el maximo de cada fila en la
+        misma columna, y ajustar x e y por separado lo corria.  Si el
+        vecindario no es un maximo no se refina.
+        """
+        gx = (c[1, 2] - c[1, 0]) / 2.0
+        gy = (c[2, 1] - c[0, 1]) / 2.0
+        hxx = c[1, 2] - 2.0 * c[1, 1] + c[1, 0]
+        hyy = c[2, 1] - 2.0 * c[1, 1] + c[0, 1]
+        hxy = (c[2, 2] - c[0, 2] - c[2, 0] + c[0, 0]) / 4.0
+        det = hxx * hyy - hxy * hxy
+        if hxx >= 0 or det <= 0:
+            return 0.0, 0.0
+        ox_ = -(hyy * gx - hxy * gy) / det
+        oy_ = -(hxx * gy - hxy * gx) / det
+        return (float(np.clip(ox_, -1.0, 1.0)), float(np.clip(oy_, -1.0, 1.0)))
 
     def estimate_period(self, g: np.ndarray) -> Optional[Tuple[int, int]]:
         """
@@ -436,7 +518,36 @@ class PatternModule(InspectionModule):
         # si solo un eje se repite (rayas), se usa ese en los dos
         px = px or py
         py = py or px
-        return int(px), int(py)
+        return (self._refine(g, int(px), 1, lo),
+                self._refine(g, int(py), 0, lo))
+
+    @staticmethod
+    def _refine(g: np.ndarray, p: int, eje: int, lo: int = 2) -> int:
+        """
+        El periodo entero que MEJOR calza, entre p-1, p y p+1.
+
+        El perfil proyectado se equivoca hasta medio pixel segun por donde
+        pase la tela: en diamantes salia 47 en un frame de cada cuatro con
+        el periodo real en 48.  Con la reticula ya enderezada, ese pixel de
+        mas o de menos es todo el residuo que queda — medido, el pico de
+        ese frame salia 13 veces mas alto que el de los demas, y como el
+        piso de la calibracion es el MAXIMO, uno solo dejaba el umbral de
+        los diamantes en 4.3.  Aqui se compara la imagen contra si misma
+        corrida cada candidato, que es justo lo que va a hacer el analisis,
+        y se queda el que menos difiere.
+        """
+        n = g.shape[eje]
+        mejor, mejor_d = p, None
+        for c in (p - 1, p, p + 1):
+            if c < max(2, lo) or c >= n // 2:
+                continue
+            if eje == 1:
+                d = float(np.mean(np.abs(g[:, c:] - g[:, :-c])))
+            else:
+                d = float(np.mean(np.abs(g[c:] - g[:-c])))
+            if mejor_d is None or d < mejor_d:
+                mejor, mejor_d = c, d
+        return mejor
 
     # ── análisis ──────────────────────────────────────────────────────────
     def _local_energy(self, frame: np.ndarray) -> Optional[np.ndarray]:

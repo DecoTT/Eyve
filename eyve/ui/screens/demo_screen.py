@@ -429,6 +429,11 @@ class DemoScreen(ctk.CTkFrame):
         """
         self._patternmod.clear_calibration()
         self._cal_left = frames
+        # El primer frame de calibracion tiene que ser de ESTA tela: el que
+        # tiene guardado la fuente puede ser del estampado anterior o de la
+        # tela con defectos de antes de limpiar.  Uno solo basta para
+        # arruinarla, porque el piso es el MAXIMO de los frames vistos.
+        self._source.refresh()
 
     # ── herramientas del lienzo ───────────────────────────────────────────
     def _set_tool(self, cls: str) -> None:
@@ -645,6 +650,10 @@ class DemoScreen(ctk.CTkFrame):
         self._refresh_count_label()
         self._yolo_lbl.configure(text="—")
         self._pat_lbl.configure(text="—")
+        # Olvidar el ultimo resumen junto con la etiqueta: si no, el
+        # siguiente sale igual al de antes ("sin anomalias"), no se repinta
+        # y la etiqueta se queda en la raya para siempre.
+        self._pat_last = ""
 
     def empezar_de_cero(self) -> None:
         """

@@ -55,7 +55,7 @@ Verificado: YOLO no reclama ninguno de los tres.
 |---|---|
 | Modelo demo | mAP50 **0.981** (900 frames, 40 épocas, 2 clases) |
 | Tejido vs YOLO | recall **98.9 %** idéntico en los 5 ligamentos — no le cuesta |
-| Patrón, detección | rayón 4/4 · offset 4/4 · mancha 4/4 · falta de tinta 3/4 · fantasma 3/4 |
+| Patrón, detección | rayón 4/4 · offset 4/4 · mancha 4/4 · falta de tinta 4/4 · fantasma 4/4 (ver §7) |
 | Patrón, falsas alarmas | **0** en 64 frames de material bueno, tras calibrar |
 | Escenas de conteo | cruce 16/16 · zona 16/16 · desaparecer 16/16 · aparecer 19→17 |
 
@@ -66,8 +66,8 @@ Verificado: YOLO no reclama ninguno de los tres.
   Contar las *visibles ahora* sí es fiable, y la demo arranca ahí. El camino
   no agotado: estabilizar las regiones temporalmente siguiendo el movimiento
   del material, en vez de parchear el conteo aguas abajo.
-- **El fantasma se detecta en 2-3 de los 4 estampados.** Para enseñarlo, usar
-  flores o puntos.
+- ~~El fantasma se detecta en 2-3 de los 4 estampados.~~ Desde el 16-oct se
+  marca en los 4, también en la pantalla de demo (ver §7).
 - El módulo Patrón se apoya en que la mayor parte del encuadre sea material
   sano. Pasado un tercio de área anómala la referencia se degrada.
 
@@ -608,3 +608,57 @@ no se puede demostrar.
 
 Importa más allá de los jobs: por `ask_string` y `ask_confirm` pasan **crear
 y borrar una categoría**. La barra de job lo esquiva con un campo en línea.
+
+---
+
+## 7. Patrón en la demo: lo que salió al grabar el tutorial (16-oct-2026)
+
+Grabando el video de Patrón con `grabar_eyve.py` salieron tres fallos. Los
+tres tenían causa concreta, y ninguna era la que parecía.
+
+| Lo que se veía | La causa |
+|---|---|
+| La etiqueta de Patrón se queda en «—» tras limpiar o cambiar material | `reset_demo()` pintaba la raya pero no olvidaba `_pat_last`; el siguiente resumen era igual al anterior y no se repintaba |
+| Tras cambiar de estampado Patrón no marca casi nada (en puntos, **ni un offset**) | La calibración se comía el último frame de la tela ANTERIOR, que la fuente aún tenía guardado. El piso es el MÁXIMO de los frames: uno solo subía el umbral de 2 a 9. Lo mismo al «empezar de cero» con defectos en el frame. `SyntheticSource.refresh()` |
+| El fantasma no se marca en diamantes, flores ni puntos | El ángulo de la retícula salía al píxel (1.8° → 1.19° o 2.39°): medio píxel de deriva a un periodo. Ahora se mide en el pico de DOS periodos, con ajuste subpíxel (sin el subpíxel, flores daba falsas alarmas en 26 de 128 frames de tela limpia) |
+| En rayas Patrón no ve **nada** | El pico de la autocorrelación caía a 6 px sobre la propia raya: ángulo de 45°, descartado, sin enderezar |
+| (al bajar el piso aparecieron dos más) | El periodo por perfil salía 47 en uno de cada cuatro frames de diamantes (inflaba el piso ×13), y con un defecto grande salía 5-6 px (caja del tamaño del frame). Ahora: máximo local de verdad, y se elige entre p-1, p, p+1 el que mejor calza |
+
+No fue el filtro `named` contra YOLO ni el `InstanceTracker`: medido en la
+pantalla real, YOLO no pone ninguna caja sobre los fallos de impresión, y de
+lo que `analyze()` encuentra el tracker confirma el 98-99 %.
+
+**Medido en la pantalla real** (Tk + YOLO, ~16 fps, fallo puesto en 820,270,
+dos tomas por caso): % de frames con el fallo confirmado por el tracker,
+antes → después.
+
+| | fantasma | falta de tinta | offset |
+|---|---|---|---|
+| diamantes | 0, 0 → **96, 96** | 89, 7 → **98, 99** | 94, 93 → **98, 98** |
+| flores | 0, 0 → **88, 82** | 91, 85 → **98, 99** | 58, 98 → **98, 98** |
+| rayas* | 0, 0 → **97, 97** | 0, 0 → **99, 98** | 93, 0 → **98, 99** |
+| puntos | 0, 0 → **96, 91** | 0, 0 → **99, 98** | 0, 0 → **98, 98** |
+
+\* el «antes» de rayas ya tenía el arreglo de la calibración.
+
+Falsas alarmas tras calibrar: **0** en 2560 frames (4 estampados × 5
+tejidos × una vuelta entera al rollo).
+
+Lo que queda, dicho de frente:
+
+- **Las cajas son más holgadas que antes**: con el piso más bajo, la región
+  incluye el halo de una repetición alrededor del defecto (la vecindad
+  también "no se parece" a su vecina, que es el defecto). Sin interfaz, la
+  falta de tinta sale con caja de más de 3× el área real en un 10-40 % de
+  los frames. El defecto queda dentro; la caja no es ajustada.
+- **El fantasma en flores es el más flojo**: 82-88 % en la pantalla, y sin
+  interfaz, en posiciones al azar, 48 de cada 100 frames (diamantes, rayas
+  y puntos, ~80). Para enseñarlo en el video: diamantes, rayas o puntos.
+- **Tejido canasta + diamantes** sigue estimando mal el periodo (45 o 49 en
+  vez de 48) y su piso sale alto. No es el tejido por defecto de la demo.
+- En `grabar_eyve.py` la función `sin_guion()` (que olvidaba `_pat_last` a
+  mano) ya sobra.
+
+Pruebas: `tests/test_demo_patron.py` (nueva) y `[4b]`, `[4ba]`, `[4bb]`,
+`[4bd]`, `[4be]`, `[4d]` en `tests/test_pattern_module.py`. Cada arreglo comprobado
+con una mutación que lo deshace: su prueba falla.
