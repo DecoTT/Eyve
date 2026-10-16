@@ -127,6 +127,10 @@ def apply(mode: str | None = None) -> None:
     _apply_palette(_MODE)
     ctk.set_appearance_mode(_MODE)
     ctk.set_default_color_theme("dark-blue")
+    # Sin esto, con Produccion corriendo los dialogos y Ajustes se quedan
+    # invisibles (ver eyve/ui/ventanas.py).
+    from eyve.ui import ventanas
+    ventanas.instalar()
 
 
 def font(size: int = FONT_MD, weight: str = "normal") -> tuple:

@@ -220,15 +220,18 @@ Checklist de esta versión:
 - [ ] Queda, para cuando toque: hacer la actualización completa a mano en
       una máquina de pruebas y confirmar que `projects/` sobrevive.
 
-### Pendiente conocido, sin arreglar
+### Diálogos invisibles con Producción corriendo — arreglado después de 2.1.2
 
-Los cuatro diálogos modales de `eyve/ui/components/dialogs.py` no llegan a
-verse en la pantalla de Producción: el `CTkToplevel` se crea, agarra el
-foco y se queda invisible, y `ask_string` / `ask_confirm` bloquean para
-siempre. Observado tres veces en la app; no se reproduce en aislamiento, y
-dos intentos de arreglo se revirtieron por no poder demostrarlos. Importa
-porque por ahí pasan **crear y borrar una categoría**. Detalle en
-`HANDOFF_EXPO.md` §6.
+Los cuatro diálogos de `eyve/ui/components/dialogs.py`, y cualquier
+`CTkToplevel` (Ajustes incluido), se quedaban invisibles con Producción a
+`prod_fps_cap: 0`. La causa era el `withdraw()` + `update()` que hace el
+constructor de `CTkToplevel` de CustomTkinter en Windows. Arreglado en
+`eyve/ui/ventanas.py`, con `tests/test_dialogos.py`. Detalle en
+`HANDOFF_EXPO.md` §6. Afecta a la 2.1.2 publicada: entra en la siguiente.
+
+Lo que de verdad rompía era **abrir Ajustes con Producción corriendo**. La
+nota anterior decía que también bloqueaba crear y borrar una categoría;
+no es cierto: esa pantalla no usa los diálogos.
 
 ## Lo que NO hay que hacer
 

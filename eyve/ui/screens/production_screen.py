@@ -247,12 +247,10 @@ class ProductionScreen(ctk.CTkFrame):
                       text_color=T.TEXT_PRI,
                       command=self._toggle_nuevo_job).pack(side="right")
         # Fila para el nombre, oculta hasta que se pulsa "+". Un campo en
-        # linea y no un dialogo: los modales de eyve/ui/components/dialogs.py
-        # NO llegan a verse en esta pantalla —el CTkToplevel se crea, agarra
-        # el foco y se queda invisible, y ask_string bloquea para siempre—.
-        # Observado tres veces en la app; no se reproduce en aislamiento, asi
-        # que esta sin arreglar (ver HANDOFF_EXPO.md). En produccion, ademas,
-        # un campo en linea estorba menos que un modal.
+        # linea y no un dialogo: en produccion un modal estorba.  (Al
+        # escribir esto los modales tampoco se veian en esta pantalla; eso
+        # ya esta arreglado en eyve/ui/ventanas.py, pero el campo en linea
+        # se queda por lo primero.)
         self._job_new_row = ctk.CTkFrame(parent, fg_color="transparent")
         self._job_new_entry = ctk.CTkEntry(
             self._job_new_row, width=130, height=26,

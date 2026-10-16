@@ -590,7 +590,10 @@ una máquina sin Pro, cosa que la casilla de la interfaz no permitía. Es un
 aflojamiento deliberado de la puerta, coherente con la política por honor,
 pero es un cambio de comportamiento.
 
-### Pendiente: los diálogos modales no se ven
+### ~~Pendiente: los diálogos modales no se ven~~ — ARREGLADO (16-oct)
+
+> **Causa y arreglo:** ver más abajo, «Lo que era». Se deja el relato
+> original porque explica por qué los arneses no lo reproducían.
 
 `eyve/ui/components/dialogs.py` — los cuatro (`show_error`, `show_info`,
 `ask_confirm`, `ask_string`) crean un `CTkToplevel`, llaman a `grab_set()`
@@ -608,6 +611,53 @@ no se puede demostrar.
 
 Importa más allá de los jobs: por `ask_string` y `ask_confirm` pasan **crear
 y borrar una categoría**. La barra de job lo esquiva con un campo en línea.
+
+**Lo que era (16-oct).** No era Eyve: es CustomTkinter 6.0. En Windows, el
+constructor de `CTkToplevel` hace `withdraw()` + **`update()`** para pintar
+la barra de título oscura, y `update()` no vuelve mientras haya algo listo.
+Producción con `prod_fps_cap: 0` corre a `after(1)`, y tras cada vuelta Tk
+repinta (callbacks *idle*); cuando termina, la siguiente vuelta ya está
+vencida. El constructor no terminaba nunca: ni `title()` (de ahí el título
+«CTkToplevel») ni el `deiconify()` llegaban a correr. Le pasaba a CUALQUIER
+`CTkToplevel`, también a Ajustes.
+
+Medido en la app: con `after(33)` o `after(100)` el diálogo aparece; con
+`after(1)`, nunca. Los arneses no lo reproducían porque no repintaban nada
+entre vuelta y vuelta: sin trabajo *idle* de más de ~1 ms, `update()` sí
+encuentra la cola vacía.
+
+**Arreglo:** `eyve/ui/ventanas.py` reemplaza
+`CTkToplevel._windows_set_titlebar_color` por una versión que pone la barra
+oscura sin esconder la ventana ni llamar a `update()` (atributo DWM al
+mapearse + repintado del marco). Se instala desde `theme.apply()`. La
+ventana principal no se toca: cuando ya existe no llama a `update()`.
+
+**Corrección de lo de arriba.** Decía que importaba porque «por
+`ask_string` y `ask_confirm` pasan crear y borrar una categoría». Es falso:
+`classes_screen.py` los importa en la línea 9 y **no llama a ninguno** —
+crear y borrar van por etiquetas en línea (`self._msg`), y borrar ni
+siquiera pide confirmación. En toda la app `ask_string` y `ask_confirm` no
+tienen ni una llamada; los únicos sitios vivos son `show_error`
+(`home_screen`, `training_screen`), `show_info` (`update_dialog`) y, sobre
+todo, **Ajustes**, que es un `CTkToplevel` y caía igual. Ese era el daño
+real: con Producción corriendo no se podía abrir Ajustes. El import muerto
+de `classes_screen.py` sigue ahí.
+
+**Prueba:** `tests/test_dialogos.py`. Bucle a `after(1)` con 5 ms de trabajo
+*idle* por vuelta: los cuatro diálogos y Ajustes se ven antes de 1 s, con
+su título y con barra oscura. Tiene un control: sin trabajo *idle* el
+diálogo aparecía incluso con el fallo, así que un arnés sin él no prueba
+nada. Mutaciones: sin instalar el parche, 17 fallas; sin el atributo DWM,
+5; sin el `<Map>`, 2.
+
+**Verificado aparte (16-oct).** Las 17 fallas de la primera mutación se
+repitieron, y la suite entera quedó en 28 de 28. Y se miró en la app, con
+cámara y modelo de verdad y Producción a `after(1)`: pulsando el engrane,
+**sin** el parche no aparece ninguna ventana en pantalla; **con** él,
+Ajustes sale encima, con su título y la barra oscura. Primero se intentó
+con un arnés que hacía `update()` a mano en un bucle de Python y ahí el
+diálogo se veía en los dos casos, o sea que no distinguía nada: hace falta
+el `mainloop()` de verdad.
 
 ---
 

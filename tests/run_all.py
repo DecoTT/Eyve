@@ -41,6 +41,7 @@ SUITES: list[tuple[str, list[str], bool]] = [
     ("test_jobs.py",            [],      False),
     ("test_jobs_ui.py",         [],      False),
     ("test_ocultar_demos.py",   [],      False),
+    ("test_dialogos.py",        [],      False),
     ("test_kiosco.py",          [],      False),
     ("test_inactividad.py",     [],      False),
     ("test_empezar_de_cero.py", [],      False),
