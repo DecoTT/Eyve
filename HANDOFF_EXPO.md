@@ -662,3 +662,26 @@ Lo que queda, dicho de frente:
 Pruebas: `tests/test_demo_patron.py` (nueva) y `[4b]`, `[4ba]`, `[4bb]`,
 `[4bd]`, `[4be]`, `[4d]` en `tests/test_pattern_module.py`. Cada arreglo comprobado
 con una mutación que lo deshace: su prueba falla.
+
+---
+
+## 8. Esconder las demos (16-oct-2026)
+
+Pasada la expo, las dos pantallas de demo estorban en el menú de una
+máquina de producción. **Settings → Apariencia → «Esconder las demos»**
+(`hide_demos` en el config, **apagado de fábrica**).
+
+No se limita a quitarlas de la lista: también las **desmonta**. La demo
+textil deja un hilo generando tela mientras siga instanciada, así que
+esconderla sin desmontarla no liberaría nada y el ajuste engañaría. Si la
+pantalla visible es una de las que se esconden, sale de ella y vuelve a
+Inicio — dejarla puesta sin entrada en el menú es un sitio del que no se
+sabe volver, que es justo lo que el kiosco vino a evitar. Y si estaba en
+kiosco, sale también.
+
+Se aplica al momento, sin reiniciar. 29 comprobaciones en
+`tests/test_ocultar_demos.py` y 12 mutaciones, todas cazadas. Una de ellas
+destapó un hueco: la prueba sustituía `config.get` entera y por eso nunca
+leía el valor de fábrica; ahora se mira `_DEFAULTS` directamente, porque el
+config del usuario puede traer la clave puesta y lo que importa es con qué
+sale Eyve de serie.

@@ -64,6 +64,9 @@ STRINGS = {
     "set_demo_fill":      "Demo: llenar la pantalla",
     "set_demo_fill_hint": "La tela se genera a 960x540. Apagado no se amplia y la demo va al doble de fps; encendido llena el panel, mas grande y mas lento. En 1920x1080 no cambia nada.",
 
+    "set_hide_demos":      "Esconder las demos",
+    "set_hide_demos_hint": "Quita «Demo» y «Conteo» del menú y las descarga de memoria. Se hicieron para el stand; en una máquina de producción sobran.",
+
     # ── jobs (parametros de produccion por SKU) ──────────────────────────────
     "job_section":   "Job (SKU)",
     "job_none":      "— sin job —",

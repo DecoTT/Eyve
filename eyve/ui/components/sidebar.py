@@ -4,6 +4,7 @@ from typing import Callable, TYPE_CHECKING
 import customtkinter as ctk
 from eyve.ui import theme as T
 from eyve.ui.logo_loader import sidebar_logo, logo_available
+from eyve.core import config
 from eyve.i18n import t, get_language
 
 if TYPE_CHECKING:
@@ -20,6 +21,16 @@ NAV_ITEMS = [
     ("nav_demo",       "◱"),
     ("nav_cdemo",      "∑"),
 ]
+
+#: Las que se pueden esconder desde Settings (ver `hide_demos`).
+DEMO_ITEMS = ("nav_demo", "nav_cdemo")
+
+
+def visible_nav_items() -> list[tuple[str, str]]:
+    """Las entradas del menú que toca enseñar ahora mismo."""
+    if config.get("hide_demos", False):
+        return [it for it in NAV_ITEMS if it[0] not in DEMO_ITEMS]
+    return list(NAV_ITEMS)
 
 
 class Sidebar(ctk.CTkFrame):
@@ -43,7 +54,7 @@ class Sidebar(ctk.CTkFrame):
 
     def _build(self) -> None:
         # row weight: push gear to bottom
-        self.grid_rowconfigure(len(NAV_ITEMS) + 3, weight=1)
+        self.grid_rowconfigure(len(visible_nav_items()) + 3, weight=1)
 
         # ── logo / brand header ───────────────────────────────────────────────
         img = sidebar_logo()
@@ -73,7 +84,7 @@ class Sidebar(ctk.CTkFrame):
                 text_color=T.TEXT_DIM,
             ).grid(row=1, column=0, padx=20, pady=(0, 16), sticky="w")
 
-        for i, (key, icon) in enumerate(NAV_ITEMS):
+        for i, (key, icon) in enumerate(visible_nav_items()):
             btn = ctk.CTkButton(
                 self,
                 text=f"  {icon}  {t(key)}",
@@ -94,7 +105,8 @@ class Sidebar(ctk.CTkFrame):
 
         # ── bottom: language pill + settings gear ────────────────────────────
         bottom = ctk.CTkFrame(self, fg_color="transparent")
-        bottom.grid(row=len(NAV_ITEMS) + 3, column=0, sticky="ew", padx=8, pady=(0, 12))
+        bottom.grid(row=len(visible_nav_items()) + 3, column=0, sticky="ew",
+                    padx=8, pady=(0, 12))
         bottom.columnconfigure(0, weight=1)
 
         # language quick toggle (EN | ES)

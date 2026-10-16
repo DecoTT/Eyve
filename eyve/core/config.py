@@ -14,6 +14,13 @@ _DEFAULTS: dict = {
     "theme": "dark",
     "offline_mode": False,
     "models_dir": str(_APP_DIR / "models"),
+    # ¿Esconder las pantallas de demo del menú?
+    #
+    # Se hicieron para el stand. En una máquina de producción sobran, y
+    # la demo textil además deja un hilo generando tela mientras esté
+    # instanciada. Encendido las quita del menú y las desmonta.
+    "hide_demos": False,
+
     # Demo: ¿ampliar el frame hasta llenar el panel?
     #
     # La tela se genera a 960x540. Apagado (lo normal) no se amplia:

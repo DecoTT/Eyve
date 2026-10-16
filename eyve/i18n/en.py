@@ -64,6 +64,9 @@ STRINGS = {
     "set_demo_fill":      "Demo: fill the screen",
     "set_demo_fill_hint": "The fabric is generated at 960x540. Off means no upscaling and twice the frame rate; on fills the panel, bigger and slower. At 1920x1080 it makes no difference.",
 
+    "set_hide_demos":      "Hide the demos",
+    "set_hide_demos_hint": "Removes \u201cDemo\u201d and \u201cCounting\u201d from the menu and unloads them. They were built for the trade show booth; on a production machine they are in the way.",
+
     # ── jobs (per-SKU production parameters) ─────────────────────────────────
     "job_section":   "Job (SKU)",
     "job_none":      "— no job —",

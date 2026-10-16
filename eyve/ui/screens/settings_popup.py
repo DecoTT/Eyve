@@ -92,6 +92,18 @@ class SettingsPopup(ctk.CTkToplevel):
                 command=lambda mv=m: self._set_theme(mv),
             ).pack(side="left", padx=(0, 8))
 
+        # ── esconder las demos ───────────────────────────────────────
+        self._hide_demos_var = ctk.BooleanVar(
+            value=bool(config.get("hide_demos", False)))
+        ctk.CTkSwitch(
+            self, text=t("set_hide_demos"), variable=self._hide_demos_var,
+            font=T.font(T.FONT_SM), command=self._toggle_hide_demos,
+            progress_color=T.ACCENT).pack(anchor="w", padx=PX, pady=(4, 2))
+        ctk.CTkLabel(
+            self, text=t("set_hide_demos_hint"), font=T.font(T.FONT_XS),
+            text_color=T.TEXT_DIM, wraplength=360, justify="left",
+            anchor="w").pack(anchor="w", padx=PX, pady=(0, 8))
+
         self._sep()
 
         # ── performance ───────────────────────────────────────────────────────
@@ -347,6 +359,11 @@ class SettingsPopup(ctk.CTkToplevel):
     def _copy(self, text: str) -> None:
         self.clipboard_clear()
         self.clipboard_append(text)
+
+    def _toggle_hide_demos(self) -> None:
+        config.set("hide_demos", bool(self._hide_demos_var.get()))
+        if self._app:
+            self._app.refresh_nav()
 
     def _set_lang(self, code: str) -> None:
         self.destroy()

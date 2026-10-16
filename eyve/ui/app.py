@@ -346,6 +346,33 @@ class EyveApp(ctk.CTk):
     def navigate(self, key: str) -> None:
         self._navigate(key)
 
+    # ── menú ─────────────────────────────────────────────────────────────────
+    def refresh_nav(self) -> None:
+        """
+        Rehace la barra lateral tras esconder o enseñar las demos.
+
+        Si la pantalla visible es una de las que acaban de esconderse,
+        sale de ella: dejarla puesta sin entrada en el menú es un sitio
+        del que no se sabe volver, que es justo lo que el kiosco vino a
+        evitar.  Y las desmonta, porque la demo textil deja un hilo
+        generando tela mientras siga instanciada: esconderla sin
+        desmontarla no libera nada.
+        """
+        from eyve.ui.components.sidebar import visible_nav_items
+        self.exit_kiosk()
+        visibles = {k for k, _ in visible_nav_items()}
+        for key in [k for k in self._screens if k not in visibles]:
+            self._teardown_screen(self._screens[key])
+            del self._screens[key]
+        self.sidebar.destroy()
+        self.sidebar = Sidebar(self, on_navigate=self._navigate)
+        self.sidebar.set_app(self)
+        self.sidebar.grid(row=0, column=0, sticky="nsw")
+        if self._current not in visibles:
+            self._navigate("nav_home", force=True)
+        else:
+            self.sidebar.set_active(self._current or "nav_home")
+
     # ── language ─────────────────────────────────────────────────────────────
     def switch_language(self, lang: str) -> None:
         # Fuera del kiosco primero: esto tira todas las pantallas y vuelve
