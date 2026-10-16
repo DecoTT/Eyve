@@ -6,7 +6,7 @@ import customtkinter as ctk
 from eyve.ui import theme as T
 from eyve.i18n import t
 from eyve.core.project_manager import ClassDef
-from eyve.ui.components.dialogs import show_error, show_info, ask_confirm, ask_string
+from eyve.ui.components.dialogs import ask_confirm
 
 if TYPE_CHECKING:
     from eyve.ui.app import EyveApp
@@ -162,6 +162,10 @@ class ClassesScreen(ctk.CTkFrame):
                     text_color=T.WARN,
                 )
                 return
+        # Se pregunta DESPUES del aviso de "en uso": no tiene sentido pedir
+        # confirmacion de algo que de todas formas no se va a borrar.
+        if not ask_confirm(self, t("cls_del_confirm", name=row.name)):
+            return
         row.grid_forget()
         row.destroy()
         self._rows.remove(row)

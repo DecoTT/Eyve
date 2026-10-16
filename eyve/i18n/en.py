@@ -214,6 +214,7 @@ STRINGS = {
     "cls_name_dup": "A class with that name already exists.",
     "cls_name_empty": "Class name cannot be empty.",
     "cls_count": "{n} class(es) defined",
+    "cls_del_confirm": "Remove class '{name}' from the list?\n\nIt takes effect when you press Save.",
     "cls_in_use": "Cannot delete class '{name}' — it has {n} tagged image(s).",
     "cls_saved_ok": "Classes saved.",
 

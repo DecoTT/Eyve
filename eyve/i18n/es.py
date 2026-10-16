@@ -213,6 +213,7 @@ STRINGS = {
     "cls_name_dup": "Ya existe una categoría con ese nombre.",
     "cls_name_empty": "El nombre no puede estar vacío.",
     "cls_count": "{n} categoría(s) definida(s)",
+    "cls_del_confirm": "¿Quitar la categoría '{name}' de la lista?\n\nSe aplica al pulsar Guardar.",
     "cls_in_use": "No se puede eliminar '{name}' — tiene {n} imagen(es) etiquetada(s).",
     "cls_saved_ok": "Categorías guardadas.",
 
