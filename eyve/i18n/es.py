@@ -209,7 +209,7 @@ STRINGS = {
     "cls_save": "Guardar Categorías",
     "cls_empty": "Sin categorías definidas. Agrega al menos 2.",
     "cls_need_ok": "Al menos una categoría debe marcarse como OK.",
-    "cls_need_nok": "Al menos una categoría debe marcarse como NO OK.",
+    "cls_saved_no_nok": "Categorías guardadas. Ninguna es NO OK: el veredicto lo dará un módulo, como Ensamble.",
     "cls_name_dup": "Ya existe una categoría con ese nombre.",
     "cls_name_empty": "El nombre no puede estar vacío.",
     "cls_count": "{n} categoría(s) definida(s)",

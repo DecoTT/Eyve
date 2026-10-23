@@ -210,7 +210,7 @@ STRINGS = {
     "cls_save": "Save Classes",
     "cls_empty": "No classes defined yet. Add at least 2 classes.",
     "cls_need_ok": "At least one class must be marked as OK.",
-    "cls_need_nok": "At least one class must be marked as NOT OK.",
+    "cls_saved_no_nok": "Classes saved. None is NOT OK: a module, such as Ensamble, will give the verdict.",
     "cls_name_dup": "A class with that name already exists.",
     "cls_name_empty": "Class name cannot be empty.",
     "cls_count": "{n} class(es) defined",

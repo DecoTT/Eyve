@@ -185,9 +185,10 @@ class ClassesScreen(ctk.CTkFrame):
         if "ok" not in kinds:
             self._msg.configure(text=t("cls_need_ok"), text_color=T.DANGER)
             return
-        if "nok" not in kinds:
-            self._msg.configure(text=t("cls_need_nok"), text_color=T.DANGER)
-            return
+        # Sin NO OK se guarda igual: en un esquema por partes (base, antena,
+        # etiqueta) el modelo solo dice que hay y donde, y el veredicto lo da
+        # un modulo de Produccion como Ensamble. Solo se avisa.
+        sin_nok = "nok" not in kinds
 
         proj.classes = [ClassDef(name=r.name, kind=r.kind, color=_KIND_COLORS[r.kind])
                         for r in self._rows]
@@ -195,7 +196,10 @@ class ClassesScreen(ctk.CTkFrame):
         for c in proj.classes:
             proj.paths.raw_class_dir(c.name).mkdir(parents=True, exist_ok=True)
         proj.save()
-        self._msg.configure(text=t("cls_saved_ok"), text_color=T.ACCENT)
+        if sin_nok:
+            self._msg.configure(text=t("cls_saved_no_nok"), text_color=T.WARN)
+        else:
+            self._msg.configure(text=t("cls_saved_ok"), text_color=T.ACCENT)
 
 
 # ── Single class row widget ───────────────────────────────────────────────────
