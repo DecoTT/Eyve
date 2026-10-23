@@ -75,7 +75,7 @@ STRINGS = {
     "job_ask_name":  "Job name (usually the SKU)",
     "job_saved":     "Job \u201c{n}\u201d saved",
     "job_need_project": "Open a project before saving a job.",
-    "job_calib_from": "Pattern calibration taken on {d}. Recalibrate if the material or the lighting changed.",
+    "job_calib_from": "Job calibration/reference taken on {d}. Recalibrate if the material, the part or the lighting changed.",
     "job_geom_warn": "The counting geometry was drawn for a {w}×{h} frame and the camera gives {cw}×{ch}: draw it again.",
     "job_pro_warn":  "This job uses {mods}, which is Eyve Pro and this licence does not cover it.",
     "wm_pro":        "Eyve Pro unlicensed",
@@ -153,6 +153,16 @@ STRINGS = {
     "pat_calibrating":  "Learning... {n}",
     "pat_calibrated":   "Calibrated ({n} frames)",
     "pat_uncalibrated": "Not calibrated - show it good material first",
+    "asm_base":         "Base",
+    "asm_tol":          "Tolerance",
+    "asm_glove":        "Glove",
+    "asm_learn":        "Learn reference (good part)",
+    "asm_learning":     "Learning... ({n})",
+    "asm_ref":          "Reference: {parts}",
+    "asm_no_ref":       "No reference - place a good part and learn",
+    "asm_learn_fail":   "Base not seen: place the part under the camera",
+    "asm_help":         "Parts are judged against the base: missing = reject, "
+                        "out of place = fix. Hand or motion pauses it.",
 
     # ── Home screen ──────────────────────────────────────────────────────────
     "home_welcome": "Welcome to Eyve",

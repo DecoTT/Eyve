@@ -29,7 +29,8 @@ from eyve.inference.polarity import PolarityAnalyzer
 from eyve.core import job as J
 from eyve.core.logger import log
 from eyve.inference.tracker import InstanceTracker, RawDetection, TrackerConfig
-from eyve.modules import PolarityModule, CountingModule, PatternModule
+from eyve.modules import PolarityModule, CountingModule, PatternModule, AssemblyModule
+from eyve.modules.assembly_module import GLOVES as ASM_GLOVES, from_tracks
 from eyve.production.ok_nok_logic import decide, InspectionStatus, InspectionResult
 from eyve.production.production_session import ProductionSession
 from eyve.ui.components.dialogs import show_error
@@ -138,6 +139,12 @@ class ProductionScreen(ctk.CTkFrame):
         self._polarity = PolarityModule()
         self._counting = CountingModule()
         self._pattern = PatternModule()
+        self._assembly = AssemblyModule()
+        self._asm_learn_left = 0       # frames que faltan para aprender la referencia
+        self._asm_last = ""
+        #: fuente en vivo por URL (cámara IP, estación interactiva); manda
+        #: sobre el archivo de video cuando está puesta
+        self._prod_stream_url = ""
         #: job (SKU) cargado ahora mismo, o None
         self._job = None
         #: texto de la marca de agua (job Pro sin licencia Pro), o ""
@@ -211,7 +218,7 @@ class ProductionScreen(ctk.CTkFrame):
     # comparten proyecto y modelo, y cada uno tiene su job.
 
     def _modulos(self):
-        return [self._polarity, self._counting, self._pattern]
+        return [self._polarity, self._counting, self._pattern, self._assembly]
 
     def _jobs_dir(self):
         """
@@ -323,7 +330,9 @@ class ProductionScreen(ctk.CTkFrame):
     def _capturar_job(self, nombre: str):
         fuente = {
             "camera_source": self._cam_index(),
-            "video_path": str(self._prod_video_path or ""),
+            "video_path": self._prod_stream_url or str(self._prod_video_path or ""),
+            "kind": ("stream" if self._prod_stream_url and self._prod_src_var.get() == "video"
+                     else self._prod_src_var.get()),
             "conf": round(float(self._conf_slider.get()) / 100.0, 2),
         }
         return J.capture(self._modulos(), self._tracker, source=fuente,
@@ -441,6 +450,32 @@ class ProductionScreen(ctk.CTkFrame):
         self._pat_method.set(t("pat_m_" + pat.method))
         self._pat_sens.set(float(pat.sensitivity))
         self._pat_sens_val.configure(text=str(int(pat.sensitivity)))
+
+        # ensamble
+        asm = self._assembly
+        self._asm_var.set(bool(asm.enabled))
+        poner(self._asm_base, asm.target_class, list(self._asm_base.cget("values")))
+        poner(self._asm_glove, asm.glove)
+        self._asm_tol.set(asm.tolerance * 100.0)
+        self._asm_tol_val.configure(text=f"{int(asm.tolerance * 100)}%")
+        self._refresh_asm_status()
+
+        # fuente: un job de validación con video vuelve a abrir su video
+        if self._job and self._job.source.get("kind") == "stream":
+            self._prod_stream_url = str(self._job.source.get("video_path") or "")
+            self._prod_vid_lbl.configure(text=self._prod_stream_url, text_color=T.TEXT_DIM)
+            if self._prod_src_var.get() != "video":
+                self._prod_src_var.set("video")
+                self._on_prod_source_change()
+        elif self._job and self._job.source.get("kind") == "video":
+            vp = Path(self._job.source.get("video_path") or "")
+            if vp.exists():
+                self._prod_stream_url = ""
+                self._prod_video_path = vp
+                self._prod_vid_lbl.configure(text=str(vp), text_color=T.TEXT_DIM)
+                if self._prod_src_var.get() != "video":
+                    self._prod_src_var.set("video")
+                    self._on_prod_source_change()
 
         # fuente y umbral
         if self._job:
@@ -924,6 +959,80 @@ class ProductionScreen(ctk.CTkFrame):
         sep2b = ctk.CTkFrame(parent, height=1, fg_color=T.BORDER)
         sep2b.pack(fill="x", padx=12, pady=4)
 
+        # ── modulo Ensamble: partes contra la base, veredicto por pieza ───────
+        self._asm_var = ctk.BooleanVar(value=False)
+        self._asm_chk = ctk.CTkCheckBox(parent, text=self._assembly.name, variable=self._asm_var,
+                        font=T.font(T.FONT_XS), text_color=T.TEXT_PRI,
+                        command=self._on_assembly_toggle)
+        self._asm_chk.pack(padx=12, anchor="w", pady=(2, 0))
+        if not self._pro_ok:
+            # igual que Polaridad: sin Pro no se enciende a mano; un job que
+            # lo trae encendido corre, con marca de agua
+            self._asm_chk.configure(state="disabled", text=f"{self._assembly.name}  (Pro)")
+
+        asm_cfg = ctk.CTkFrame(parent, fg_color="transparent")
+        asm_cfg.pack(fill="x", padx=12, pady=(2, 0))
+        ctk.CTkLabel(asm_cfg, text=t("asm_help"), font=T.font(T.FONT_XS),
+                     text_color=T.TEXT_DIM, wraplength=210, justify="left",
+                     anchor="w").pack(fill="x", pady=(0, 2))
+
+        row_ab = ctk.CTkFrame(asm_cfg, fg_color="transparent"); row_ab.pack(fill="x", pady=1)
+        ctk.CTkLabel(row_ab, text=t("asm_base"), width=64, anchor="w",
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
+        self._asm_base = ctk.CTkOptionMenu(
+            row_ab, values=cls_names, width=120, height=24,
+            fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
+            dropdown_fg_color=T.BG_CARD, font=T.font(T.FONT_XS),
+            command=self._on_asm_base)
+        if self._assembly.target_class in cls_names:
+            self._asm_base.set(self._assembly.target_class)
+        self._asm_base.pack(side="right")
+
+        row_ag = ctk.CTkFrame(asm_cfg, fg_color="transparent"); row_ag.pack(fill="x", pady=1)
+        ctk.CTkLabel(row_ag, text=t("asm_glove"), width=64, anchor="w",
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
+        self._asm_glove = ctk.CTkOptionMenu(
+            row_ag, values=list(ASM_GLOVES), width=120, height=24,
+            fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
+            dropdown_fg_color=T.BG_CARD, font=T.font(T.FONT_XS),
+            command=self._on_asm_glove)
+        self._asm_glove.set(self._assembly.glove)
+        self._asm_glove.pack(side="right")
+
+        row_at = ctk.CTkFrame(asm_cfg, fg_color="transparent"); row_at.pack(fill="x", pady=1)
+        ctk.CTkLabel(row_at, text=t("asm_tol"), width=72, anchor="w",
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
+        self._asm_tol_val = ctk.CTkLabel(row_at, text="", width=32,
+                                          font=T.font(T.FONT_XS), text_color=T.TEXT_SEC)
+        self._asm_tol_val.pack(side="right")
+        self._asm_tol = ctk.CTkSlider(row_at, from_=2, to=20, width=84,
+                                       command=self._on_asm_tol)
+        self._asm_tol.pack(side="right", padx=4)
+        self._asm_tol.set(self._assembly.tolerance * 100)
+        self._asm_tol_val.configure(text=f"{int(self._assembly.tolerance * 100)}%")
+
+        ctk.CTkButton(asm_cfg, text=t("asm_learn"), height=26,
+                      fg_color=T.BG_INPUT, border_width=1, border_color=T.BORDER,
+                      font=T.font(T.FONT_XS), command=self._learn_assembly).pack(fill="x", pady=2)
+
+        row_ar = ctk.CTkFrame(asm_cfg, fg_color="transparent"); row_ar.pack(fill="x", pady=2)
+        self._asm_lbl = ctk.CTkLabel(row_ar, text="", font=T.bold(T.FONT_SM),
+                                      text_color=T.ACCENT2, wraplength=170,
+                                      anchor="w", justify="left")
+        self._asm_lbl.pack(side="left", fill="x", expand=True)
+        ctk.CTkButton(row_ar, text="↺", width=28, height=26,
+                      font=T.font(T.FONT_XS), fg_color="transparent",
+                      text_color=T.TEXT_DIM, hover_color=T.BG_INPUT,
+                      command=self._reset_assembly).pack(side="right")
+        self._asm_status = ctk.CTkLabel(asm_cfg, text="", font=T.font(T.FONT_XS),
+                                         text_color=T.TEXT_DIM, wraplength=210,
+                                         justify="left", anchor="w")
+        self._asm_status.pack(fill="x")
+        self._refresh_asm_status()
+
+        sep2c = ctk.CTkFrame(parent, height=1, fg_color=T.BORDER)
+        sep2c.pack(fill="x", padx=12, pady=4)
+
         # ── options ───────────────────────────────────────────────────────────
         self._save_nok_var = ctk.BooleanVar(value=True)
         ctk.CTkCheckBox(parent, text=t("prod_save_nok"),
@@ -1011,6 +1120,7 @@ class ProductionScreen(ctk.CTkFrame):
         )
         if not path:
             return
+        self._prod_stream_url = ""
         self._prod_video_path = Path(path)
         self._prod_vid_lbl.configure(text=path, text_color=T.TEXT_DIM)
         # switch playback to the selected file immediately
@@ -1238,6 +1348,63 @@ class ProductionScreen(ctk.CTkFrame):
             self._pat_status.configure(text=t("pat_uncalibrated"),
                                         text_color=T.WARN)
 
+    # ── modulo Ensamble ──────────────────────────────────────────────────────
+    def _on_assembly_toggle(self) -> None:
+        if self._asm_var.get() and not self._pro_ok:
+            self._asm_var.set(False)
+            return
+        self._assembly.enabled = self._asm_var.get()
+        self._assembly.reset()
+        self._refresh_asm_status()
+
+    def _on_asm_base(self, val: str) -> None:
+        self._assembly.target_class = val
+        self._assembly.reference = {}     # la referencia era relativa a otra base
+        self._assembly.reset()
+        self._refresh_asm_status()
+
+    def _on_asm_glove(self, val: str) -> None:
+        self._assembly.glove = val
+
+    def _on_asm_tol(self, value: float) -> None:
+        self._assembly.tolerance = float(value) / 100.0
+        self._asm_tol_val.configure(text=f"{int(value)}%")
+
+    def _learn_assembly(self) -> None:
+        """
+        Aprende dónde va cada parte con la pieza OK que está bajo la cámara.
+
+        Varios frames y la mediana, no uno: una caja de un solo frame trae
+        su propio temblor, y ese temblor se volvería la tolerancia.
+        """
+        if not self._pro_ok and not self._assembly.enabled:
+            # aprender encendería el módulo: sin Pro solo se puede si un job
+            # ya lo trae encendido (y entonces corre con marca de agua)
+            self._asm_status.configure(text=t("lic_pro_required"), text_color=T.WARN)
+            return
+        self._assembly._learn = {}
+        self._asm_learn_left = 20
+        self._asm_var.set(True)
+        self._assembly.enabled = True
+        self._refresh_asm_status()
+
+    def _refresh_asm_status(self) -> None:
+        a = self._assembly
+        if self._asm_learn_left > 0:
+            self._asm_status.configure(text=t("asm_learning", n=self._asm_learn_left),
+                                       text_color=T.ACCENT2)
+        elif a.calibrated:
+            self._asm_status.configure(text=t("asm_ref", parts=", ".join(sorted(a.reference))),
+                                       text_color=T.TEXT_DIM)
+        else:
+            self._asm_status.configure(text=t("asm_no_ref"), text_color=T.WARN)
+        self._asm_lbl.configure(text=a.summary() if a.enabled else "")
+
+    def _reset_assembly(self) -> None:
+        self._assembly.reset()
+        self._asm_last = ""
+        self._refresh_asm_status()
+
     def _reset_counting(self) -> None:
         self._counting.reset()
         self._count_last = ""
@@ -1419,7 +1586,7 @@ class ProductionScreen(ctk.CTkFrame):
             return   # already live or open in-flight
         if self._prod_src_var.get() == "video":
             # video mode: only auto-start when a file is already selected
-            if self._prod_video_path and self._prod_video_path.exists():
+            if self._prod_stream_url or (self._prod_video_path and self._prod_video_path.exists()):
                 self._start()
             return
         # Wait until cameras are enumerated ("⟳ …" = still loading)
@@ -1443,7 +1610,9 @@ class ProductionScreen(ctk.CTkFrame):
             return   # already live or open in-flight — ignore duplicate call
 
         # Resolve source: camera index or video file path (remote validation)
-        if self._prod_src_var.get() == "video":
+        if self._prod_src_var.get() == "video" and self._prod_stream_url:
+            source = self._prod_stream_url
+        elif self._prod_src_var.get() == "video":
             if not (self._prod_video_path and self._prod_video_path.exists()):
                 self._prod_vid_lbl.configure(text=t("prod_video_missing"),
                                               text_color=T.WARN)
@@ -1509,6 +1678,8 @@ class ProductionScreen(ctk.CTkFrame):
         self._mod_last_status = ""
         self._tracker.reset()
         self._counting.reset()
+        self._assembly.reset()
+        self._asm_last = ""
         self._pat_last = ""
         self._count_last = ""
         if self._worker:
@@ -1674,6 +1845,45 @@ class ProductionScreen(ctk.CTkFrame):
                                 text_color=(T.COLOR_NOK if not cv_.ok
                                             else T.ACCENT2))
 
+                    # ── Ensamble: partes contra la base, un veredicto por pieza ──
+                    asm_closed = None
+                    if self._assembly.enabled:
+                        a = self._assembly
+                        if self._asm_learn_left > 0:
+                            a.learn(result.detections)
+                            self._asm_learn_left -= 1
+                            if self._asm_learn_left == 0 and not a.finish_learning():
+                                self._asm_status.configure(text=t("asm_learn_fail"),
+                                                           text_color=T.WARN)
+                            else:
+                                self._refresh_asm_status()
+                        else:
+                            a.update(frame, from_tracks(self._tracker.get_all()))
+                            asm_closed = a.last_closed
+                            if a.paused:
+                                # con la mano trabajando, las cajas del detector
+                                # no describen la pieza: no se dibujan
+                                annotated = frame.copy()
+                            a.draw(annotated)
+                            if a.state == "resultado" and a.verdict:
+                                inspection = InspectionResult(
+                                    status=(InspectionStatus.OK if a.verdict == "OK"
+                                            else InspectionStatus.NOT_OK),
+                                    triggered_by=a.defects_text() or a.name,
+                                    confidence=1.0,
+                                    detections=result.detections,
+                                )
+                            else:
+                                inspection = InspectionResult(
+                                    status=InspectionStatus.NO_DETECT,
+                                    triggered_by=a.state_text(),
+                                    detections=result.detections,
+                                )
+                        s_ = a.summary()
+                        if s_ != self._asm_last:
+                            self._asm_last = s_
+                            self._asm_lbl.configure(text=s_)
+
                     # ── polarity preview (picture-in-picture, top-right) ──
                     if self._polarity.enabled and self._polarity.last_debug is not None:
                         dbg = self._polarity.last_debug
@@ -1688,7 +1898,17 @@ class ProductionScreen(ctk.CTkFrame):
 
                     self._draw_watermark(annotated)
                     self._last_result = inspection
-                    if self._session:
+                    if self._session and self._assembly.enabled:
+                        # con Ensamble la sesión cuenta PIEZAS, no frames: se
+                        # registra una vez, cuando la pieza se va
+                        if asm_closed:
+                            self._session.record(InspectionResult(
+                                status=(InspectionStatus.NOT_OK if asm_closed == "rechazo"
+                                        else InspectionStatus.OK),
+                                triggered_by=f"pieza {self._assembly.piece_n}: {asm_closed}",
+                                confidence=1.0), None)
+                            self._update_counts()
+                    elif self._session:
                         self._session.record(
                             inspection,
                             frame if inspection.status == InspectionStatus.NOT_OK else None,
@@ -1696,6 +1916,15 @@ class ProductionScreen(ctk.CTkFrame):
                         self._update_counts()
                     self._update_canvas(annotated)
                     self._update_status(inspection)
+                elif (self._assembly.enabled and self._assembly.calibrated
+                      and self._asm_learn_left == 0):
+                    # sin resultado nuevo (en CPU, la mayoria de los frames):
+                    # el HUD del ensamble se queda; con el frame crudo el
+                    # veredicto parpadea y en una demo parece que falla
+                    shown = frame.copy()
+                    self._assembly.draw(shown)
+                    self._draw_watermark(shown)
+                    self._update_canvas(shown)
                 else:
                     # Waiting for first inference result — show raw frame
                     self._update_canvas(frame)

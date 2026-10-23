@@ -10,13 +10,15 @@ from eyve.modules.base import InspectionModule, ModuleVerdict
 from eyve.modules.polarity_module import PolarityModule
 from eyve.modules.counting_module import CountingModule
 from eyve.modules.pattern_module import PatternModule
+from eyve.modules.assembly_module import AssemblyModule
 
 #: name → class of every available module
 MODULE_REGISTRY = {
     PolarityModule.name: PolarityModule,
     CountingModule.name: CountingModule,
     PatternModule.name: PatternModule,
+    AssemblyModule.name: AssemblyModule,
 }
 
 __all__ = ["InspectionModule", "ModuleVerdict", "PolarityModule",
-           "CountingModule", "PatternModule", "MODULE_REGISTRY"]
+           "CountingModule", "PatternModule", "AssemblyModule", "MODULE_REGISTRY"]

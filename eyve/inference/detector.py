@@ -145,6 +145,24 @@ class VideoSource:
         self._lock = threading.Lock()
         self._thread: Optional[threading.Thread] = None
 
+    @staticmethod
+    def is_stream(source) -> bool:
+        """URL de cámara IP (http MJPEG / rtsp): en vivo, no se repite."""
+        return isinstance(source, str) and source.lower().startswith(
+            ("http://", "https://", "rtsp://"))
+
+    @staticmethod
+    def is_stream(source) -> bool:
+        """URL de cámara IP (http MJPEG / rtsp): en vivo, no se repite."""
+        return isinstance(source, str) and source.lower().startswith(
+            ("http://", "https://", "rtsp://"))
+
+    @staticmethod
+    def is_stream(source) -> bool:
+        """URL de cámara IP (http MJPEG / rtsp): en vivo, no se repite."""
+        return isinstance(source, str) and source.lower().startswith(
+            ("http://", "https://", "rtsp://"))
+
     def start(self) -> bool:
         is_cam = isinstance(self._source, int)
         backend = cv2.CAP_DSHOW if is_cam else 0
@@ -207,13 +225,14 @@ class VideoSource:
             return
         # Video files must be paced to their native FPS — reading flat-out
         # would play them at CPU speed.  Cameras self-throttle in cap.read().
-        is_file = isinstance(self._source, str)
+        stream = self.is_stream(self._source)
+        is_file = isinstance(self._source, str) and not stream
         delay = 0.0
         if is_file:
             fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
             delay = 1.0 / (fps if fps > 0 else 30.0)
         try:
-            while self._running and cap.isOpened():
+            while self._running and (cap.isOpened() or stream):
                 ret, frame = cap.read()
                 if ret:
                     with self._lock:
@@ -224,6 +243,12 @@ class VideoSource:
                     if is_file:
                         # loop the file endlessly (validation playback)
                         cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    elif stream:
+                        # se cayó el stream: reabrir sin tumbar la pantalla
+                        time.sleep(0.5)
+                        cap.release()
+                        cap = cv2.VideoCapture(self._source)
+                        continue
                     time.sleep(0.01)
         finally:
             try:
