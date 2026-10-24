@@ -204,6 +204,13 @@ def load_project(root: Path) -> Project:
             cd = yaml.safe_load(f) or {}
         classes = [ClassDef.from_dict(c) for c in cd.get("classes", [])]
 
+    # Proyecto copiado de otra PC: la ruta absoluta del modelo ya no existe,
+    # pero el modelo viaja con el proyecto en models/best.pt
+    active_model = pd.get("active_model")
+    if active_model and not Path(active_model).exists() and p.best_model.exists():
+        log.info(f"Modelo no encontrado en {active_model}; se usa {p.best_model}")
+        active_model = str(p.best_model)
+
     proj = Project(
         name=pd.get("name", root.name),
         root=root,
@@ -211,7 +218,7 @@ def load_project(root: Path) -> Project:
         last_job=pd.get("last_job", ""),
         camera_source=pd.get("camera_source", 0),
         classes=classes,
-        active_model=pd.get("active_model"),
+        active_model=active_model,
         created_at=pd.get("created_at", ""),
         last_modified=pd.get("last_modified", ""),
     )
