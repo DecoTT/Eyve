@@ -266,6 +266,37 @@ Checklist de esta versión:
       máquina de pruebas, confirmando que `projects/` sobrevive. Ahora se
       puede hacer de verdad, porque la 2.1.2 instalada ya sabe actualizarse.
 
+## 9. Versión 2.1.4
+
+`__version__ = "2.1.4"` y `$Version = "2.1.4"` en `build_release.ps1`. **El
+nombre del asset no cambia**, así que la tienda no se toca.
+
+Qué entra, de cara al usuario:
+
+- **Módulo Ensamble (Pro).** Inspección de ensambles por partes. El modelo
+  detecta la base y cada parte; con una pieza buena, Eyve aprende dónde va
+  cada parte respecto a la base (la pieza puede quedar en cualquier lugar del
+  encuadre). Si falta una parte, es rechazo; si está fuera de posición, se
+  pide corregir y se vuelve a inspeccionar. Juzga por pieza, no por cuadro:
+  se pausa con la mano del operador (color del guante) o con movimiento, y
+  cuenta cada pieza una vez al salir como OK, corregida o rechazo.
+- **Instancias persistentes en el Ensamble.** Juzga sobre las cajas del
+  tracker: una parte que el detector pierde 1-3 cuadros no parpadea.
+- **Fuente por URL.** Producción acepta una cámara IP (http/rtsp) como
+  fuente del job y se reconecta si el stream se cae.
+- **Proyecto copiado a otra PC.** Si la ruta guardada del modelo no existe,
+  se usa el `models/best.pt` del proyecto.
+- Categorías: se guardan todas como OK, con aviso.
+
+Checklist de esta versión:
+
+- [x] `eyve/__init__.py` → `__version__ = "2.1.4"`.
+- [x] `Releaseuild_release.ps1` → `$Version = "2.1.4"`; `$AssetName` sin tocar.
+- [x] Suite completa en verde: 32 de 32, con `test_demo_e2e.py`, `test_assembly_module.py` y `test_proyecto_copiado.py`.
+- [x] Build y prueba fría desde el ZIP (23-oct): `setup.bat` en una carpeta limpia en 146 s, `run.bat` abre «Eyve 2.1» y el log dice 2.1.4; con el venv de esa instalación pasan `test_assembly_module.py` y `test_proyecto_copiado.py`. El ZIP no nombra a ningún cliente.
+- [ ] Push de `main`, tag `v2.1.4` y `gh release create v2.1.4 --latest` con los dos assets.
+- [ ] Verificado contra lo publicado.
+
 ## Lo que NO hay que hacer
 
 - No poner el ZIP en Mega ni en el bucket público: un enlace suelto no tiene versión ni checksum y hay que reemplazarlo a mano cada vez.
