@@ -254,6 +254,11 @@ class ProductionScreen(ctk.CTkFrame):
                       font=T.bold(T.FONT_XS), fg_color=T.BG_INPUT,
                       text_color=T.TEXT_PRI,
                       command=self._toggle_nuevo_job).pack(side="right")
+        # paquete del job para otra PC: modelo + clases + parametros
+        ctk.CTkButton(parent, text=t("job_export"), height=22,
+                      font=T.font(T.FONT_XS), fg_color="transparent",
+                      hover_color=T.BG_INPUT, text_color=T.TEXT_SEC, anchor="w",
+                      command=self._exportar_job).pack(fill="x", padx=12, pady=(0, 2))
         # Fila para el nombre, oculta hasta que se pulsa "+". Un campo en
         # linea y no un dialogo: en produccion un modal estorba.  (Al
         # escribir esto los modales tampoco se veian en esta pantalla; eso
@@ -361,6 +366,28 @@ class ProductionScreen(ctk.CTkFrame):
         self._refresh_job_list(job.name)
         self._avisos_del_job()
         self._aviso_job(t("job_saved", n=job.name), T.ACCENT)
+
+    def _exportar_job(self) -> None:
+        """Guarda el job cargado y lo empaqueta (.eyvejob) para otra PC."""
+        from eyve.core.job_package import EXT, exportar
+        proj = self._app.get_project() if self._app else None
+        if proj is None or self._job is None:
+            self._aviso_job(t("job_export_need"), T.WARN)
+            return
+        self._save_job()            # se exporta lo que se ve, no lo de antes
+        ruta = filedialog.asksaveasfilename(
+            title=t("job_export"), defaultextension=EXT,
+            initialfile=J.slug(self._job.name) + EXT,
+            filetypes=[(t("job_pkg_type"), "*" + EXT)])
+        if not ruta:
+            return
+        try:
+            out = exportar(proj, self._job.name, Path(ruta))
+        except Exception as e:
+            log.warning(f"Exportar job: {e}")
+            self._aviso_job(t("job_export_fail", e=e), T.WARN)
+            return
+        self._aviso_job(t("job_exported", f=out.name), T.ACCENT)
 
     def _toggle_nuevo_job(self, mostrar=None) -> None:
         """Enseña u oculta el campo para nombrar un job nuevo."""
@@ -529,8 +556,8 @@ class ProductionScreen(ctk.CTkFrame):
     def _wm_licencia(self) -> str:
         """Marca de agua de la licencia vencida o revocada (con cualquier job,
         como Windows sin activar), o ""."""
-        lm = getattr(self._app, "license", None)
-        motivo = lm.sin_amparo() if lm else ""
+        sin_amparo = getattr(getattr(self._app, "license", None), "sin_amparo", None)
+        motivo = sin_amparo() if sin_amparo else ""
         return t(f"wm_lic_{motivo}") if motivo else ""
 
     def _draw_watermark(self, img) -> None:

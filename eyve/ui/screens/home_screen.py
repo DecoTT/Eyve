@@ -76,6 +76,12 @@ class HomeScreen(ctk.CTkFrame):
             command=self._test_camera,
         ).pack(side="left", padx=6)
         ctk.CTkButton(
+            row2, text=t("home_import_job"),
+            font=T.font(T.FONT_SM), height=34, width=140,
+            fg_color=T.BG_CARD, border_width=1, border_color=T.BORDER,
+            command=self._import_job,
+        ).pack(side="left", padx=6)
+        ctk.CTkButton(
             row2, text=t("home_help"),
             font=T.font(T.FONT_SM), height=34, width=140,
             fg_color=T.BG_CARD, border_width=1, border_color=T.BORDER,
@@ -148,6 +154,30 @@ class HomeScreen(ctk.CTkFrame):
         if not folder:
             return
         self._load_path(Path(folder))
+
+    def _import_job(self) -> None:
+        """Un .eyvejob de otra PC → proyecto nuevo, abierto en Producción."""
+        from eyve.core.job_package import EXT, importar
+        paquete = filedialog.askopenfilename(
+            title=t("home_import_job"),
+            filetypes=[(t("job_pkg_type"), "*" + EXT)])
+        if not paquete:
+            return
+        default_dir = Path.home() / "Documents" / "Eyve Projects"
+        default_dir.mkdir(parents=True, exist_ok=True)
+        padre = filedialog.askdirectory(title=t("home_import_where"),
+                                        initialdir=str(default_dir))
+        if not padre:
+            return
+        try:
+            proj = importar(Path(paquete), Path(padre))
+        except Exception as e:
+            show_error(self._app, t("home_import_fail", e=e))
+            return
+        config.add_recent_project(str(proj.root))
+        self._app.set_project(proj)
+        self._app.navigate("nav_production")
+        show_info(self._app, t("home_imported", job=proj.last_job, p=proj.root))
 
     def _load_recent(self, path_str: str) -> None:
         self._load_path(Path(path_str))

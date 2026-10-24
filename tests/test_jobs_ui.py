@@ -293,6 +293,44 @@ check("y sobrevive a releer el proyecto del disco",
       recargado.last_job == proj.last_job,
       f"{recargado.last_job!r} vs {proj.last_job!r}")
 
+print("\n[8] Exportar el job (Producción) e importarlo (Inicio), como en otra PC")
+import eyve.ui.screens.production_screen as _ps  # noqa: E402
+import eyve.ui.screens.home_screen as _hs  # noqa: E402
+proj.paths.best_model.parent.mkdir(parents=True, exist_ok=True)
+proj.paths.best_model.write_bytes(b"modelo de prueba")
+proj.active_model = str(proj.paths.best_model)
+proj.save()
+paquete = TMP / "fuera" / "sku.eyvejob"
+paquete.parent.mkdir()
+_ps.filedialog.asksaveasfilename = lambda **k: str(paquete)
+scr._exportar_job()
+settle()
+check("el botón escribe el paquete", paquete.exists())
+check("y lo avisa en el panel", paquete.name in scr._job_warn.cget("text"),
+      scr._job_warn.cget("text")[:60])
+
+otra_pc = TMP / "otra_pc"
+_hs.filedialog.askopenfilename = lambda **k: str(paquete)
+_hs.filedialog.askdirectory = lambda **k: str(otra_pc)
+avisos = []
+_hs.show_info = lambda master, msg, *a, **k: avisos.append(msg)
+_hs.show_error = lambda master, msg, *a, **k: avisos.append("ERROR " + msg)
+app.navigate("nav_home")
+settle()
+app._screens["nav_home"]._import_job()
+settle()
+nuevo = app.get_project()
+check("Importar Job crea el proyecto en la carpeta elegida",
+      nuevo is not None and nuevo.root.parent == otra_pc, str(getattr(nuevo, "root", None)))
+check("con el mismo modelo", nuevo is not None
+      and Path(nuevo.active_model).read_bytes() == b"modelo de prueba")
+check("y avisa que la fuente quedó en la cámara 0",
+      len(avisos) == 1 and not avisos[0].startswith("ERROR"), str(avisos)[:80])
+check("abre Producción con el job importado cargado",
+      app._screens.get("nav_production") is not None
+      and getattr(app._screens["nav_production"]._job, "name", None) == proj.last_job,
+      str(getattr(app._screens.get("nav_production"), "_job", None)))
+
 # ── cierre ────────────────────────────────────────────────────────────────
 try:
     app._teardown_all_screens()
