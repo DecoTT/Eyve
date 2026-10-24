@@ -294,8 +294,8 @@ Checklist de esta versión:
 - [x] `Releaseuild_release.ps1` → `$Version = "2.1.4"`; `$AssetName` sin tocar.
 - [x] Suite completa en verde: 32 de 32, con `test_demo_e2e.py`, `test_assembly_module.py` y `test_proyecto_copiado.py`.
 - [x] Build y prueba fría desde el ZIP (23-oct): `setup.bat` en una carpeta limpia en 146 s, `run.bat` abre «Eyve 2.1» y el log dice 2.1.4; con el venv de esa instalación pasan `test_assembly_module.py` y `test_proyecto_copiado.py`. El ZIP no nombra a ningún cliente.
-- [ ] Push de `main`, tag `v2.1.4` y `gh release create v2.1.4 --latest` con los dos assets.
-- [ ] Verificado contra lo publicado.
+- [x] Push de `main` (`c2af97c`), tag `v2.1.4` y release publicado con `gh release create --latest`: <https://github.com/DecoTT/Eyve/releases/tag/v2.1.4>
+- [x] Verificado contra lo PUBLICADO: `latest` es `v2.1.4`, sin borrador ni pre-release, con los dos assets; lo que baja la URL fija es byte a byte lo construido (`cf1139c5…`, cuadra con el `SHA256SUMS.txt` publicado); el actualizador de la 2.1.3 publicada ve la 2.1.4 y apunta a su asset.
 
 ## Lo que NO hay que hacer
 
