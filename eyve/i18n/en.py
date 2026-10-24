@@ -79,6 +79,8 @@ STRINGS = {
     "job_geom_warn": "The counting geometry was drawn for a {w}×{h} frame and the camera gives {cw}×{ch}: draw it again.",
     "job_pro_warn":  "This job uses {mods}, which is Eyve Pro and this licence does not cover it.",
     "wm_pro":        "Eyve Pro unlicensed",
+    "wm_lic_vencida": "Eyve license expired - renew it",
+    "wm_lic_revocada": "Eyve license revoked",
 
     # ── kiosk mode (full screen for the trade show booth) ────────────────────
     "kiosk_enter_hint": "F11  full screen",

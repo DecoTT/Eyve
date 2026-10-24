@@ -239,6 +239,31 @@ img2 = np.zeros((300, 500, 3), np.uint8)
 scr._draw_watermark(img2)
 check("sin marca, el frame queda intacto", not img2.any())
 
+print("\n[5b] Licencia vencida o revocada: marca con cualquier job, como Windows")
+# Por honor no bloquea nada: un Pro vencido sigue siendo Pro. Lo que queda
+# es la constancia en pantalla para la auditoría.
+lm = app.license
+_orig = lm.sin_amparo
+scr._pro_ok = True
+lm.sin_amparo = lambda: ""
+scr._avisos_del_job()
+check("PREVIO: licencia vigente, sin marca", scr._wm_text == "", repr(scr._wm_text))
+lm.sin_amparo = lambda: "vencida"
+scr._avisos_del_job()
+check("vencida → marca aunque la licencia cubra el job",
+      scr._wm_text == t("wm_lic_vencida"), repr(scr._wm_text))
+scr._on_job_selected(t("job_none"))
+check("y también sin job", scr._wm_text == t("wm_lic_vencida"), repr(scr._wm_text))
+crudo = np.zeros((300, 500, 3), np.uint8)
+check("se dibuja en el frame crudo (sin resultado del modelo)",
+      scr._con_marca(crudo).any() and not crudo.any())
+lm.sin_amparo = lambda: "revocada"
+scr._avisos_del_job()
+check("revocada → su propia marca", scr._wm_text == t("wm_lic_revocada"), repr(scr._wm_text))
+lm.sin_amparo = _orig
+scr._wm_text = ""
+scr._pro_ok = False
+
 print("\n[6] Un job que pide un módulo Pro NO pierde sus parámetros")
 # Guardarlos aunque la licencia no los permita: perderlos por abrir el job
 # en una máquina sin Pro sería peor que no poder encenderlo.

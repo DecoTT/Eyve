@@ -147,8 +147,9 @@ class ProductionScreen(ctk.CTkFrame):
         self._prod_stream_url = ""
         #: job (SKU) cargado ahora mismo, o None
         self._job = None
-        #: texto de la marca de agua (job Pro sin licencia Pro), o ""
-        self._wm_text = ""
+        #: texto de la marca de agua (licencia vencida/revocada, o job Pro
+        #: sin licencia Pro), o ""
+        self._wm_text = self._wm_licencia()
         self._pat_last = ""
         self._pat_cal_left = 0
         self._mod_last_status = ""     # cache to avoid configure() every frame
@@ -293,7 +294,7 @@ class ProductionScreen(ctk.CTkFrame):
     def _on_job_selected(self, nombre: str) -> None:
         if nombre == t("job_none"):
             self._job = None
-            self._wm_text = ""
+            self._wm_text = self._wm_licencia()
             self._job_warn.configure(text="")
             return
         d = self._jobs_dir()
@@ -507,7 +508,7 @@ class ProductionScreen(ctk.CTkFrame):
         licencia de esta maquina no cubre.
         """
         avisos = []
-        self._wm_text = ""
+        self._wm_text = self._wm_licencia()
         self._job_warn.configure(text_color=T.WARN)
         if self._job is None:
             self._job_warn.configure(text="")
@@ -522,15 +523,23 @@ class ProductionScreen(ctk.CTkFrame):
         falta_pro = self._job.pro_modules(self._modulos())
         if falta_pro and not self._pro_ok:
             avisos.append(t("job_pro_warn", mods=", ".join(falta_pro)))
-            self._wm_text = t("wm_pro")
+            self._wm_text = self._wm_text or t("wm_pro")
         self._job_warn.configure(text="\n".join(avisos))
+
+    def _wm_licencia(self) -> str:
+        """Marca de agua de la licencia vencida o revocada (con cualquier job,
+        como Windows sin activar), o ""."""
+        lm = getattr(self._app, "license", None)
+        motivo = lm.sin_amparo() if lm else ""
+        return t(f"wm_lic_{motivo}") if motivo else ""
 
     def _draw_watermark(self, img) -> None:
         """
-        Marca de agua cuando el job usa un modulo Pro y la licencia no lo
-        cubre.  No bloquea —la licencia de Eyve es por honor— pero deja
-        constancia en pantalla de que se esta inspeccionando con una funcion
-        sin licenciar, que es lo que una auditoria tiene que ver.
+        Marca de agua cuando la licencia está vencida o revocada, o cuando el
+        job usa un modulo Pro y la licencia no lo cubre.  No bloquea —la
+        licencia de Eyve es por honor— pero deja constancia en pantalla de
+        que se esta inspeccionando sin licencia, que es lo que una auditoria
+        tiene que ver.
         """
         if not self._wm_text:
             return
@@ -550,6 +559,15 @@ class ProductionScreen(ctk.CTkFrame):
                         cv2.LINE_AA)
         except Exception:
             log.debug("marca de agua no dibujada", exc_info=True)
+
+    def _con_marca(self, frame):
+        """El frame crudo, con la marca de agua si toca (en copia: el frame
+        puede seguir en uso por el worker)."""
+        if not self._wm_text:
+            return frame
+        shown = frame.copy()
+        self._draw_watermark(shown)
+        return shown
 
     def _build_right(self, parent) -> None:
         # ── big status display ────────────────────────────────────────────────
@@ -1927,10 +1945,10 @@ class ProductionScreen(ctk.CTkFrame):
                     self._update_canvas(shown)
                 else:
                     # Waiting for first inference result — show raw frame
-                    self._update_canvas(frame)
+                    self._update_canvas(self._con_marca(frame))
             else:
                 # Preview mode — no model yet, show raw feed
-                self._update_canvas(frame)
+                self._update_canvas(self._con_marca(frame))
             self._update_fps()
 
         self.after(_loop_delay(), self._loop)

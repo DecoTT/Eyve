@@ -79,6 +79,8 @@ STRINGS = {
     "job_geom_warn": "La geometría del conteo se dibujó con un encuadre de {w}×{h} y la cámara da {cw}×{ch}: vuelve a dibujarla.",
     "job_pro_warn":  "Este job usa {mods}, que es de Eyve Pro y esta licencia no lo cubre.",
     "wm_pro":        "Eyve Pro sin licencia",
+    "wm_lic_vencida": "Licencia de Eyve vencida - renuevala",
+    "wm_lic_revocada": "Licencia de Eyve revocada",
 
     # ── modo kiosco (pantalla completa para el stand) ────────────────────────
     "kiosk_enter_hint": "F11  pantalla completa",

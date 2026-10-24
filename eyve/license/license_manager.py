@@ -241,6 +241,20 @@ class LicenseManager:
         Free: detección, conteo y log. Estudiante/Normal: plataforma abierta."""
         return self.nivel == "pro"
 
+    def sin_amparo(self) -> str:
+        """'vencida' o 'revocada' si la llave ya no ampara este equipo; si no, ''.
+
+        No bloquea nada (por honor): sirve para la marca de agua, que deja
+        constancia en pantalla, como Windows sin activar. La revocación sale
+        del último check-in; el vencimiento, de la propia llave, sin red."""
+        if self.licencia is None:
+            return ""
+        if self.servidor.estado == "revocada":
+            return "revocada"
+        if self.licencia.vencida or self.servidor.estado == "vencida":
+            return "vencida"
+        return ""
+
     @property
     def servidor(self) -> EstadoServidor:
         d = self._state.get("servidor") or {}
