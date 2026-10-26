@@ -13,7 +13,7 @@
 #>
 $ErrorActionPreference = "Stop"
 
-$Version   = "2.1.4"
+$Version   = "2.1.5"
 $DistName  = "Eyve_$Version"
 $Here      = Split-Path -Parent $MyInvocation.MyCommand.Path
 $SourceDir = Split-Path -Parent $Here

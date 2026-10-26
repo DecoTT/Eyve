@@ -297,6 +297,45 @@ Checklist de esta versión:
 - [x] Push de `main` (`c2af97c`), tag `v2.1.4` y release publicado con `gh release create --latest`: <https://github.com/DecoTT/Eyve/releases/tag/v2.1.4>
 - [x] Verificado contra lo PUBLICADO: `latest` es `v2.1.4`, sin borrador ni pre-release, con los dos assets; lo que baja la URL fija es byte a byte lo construido (`cf1139c5…`, cuadra con el `SHA256SUMS.txt` publicado); el actualizador de la 2.1.3 publicada ve la 2.1.4 y apunta a su asset.
 
+## 10. Versión 2.1.5
+
+`__version__ = "2.1.5"` y `$Version = "2.1.5"` en `build_release.ps1`. **El
+nombre del asset no cambia**, así que la tienda no se toca.
+
+Qué entra, de cara al usuario:
+
+- **Paquete de job (`.eyvejob`).** En Producción, «Exportar job para otra
+  PC…» empaqueta el modelo, las clases y los parámetros del job (módulos,
+  referencia, tolerancias, tracker). En Inicio, «Importar Job» lo abre en
+  otra PC como proyecto nuevo, en Producción, con la fuente en la cámara 0.
+  Nunca escribe encima de un proyecto existente, verifica el modelo por
+  sha256 y solo extrae los archivos que espera.
+- **Licencia vencida o revocada: marca de agua.** Por honor nada se
+  bloquea, pero Producción lo muestra en pantalla con cualquier job, como
+  Windows sin activar.
+
+Checklist de esta versión:
+
+- [x] `eyve/__init__.py` → `__version__ = "2.1.5"`.
+- [x] `Releaseuild_release.ps1` → `$Version = "2.1.5"`; `$AssetName` sin tocar.
+- [x] Suite completa: 33 de 34 en verde. `test_dialogos.py` («settings: se ve
+      antes de 1 s») es una prueba de tiempo que falla igual con el código de
+      la 2.1.4 publicada en esta máquina cargada (Resolve abierto), y la 2.1.5
+      la pasa en una de dos corridas: inestable, no regresión.
+- [x] Prueba fría desde el ZIP (26-oct): `setup.bat` en carpeta limpia en
+      206 s, `run.bat` abre «Eyve 2.1» y el log dice 2.1.5. Vuelta completa
+      del paquete: «Estación interactiva» del proyecto del minisplit exportada
+      desde la instalación de desarrollo e importada con «Importar Job» en la
+      limpia (su Python y su código): abre en Producción con el job cargado,
+      las 3 clases, el modelo en su carpeta nueva, la referencia del Ensamble
+      y la fuente en la cámara 0; el modelo importado detecta base 1.00,
+      antena 0.97 y etiqueta 0.95. Marca de licencia vencida verificada en la
+      limpia. Con su venv pasan test_job_package, test_licencia_marca,
+      test_assembly_module y test_proyecto_copiado. Ni el ZIP ni el paquete
+      nombran a ningún cliente.
+- [ ] Push de `main`, tag `v2.1.5` y `gh release create v2.1.5 --latest`.
+- [ ] Verificado contra lo publicado, y el actualizador de la 2.1.4 la ve.
+
 ## Lo que NO hay que hacer
 
 - No poner el ZIP en Mega ni en el bucket público: un enlace suelto no tiene versión ni checksum y hay que reemplazarlo a mano cada vez.
