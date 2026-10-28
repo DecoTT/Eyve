@@ -336,7 +336,7 @@ Checklist de esta versión:
 - [ ] Push de `main`, tag `v2.1.5` y `gh release create v2.1.5 --latest`.
 - [ ] Verificado contra lo publicado, y el actualizador de la 2.1.4 la ve.
 
-## 11. Versión 2.1.6
+## 11. Versión 2.1.6 — PUBLICADA (28-oct-2026)
 
 `__version__ = "2.1.6"` y `$Version = "2.1.6"` en `build_release.ps1`. **El
 nombre del asset no cambia**, así que la tienda no se toca.
@@ -382,8 +382,17 @@ Checklist de esta versión:
       carga `eyve/demo/modelo/best.pt` y YOLO marca rayón y mancha en 2.3 s.
       Esta máquina tiene licencia Pro: el caso Free lo cubre
       `test_patron_pro.py`.
-- [ ] Push de `main`, tag `v2.1.6` y `gh release create v2.1.6 --latest`.
-- [ ] Verificado contra lo publicado, y el actualizador de la 2.1.4 la ve.
+- [x] Push de `main`, tag `v2.1.6` y `gh release create v2.1.6 --latest`
+      (28-oct).
+- [x] Verificado contra lo publicado: el ZIP bajado de
+      `releases/latest/download/Eyve-2.1-setup.zip` da el mismo SHA-256
+      que el local y que `SHA256SUMS.txt`; la API marca v2.1.6 como latest,
+      sin draft ni prerelease, con los dos assets. Con esa respuesta,
+      `is_newer` se la ofrece a una 2.1.4 y no a una 2.1.6.
+- [ ] Falta ver el aviso en una 2.1.4 instalada de verdad: aquí el Python
+      no valida el certificado de GitHub (`CERTIFICATE_VERIFY_FAILED`,
+      mientras `curl` sí entra), así que `updater.check()` no se pudo
+      correr de punta a punta en esta máquina.
 
 ## Lo que NO hay que hacer
 
