@@ -336,6 +336,55 @@ Checklist de esta versión:
 - [ ] Push de `main`, tag `v2.1.5` y `gh release create v2.1.5 --latest`.
 - [ ] Verificado contra lo publicado, y el actualizador de la 2.1.4 la ve.
 
+## 11. Versión 2.1.6
+
+`__version__ = "2.1.6"` y `$Version = "2.1.6"` en `build_release.ps1`. **El
+nombre del asset no cambia**, así que la tienda no se toca.
+
+La 2.1.5 nunca se publicó: la 2.1.6 es la primera versión pública con todo
+lo de la 2.1.5 (paquete `.eyvejob`, marca de agua de licencia) más esto.
+
+Qué entra, de cara al usuario:
+
+- **La demo textil trae su modelo.** `build_release.ps1` copia
+  `projects/Demo_Textil/models/best.pt` (6 MB) a `eyve/demo/modelo/best.pt`
+  y el build FALLA si no está. Va dentro de `eyve/` y no en `projects/`
+  porque el actualizador nunca toca `projects/`: quien actualice desde una
+  versión anterior también lo recibe. Antes, una instalación descargada
+  abría la demo con «Falta el modelo de la demo».
+- **Patrón es Pro**, como Polaridad y Ensamble. En Producción la casilla se
+  desactiva sin Pro y calibrar no lo enciende; un job que lo trae encendido
+  corre con marca de agua. En la demo textil, que abre para todos, YOLO
+  marca rayón y mancha; sin Pro, Patrón no corre, su recuadro dice
+  «Requiere licencia Pro» y el modo automático solo pone defectos de YOLO.
+- **Patrón en tejido canasta.** El periodo se estimaba mal en diamantes con
+  canasta y no se marcaba ni un fantasma; ahora sí. Detalle en
+  `HANDOFF_EXPO.md` §7.
+
+Checklist de esta versión:
+
+- [x] `eyve/__init__.py` → `__version__ = "2.1.6"`.
+- [x] `Release\build_release.ps1` → `$Version = "2.1.6"`; `$AssetName` sin tocar.
+- [x] `tests/test_patron_pro.py`: Producción y demo con y sin Pro, el job
+      con marca de agua y el orden de búsqueda del modelo. 10 mutaciones,
+      las 10 detectadas.
+- [x] Suite completa: 35 de 35 en verde (27-oct, y otra vez el 28-oct con
+      el arreglo del canasta).
+- [x] ZIP final (28-oct): 5.67 MB, 78 archivos, SHA-256
+      `1024b1162a73f313420f43cfa7ea423ad09092d466e4ec7dab5d413093b34e10`;
+      lleva el arreglo del canasta, Patrón Pro y el modelo idéntico al de
+      `projects/`.
+- [x] El build falla si falta el modelo: probado con el script en una
+      carpeta sin `projects/`, sale con código 1 y no genera ZIP.
+- [x] Prueba fría desde el ZIP (27-oct): ZIP de 5.67 MB, el `best.pt` de
+      dentro idéntico por sha256 al de `projects/`; `setup.bat` en carpeta
+      limpia en 212 s; con su propio Python, sin proyecto abierto, la Demo
+      carga `eyve/demo/modelo/best.pt` y YOLO marca rayón y mancha en 2.3 s.
+      Esta máquina tiene licencia Pro: el caso Free lo cubre
+      `test_patron_pro.py`.
+- [ ] Push de `main`, tag `v2.1.6` y `gh release create v2.1.6 --latest`.
+- [ ] Verificado contra lo publicado, y el actualizador de la 2.1.4 la ve.
+
 ## Lo que NO hay que hacer
 
 - No poner el ZIP en Mega ni en el bucket público: un enlace suelto no tiene versión ni checksum y hay que reemplazarlo a mano cada vez.
