@@ -704,8 +704,20 @@ Lo que queda, dicho de frente:
 - **El fantasma en flores es el más flojo**: 82-88 % en la pantalla, y sin
   interfaz, en posiciones al azar, 48 de cada 100 frames (diamantes, rayas
   y puntos, ~80). Para enseñarlo en el video: diamantes, rayas o puntos.
-- **Tejido canasta + diamantes** sigue estimando mal el periodo (45 o 49 en
-  vez de 48) y su piso sale alto. No es el tejido por defecto de la demo.
+- ~~**Tejido canasta + diamantes** sigue estimando mal el periodo.~~
+  Arreglado el 28-oct para la 2.1.6: el hilo del canasta (4.5 px de
+  trabajo) se colaba en el perfil y sus múltiplos (45, 49.5) le ganaban al
+  periodo del estampado (48). Ahora el periodo se estima sobre la imagen
+  con un desenfoque extra (`_SUAVE_PERIODO = 1.5`); el análisis no se toca,
+  porque desenfocarlo entero borraba el fantasma de las flores en todos
+  los tejidos. Medido con el guion de la otra sesión (`medir_patron.py`, 4
+  fallos al azar por celda, siguiendo el cruce con el tracker): diamantes
+  con canasta pasa de 3/4 · 2/4 · 0/4 a **4/4 · 4/4 · 4/4** (offset · falta
+  de tinta · fantasma); los otros 16 materiales dan exactamente lo mismo, y
+  0 falsas alarmas en 1280 frames limpios. Quedan flojos, y es límite del
+  método: el fantasma en **flores + canasta** (3/4, en el 43 % de los
+  frames), en **puntos + canasta** (3/4, 82 %) y en **flores + sarga fina**
+  (3/4, 74 %). Prueba: `[4bf]` en `tests/test_pattern_module.py`.
 - En `grabar_eyve.py` la función `sin_guion()` (que olvidaba `_pat_last` a
   mano) ya sobra.
 

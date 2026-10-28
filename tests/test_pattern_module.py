@@ -243,6 +243,32 @@ for _ in range(30):
 check_true("piso de diamantes calibrado en movimiento < 1.0",
            mm.baseline < 1.0, f"piso={mm.baseline:.2f}")
 
+print("\n[4bf] Tejido canasta: el hilo no se confunde con el estampado")
+# El hilo del canasta mide 4.5 px de trabajo, y en el perfil sus multiplos
+# (45, 49.5) competian con el periodo de los diamantes (48): salia 46 o 49,
+# el piso subia a 2.7 y el fantasma no se marcaba nunca (0 de 4).
+mm = PatternModule()
+mm.sensitivity = 70.0
+pp = TextilePattern(width=960, height=540, axis="x", motif="diamantes",
+                    weave="canasta", speed=110.0, seed=1)
+periodos = set()
+for _ in range(20):
+    mm.calibrate(pp.frame())
+    periodos.add(mm.last_period)
+    pp.advance(0.07)
+check("diamantes + canasta: periodo 48 x 48 en todos los frames",
+      periodos, {(48, 48)})
+check_true("y el piso no se infla", mm.baseline < 1.5, f"piso={mm.baseline:.2f}")
+n = 0
+for x, y in ((480, 270), (330, 200), (640, 340)):
+    m = calibrado("diamantes", weave="canasta")
+    p = tela(motif="diamantes", weave="canasta")
+    p.ghost(*p.screen_to_fabric(x, y), size=165)
+    if cubre(m.analyze(p.frame()), (x - 80, y - 60, x + 80, y + 60)):
+        n += 1
+check_true("fantasma en diamantes + canasta: al menos 2 de 3 posiciones",
+           n >= 2, f"{n}/3")
+
 print("\n[4bbb] Metodo LAYOUT: dice de que lado esta el error")
 # Mide menos que el metodo periodo (7 de 24 contra 21 de 24 en la misma
 # tabla), pero aporta algo que periodo no puede: distinguir tinta de MAS

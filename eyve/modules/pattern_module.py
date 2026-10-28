@@ -72,6 +72,15 @@ _COLOR_FALTA = (255, 220, 0)  # cian:    falta tinta donde si deberia
 #: interesa mide varios píxeles aquí; bajar de esto pierde los finos.
 _WORK_W = 480
 
+#: desenfoque extra, en pixeles de trabajo, SOLO para estimar el periodo.
+#: El tejido canasta tiene un hilo de 4.5 px que el desenfoque del analisis
+#: (sigma 1) deja pasar al 38 %; en el perfil sus multiplos (45, 49.5)
+#: competian con el periodo del estampado (48), y en diamantes salia 46 o
+#: 49: piso de 2.7 en vez de 1.0, y ni un fantasma.  Aqui pasa al 4 %.  En
+#: el analisis NO: probado, desenfocar todo arreglaba el canasta pero
+#: borraba el fantasma de las flores en todos los tejidos.
+_SUAVE_PERIODO = 1.5
+
 
 class PatternModule(InspectionModule):
     name = "Patrón"
@@ -514,6 +523,8 @@ class PatternModule(InspectionModule):
         """
         h, w = g.shape
         lo = 6
+        if _SUAVE_PERIODO > 0:
+            g = cv2.GaussianBlur(g, (0, 0), _SUAVE_PERIODO)
         px = self._period_1d(g.mean(axis=0), lo, max(lo + 2, w // 3))
         py = self._period_1d(g.mean(axis=1), lo, max(lo + 2, h // 3))
         if px is None and py is None:
