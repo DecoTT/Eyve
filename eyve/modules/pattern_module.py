@@ -76,6 +76,9 @@ _WORK_W = 480
 class PatternModule(InspectionModule):
     name = "Patrón"
     key = "pattern"
+    #: Pro desde 2.1.6, como Polaridad y Ensamble: es un check de SBC.  Un
+    #: job que lo trae encendido corre igual sin Pro, con marca de agua.
+    pro = True
 
     #: métodos del módulo:
     #:   periodo     ¿esto se parece a sus vecinos?  No necesita nada.

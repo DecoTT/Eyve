@@ -83,6 +83,16 @@ _MARGEN_TRAS_REINICIO = 6.0
 
 _W, _H = 960, 540
 
+#: Modelo de la demo, en orden de preferencia despues del del proyecto
+#: abierto.  El de `projects/` es el de desarrollo; el de `eyve/demo/modelo/`
+#: lo mete build_release.ps1 en el paquete.  Va DENTRO de eyve/ y no en
+#: projects/ porque el actualizador nunca toca projects/: quien actualizara
+#: desde 2.1.5 se quedaria sin modelo.
+_MODELO_DEV = (Path(__file__).resolve().parents[3] / "projects" / "Demo_Textil"
+               / "models" / "best.pt")
+_MODELO_EMPAQUETADO = (Path(__file__).resolve().parents[2] / "demo" / "modelo"
+                       / "best.pt")
+
 
 class DemoScreen(ctk.CTkFrame):
     def __init__(self, master, app: "EyveApp", **kwargs):
@@ -115,7 +125,13 @@ class DemoScreen(ctk.CTkFrame):
         # en voz alta: "cuantos defectos hay ahora mismo en la tela".
         self._counting.set_method(_METODO_INICIAL)
         self._patternmod = PatternModule()
-        self._patternmod.enabled = True
+        # Patron es Pro desde 2.1.6, tambien aqui: la demo abre para todos y
+        # YOLO marca rayon y mancha, pero sin Pro Patron no corre y su
+        # recuadro lo dice.  Se lee al construir la pantalla, como en
+        # Produccion.
+        lm = getattr(app, "license", None)
+        self._pat_pro = bool(lm.permite_checks_avanzados()) if lm else False
+        self._patternmod.enabled = self._pat_pro
         self._patternmod.sensitivity = 70.0
 
         self._tool = "rayon"
@@ -228,6 +244,9 @@ class DemoScreen(ctk.CTkFrame):
         self._pat_lbl = ctk.CTkLabel(pat_box, text="—", font=T.bold(T.FONT_LG),
                                      text_color="#ff78ff")
         self._pat_lbl.pack(anchor="w", padx=10, pady=(0, 8))
+        if not self._pat_pro:
+            self._pat_lbl.configure(text=t("demo_pattern_pro"),
+                                    text_color=T.WARN)
 
         # ── conteo: el módulo que convierte instancias en producción ─────
         cnt = ctk.CTkFrame(left, fg_color=T.BG_INPUT, corner_radius=8)
@@ -391,9 +410,10 @@ class DemoScreen(ctk.CTkFrame):
             return Path(proj.active_model)
         if proj and proj.paths.best_model.exists():
             return proj.paths.best_model
-        here = Path(__file__).resolve().parents[3]
-        cand = here / "projects" / "Demo_Textil" / "models" / "best.pt"
-        return cand if cand.exists() else None
+        for cand in (_MODELO_DEV, _MODELO_EMPAQUETADO):
+            if cand.exists():
+                return cand
+        return None
 
     def _load_model(self) -> None:
         path = self._model_path()
@@ -428,7 +448,8 @@ class DemoScreen(ctk.CTkFrame):
         tela limpia, y se rehace cuando cambia el material.
         """
         self._patternmod.clear_calibration()
-        self._cal_left = frames
+        # sin Pro, Patron no corre: no hay nada que calibrar
+        self._cal_left = frames if self._pat_pro else 0
         # El primer frame de calibracion tiene que ser de ESTA tela: el que
         # tiene guardado la fuente puede ser del estampado anterior o de la
         # tela con defectos de antes de limpiar.  Uno solo basta para
@@ -622,8 +643,10 @@ class DemoScreen(ctk.CTkFrame):
         sx = self._rng.randint(150, _W - 150)
         sy = self._rng.randint(110, _H - 110)
         fx, fy = self._pattern.screen_to_fabric(sx, sy)
-        # mezcla a propósito: unos los nombra YOLO, otros solo los ve Patrón
-        if self._rng.random() < 0.5:
+        # mezcla a propósito: unos los nombra YOLO, otros solo los ve Patrón.
+        # Sin Pro, solo los de YOLO: un fallo de impresion que nadie marca
+        # haria parecer rota la demo con el stand vacio.
+        if not self._pat_pro or self._rng.random() < 0.5:
             cls = self._rng.choice(YOLO_CLASSES)
             if cls == "rayon":
                 self._pattern.streak(fx, fy,
@@ -649,7 +672,8 @@ class DemoScreen(ctk.CTkFrame):
         self._auto_placed = 0
         self._refresh_count_label()
         self._yolo_lbl.configure(text="—")
-        self._pat_lbl.configure(text="—")
+        self._pat_lbl.configure(text="—" if self._pat_pro
+                                else t("demo_pattern_pro"))
         # Olvidar el ultimo resumen junto con la etiqueta: si no, el
         # siguiente sale igual al de antes ("sin anomalias"), no se repinta
         # y la etiqueta se queda en la raya para siempre.

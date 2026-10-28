@@ -950,10 +950,16 @@ class ProductionScreen(ctk.CTkFrame):
 
         # ── modulo Patron: inspeccion sin clases ──────────────────────────────
         self._pat_var = ctk.BooleanVar(value=False)
-        ctk.CTkCheckBox(parent, text=t("pat_title"), variable=self._pat_var,
-                        font=T.font(T.FONT_XS), text_color=T.TEXT_PRI,
-                        command=self._on_pattern_toggle).pack(
-            padx=12, anchor="w", pady=(2, 0))
+        self._pat_chk = ctk.CTkCheckBox(
+            parent, text=t("pat_title"), variable=self._pat_var,
+            font=T.font(T.FONT_XS), text_color=T.TEXT_PRI,
+            command=self._on_pattern_toggle)
+        self._pat_chk.pack(padx=12, anchor="w", pady=(2, 0))
+        if not self._pro_ok:
+            # Pro desde 2.1.6, igual que Polaridad: sin Pro no se enciende a
+            # mano; un job que lo trae encendido corre, con marca de agua
+            self._pat_chk.configure(state="disabled",
+                                    text=f"{t('pat_title')}  (Pro)")
 
         pat_cfg = ctk.CTkFrame(parent, fg_color="transparent")
         pat_cfg.pack(fill="x", padx=12, pady=(2, 0))
@@ -1348,6 +1354,9 @@ class ProductionScreen(ctk.CTkFrame):
 
     # ── modulo Patron ────────────────────────────────────────────────────────
     def _on_pattern_toggle(self) -> None:
+        if self._pat_var.get() and not self._pro_ok:
+            self._pat_var.set(False)
+            return
         self._pattern.enabled = self._pat_var.get()
         if not self._pattern.enabled:
             self._pat_status.configure(text="", text_color=T.TEXT_DIM)
@@ -1374,6 +1383,12 @@ class ProductionScreen(ctk.CTkFrame):
         Se toman varios frames seguidos y no uno: un frame trae su propio
         ruido, y ese ruido se volveria el criterio de lo correcto.
         """
+        if not self._pro_ok and not self._pattern.enabled:
+            # calibrar enciende el modulo: sin Pro solo si un job ya lo
+            # trae encendido (y entonces corre con marca de agua)
+            self._pat_status.configure(text=t("lic_pro_required"),
+                                       text_color=T.WARN)
+            return
         self._pattern.clear_calibration()
         self._pat_cal_left = 15
         self._pat_var.set(True)

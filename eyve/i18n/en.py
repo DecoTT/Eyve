@@ -121,6 +121,7 @@ STRINGS = {
     "demo_yolo_sub":      "YOLO: names the defect, but only the ones it trained on",
     "demo_pattern_title": "What it never saw",
     "demo_pattern_sub":   "Pattern: untrained; says where something is off",
+    "demo_pattern_pro":   "Requires a Pro license",
     "demo_count_title":   "Counting",
     "demo_count_reset":   "Reset",
     "demo_nothing":       "nothing",

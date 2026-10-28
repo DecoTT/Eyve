@@ -120,6 +120,7 @@ STRINGS = {
     "demo_yolo_sub":      "YOLO: nombra el defecto, pero solo los que entreno",
     "demo_pattern_title": "Lo que nunca vio",
     "demo_pattern_sub":   "Patron: sin entrenar; dice donde algo no cuadra",
+    "demo_pattern_pro":   "Requiere licencia Pro",
     "demo_count_title":   "Conteo",
     "demo_count_reset":   "Reiniciar",
     "demo_nothing":       "nada",

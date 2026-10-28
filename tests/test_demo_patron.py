@@ -56,6 +56,10 @@ class FakeProject:
 
 
 class FakeApp(ctk.CTk):
+    # Patron es Pro desde 2.1.6: estas pruebas son de lo que hace Patron,
+    # asi que corren con licencia Pro.  Free esta en test_patron_pro.py.
+    license = types.SimpleNamespace(permite_checks_avanzados=lambda: True)
+
     def get_project(self):
         return FakeProject()
 

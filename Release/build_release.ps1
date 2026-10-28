@@ -69,6 +69,20 @@ foreach ($f in @("setup.bat", "run.bat", "README.md")) {
     Copy-Item (Join-Path $Here $f) (Join-Path $DistDir $f) -Force
 }
 
+# -- modelo de la demo textil -------------------------------------------------
+# Dentro de eyve/ y no en projects/: el actualizador nunca toca projects/,
+# asi que quien actualice no lo recibiria. demo_screen lo busca ahi.
+$ModeloSrc = Join-Path $SourceDir "projects\Demo_Textil\models\best.pt"
+if (-not (Test-Path $ModeloSrc)) {
+    Write-Host "  FALLA: no esta el modelo de la demo en $ModeloSrc" -ForegroundColor Red
+    Write-Host "         (python -m eyve.demo.train --out projects/Demo_Textil)" -ForegroundColor Red
+    exit 1
+}
+$ModeloDst = Join-Path $DistDir "eyve\demo\modelo"
+New-Item -ItemType Directory -Force -Path $ModeloDst | Out-Null
+Copy-Item $ModeloSrc (Join-Path $ModeloDst "best.pt") -Force
+Write-Host "  Modelo de la demo: $([math]::Round((Get-Item $ModeloSrc).Length / 1MB, 1)) MB"
+
 # carpeta de proyectos vacia
 $projects = Join-Path $DistDir "projects"
 New-Item -ItemType Directory -Path $projects -Force | Out-Null
@@ -143,6 +157,7 @@ $checks = @(
     @{ Name = "requirements";    Ok = [bool]($entries | Where-Object { $_ -match 'requirements\.txt$' }) }
     @{ Name = "modulos Pro";     Ok = [bool]($entries | Where-Object { $_ -match 'polarity_module\.py$' }) }
     @{ Name = "tracker";         Ok = [bool]($entries | Where-Object { $_ -match 'tracker\.py$' }) }
+    @{ Name = "modelo de la demo"; Ok = [bool]($entries | Where-Object { $_ -match 'demo[\\/]modelo[\\/]best\.pt$' }) }
 )
 Write-Host ""
 Write-Host "  Verificacion del ZIP:"
