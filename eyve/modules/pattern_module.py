@@ -934,12 +934,23 @@ class PatternModule(InspectionModule):
             self._verdict = ModuleVerdict()
             return self._verdict
         try:
-            regiones = self.analyze(frame)
+            self.analyze(frame)
         except Exception:
             # un módulo nunca tumba el bucle de producción
             self._verdict = ModuleVerdict()
             return self._verdict
-        if regiones:
+        return self.verdict()
+
+    def verdict(self) -> ModuleVerdict:
+        """
+        El veredicto de las regiones del ÚLTIMO analyze(), sin analizar otra
+        vez.  Producción analiza antes de asociar —para que las regiones
+        entren al tracker— y después solo necesita esto.
+        """
+        regiones = self._regions
+        if not self.enabled:
+            self._verdict = ModuleVerdict()
+        elif regiones:
             self._verdict = ModuleVerdict(
                 ok=False,
                 label=self.summary(),

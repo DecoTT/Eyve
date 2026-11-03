@@ -1811,6 +1811,22 @@ class ProductionScreen(ctk.CTkFrame):
                                         int(d.x1), int(d.y1),
                                         int(d.x2), int(d.y2))
                            for d in result.detections]
+                    # Patron ANTES de asociar, como en la demo: sus regiones
+                    # entran al mismo tracker con su propia clase y heredan
+                    # la confirmacion por frames, el ID y el conteo.  Antes
+                    # analizaba despues del tracker: el frame salia NO OK,
+                    # pero sin caja en pantalla y sin llegar al contador.
+                    # Lo que YOLO ya nombro no se reporta otra vez.
+                    pat_listo = False
+                    if self._pattern.enabled and self._pat_cal_left == 0:
+                        try:
+                            self._pattern.analyze(frame)
+                            raw += self._pattern.as_detections(
+                                named=[d.bbox for d in raw])
+                            pat_listo = True
+                        except Exception as e:
+                            # un modulo nunca tumba el bucle de produccion
+                            log.debug(f"patron: {e}")
                     tracks = self._tracker.update(raw, frame)
                     annotated = self._annotate_tracks(frame, tracks, inspection)
 
@@ -1858,13 +1874,12 @@ class ProductionScreen(ctk.CTkFrame):
                             self._pattern.calibrate(frame)
                             self._pat_cal_left -= 1
                             self._refresh_pat_status()
-                        else:
+                        elif pat_listo:
                             # analyze() ya corrio arriba, antes de asociar, y
                             # sus regiones entraron al tracker: aqui solo se
                             # recoge el veredicto. Las cajas las dibuja
                             # _annotate_tracks como cualquier otra instancia.
-                            pv = self._pattern.process(frame, result.detections,
-                                                       annotated)
+                            pv = self._pattern.verdict()
                             if not pv.ok and inspection.status != InspectionStatus.NOT_OK:
                                 inspection = InspectionResult(
                                     status=InspectionStatus.NOT_OK,
@@ -1997,6 +2012,8 @@ class ProductionScreen(ctk.CTkFrame):
 
     # ── drawing ───────────────────────────────────────────────────────────────
     def _class_color(self, class_name: str) -> tuple:
+        if class_name == PatternModule.ANOMALY_LABEL:
+            return (255, 120, 255)        # magenta, como en la demo
         proj = self._app.get_project()
         if proj:
             cls_def = next((c for c in proj.classes if c.name == class_name), None)
