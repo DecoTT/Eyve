@@ -35,6 +35,7 @@ SUITES: list[tuple[str, list[str], bool]] = [
     ("test_demo_patron.py",     [],      False),
     ("test_patron_pro.py",      [],      False),
     ("test_patron_produccion.py", [],    False),
+    ("test_texto_cv.py",        [],      False),
     ("test_updater.py",         [],      False),
     ("test_update_ui.py",       [],      False),
     ("test_updater_red.py",     [],      False),

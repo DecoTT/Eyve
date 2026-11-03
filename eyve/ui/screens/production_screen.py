@@ -28,6 +28,7 @@ from eyve.inference.detector import YOLOWorker, VideoSource
 from eyve.inference.polarity import PolarityAnalyzer
 from eyve.core import job as J
 from eyve.core.logger import log
+from eyve.core.texto_cv import ascii_cv, put_text, text_size
 from eyve.inference.tracker import InstanceTracker, RawDetection, TrackerConfig
 from eyve.modules import PolarityModule, CountingModule, PatternModule, AssemblyModule
 from eyve.modules.assembly_module import GLOVES as ASM_GLOVES, from_tracks
@@ -573,17 +574,17 @@ class ProductionScreen(ctk.CTkFrame):
         try:
             h, w = img.shape[:2]
             esc = max(0.5, w / 1400.0)
-            (tw, th), _ = cv2.getTextSize(self._wm_text,
-                                          cv2.FONT_HERSHEY_SIMPLEX, esc, 2)
+            (tw, th), _ = text_size(self._wm_text,
+                                    cv2.FONT_HERSHEY_SIMPLEX, esc, 2)
             x, y = w - tw - 16, h - 16
             # sombra primero: sobre una pieza clara el texto blanco solo no
             # se lee, y una marca que no se lee no sirve de nada
-            cv2.putText(img, self._wm_text, (x + 1, y + 1),
-                        cv2.FONT_HERSHEY_SIMPLEX, esc, (0, 0, 0), 3,
-                        cv2.LINE_AA)
-            cv2.putText(img, self._wm_text, (x, y),
-                        cv2.FONT_HERSHEY_SIMPLEX, esc, (210, 210, 210), 1,
-                        cv2.LINE_AA)
+            put_text(img, self._wm_text, (x + 1, y + 1),
+                     cv2.FONT_HERSHEY_SIMPLEX, esc, (0, 0, 0), 3,
+                     cv2.LINE_AA)
+            put_text(img, self._wm_text, (x, y),
+                     cv2.FONT_HERSHEY_SIMPLEX, esc, (210, 210, 210), 1,
+                     cv2.LINE_AA)
         except Exception:
             log.debug("marca de agua no dibujada", exc_info=True)
 
@@ -2035,10 +2036,13 @@ class ProductionScreen(ctk.CTkFrame):
             color = self._class_color(tr.label)
             x1, y1, x2, y2 = tr.bbox
             cv2.rectangle(out, (x1, y1), (x2, y2), color, 2)
-            label = f"#{tr.id} {tr.label} {tr.confidence:.0%}"
+            # ASCII para dibujar: cv2 pinta «?» en vez de «í» u «ó», y la
+            # etiqueta de Patron salia «anomal??a».  El nombre de la clase
+            # en los datos no cambia.
+            label = ascii_cv(f"#{tr.id} {tr.label} {tr.confidence:.0%}")
             cv2.rectangle(out, (x1, y1 - 18), (x1 + len(label) * 8, y1), color, -1)
-            cv2.putText(out, label, (x1 + 2, y1 - 4),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+            put_text(out, label, (x1 + 2, y1 - 4),
+                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
         return out
 
     def _update_canvas(self, frame) -> None:

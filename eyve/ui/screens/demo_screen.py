@@ -43,6 +43,7 @@ import numpy as np
 from PIL import Image, ImageTk
 
 from eyve.core.logger import log
+from eyve.core.texto_cv import put_text
 from eyve.demo.source import SyntheticSource
 from eyve.demo.textile import (MOTIFS, PRINT_FAULTS, TextilePattern, WEAVES,
                                YOLO_CLASSES)
@@ -861,8 +862,8 @@ class DemoScreen(ctk.CTkFrame):
                        "mancha": (255, 190, 0)}.get(tr.label, (0, 230, 118))
                 etq = f"{tr.label} #{tr.id}"
             cv2.rectangle(annotated, (x1, y1), (x2, y2), col, 2)
-            cv2.putText(annotated, etq, (x1, max(14, y1 - 6)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.55, col, 2, cv2.LINE_AA)
+            put_text(annotated, etq, (x1, max(14, y1 - 6)),
+                     cv2.FONT_HERSHEY_SIMPLEX, 0.55, col, 2, cv2.LINE_AA)
 
         self._counting.update_tracks(
             tracks, expired=self._tracker.last_expired, frame_wh=(fw, fh))

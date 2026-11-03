@@ -54,6 +54,8 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Tuple, Dict
 from collections import Counter
 
+from eyve.core.texto_cv import put_text
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Constantes
@@ -729,9 +731,10 @@ class PolarityAnalyzer:
                  if self._learning else "Sin ref.")
         angle_s = f"  {angle:.1f}°" if angle else ""
 
-        cv2.putText(panel,f"Q{r.quadrant} {r.position}",(4,11),font,0.37,(200,220,200),1,cv2.LINE_AA)
-        cv2.putText(panel,f"{r.method} [{r.confidence:.0%}]{angle_s}",(4,21),font,0.32,(140,160,140),1,cv2.LINE_AA)
-        cv2.putText(panel,f"REF Q{r.expected_quadrant} → {state}"
+        # put_text y no cv2.putText: «°» y «→» salian como «?»
+        put_text(panel,f"Q{r.quadrant} {r.position}",(4,11),font,0.37,(200,220,200),1,cv2.LINE_AA)
+        put_text(panel,f"{r.method} [{r.confidence:.0%}]{angle_s}",(4,21),font,0.32,(140,160,140),1,cv2.LINE_AA)
+        put_text(panel,f"REF Q{r.expected_quadrant} → {state}"
                     if r.expected_quadrant else state,
                     (4,31),font,0.33,ok_c,1,cv2.LINE_AA)
 
@@ -762,7 +765,7 @@ class PolarityAnalyzer:
         lbl = f"Q{result.quadrant} {result.side} [{result.confidence:.0%}]"
         if result.is_correct is False:
             cv2.rectangle(frame,(x1,y1),(x2,y2),col_err,3); lbl += " ⚠"
-        cv2.putText(frame,lbl,(x1,y2+14),cv2.FONT_HERSHEY_SIMPLEX,0.36,col,1,cv2.LINE_AA)
+        put_text(frame,lbl,(x1,y2+14),cv2.FONT_HERSHEY_SIMPLEX,0.36,col,1,cv2.LINE_AA)
         return frame
 
 
@@ -797,7 +800,7 @@ def _demo():
                                 f"Arc: {analyzer.arc_thickness:.0%} (+/-)",
                                 f"Ref: Q{analyzer._reference}" if analyzer._reference
                                 else f"Aprend: {len(analyzer._ref_samples)}/{LEARN_SAMPLES}"]):
-            cv2.putText(frame,ln,(8,20+i*16),cv2.FONT_HERSHEY_SIMPLEX,0.40,(0,200,80),1)
+            put_text(frame,ln,(8,20+i*16),cv2.FONT_HERSHEY_SIMPLEX,0.40,(0,200,80),1)
         cv2.imshow(win,frame)
         k=cv2.waitKey(1)&0xFF
         if k==ord('q'): break
