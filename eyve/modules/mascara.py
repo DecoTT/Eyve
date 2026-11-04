@@ -339,21 +339,38 @@ class MascaraAprendida:
         fx, fy = (xs / (w - 1) * 2 - 1), (ys / (h - 1) * 2 - 1)
         plano = np.stack([np.ones_like(fx), fx, fy, fx * fx, fx * fy, fy * fy])
         cob = cv2.boxFilter(margen, -1, (k, k), borderType=cv2.BORDER_CONSTANT)
+        # Coordenadas centradas, en mitades de ancho: con ellas los términos
+        # de la pose se miden en píxeles a la orilla del cuadro.
+        cx = ((xs - (w - 1) / 2.0) / (w / 2.0)).astype(np.float32)
+        cy = ((ys - (h - 1) / 2.0) / (w / 2.0)).astype(np.float32)
         self._geom = dict(shape=(h, w), inv=inv, u=u, v=v, margen=margen, k=k,
-                          t=None, uv=None, gy=gy, gx=gx, cob=cob,
+                          t=None, uv=None, gy=gy, gx=gx, cob=cob, cx=cx, cy=cy,
                           plano=plano.astype(np.float32),
                           malla=plano[:, gy, gx].reshape(6, -1).T)
         self._f0 = None
 
-    def _uv(self, t: Tuple[float, float]) -> Tuple[np.ndarray, np.ndarray]:
+    def _uv(self, t) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Coordenadas de celda de cada píxel, para una pose.
+
+        La pose es (tx, ty) o (tx, ty, a, b, c, d): el material se corre
+        tx + a·x + b·y a lo ancho y ty + c·x + d·y a lo alto.  Con la
+        traslación sola, 0.3 grados de inclinación desde que se aprendió
+        marcaban todos los cuadros: dos píxeles de deriva en la orilla.
+        """
         g = self._geom
-        t = (float(t[0]), float(t[1]))
+        t = tuple(float(x) for x in t) + (0.0,) * (6 - len(t))
         if g["t"] != t:
-            inv = g["inv"]
-            du = t[0] * inv[0, 0] + t[1] * inv[1, 0]
-            dv = t[0] * inv[0, 1] + t[1] * inv[1, 1]
-            u = g["u"] - np.float32(du)
-            v = g["v"] - np.float32(dv)
+            i = g["inv"]
+            tx, ty, a, b, c, d = t
+            u = g["u"] - np.float32(tx * i[0, 0] + ty * i[1, 0])
+            v = g["v"] - np.float32(tx * i[0, 1] + ty * i[1, 1])
+            if a or b or c or d:
+                x, y = g["cx"], g["cy"]
+                u = u - (np.float32(a * i[0, 0] + c * i[1, 0]) * x +
+                         np.float32(b * i[0, 0] + d * i[1, 0]) * y)
+                v = v - (np.float32(a * i[0, 1] + c * i[1, 1]) * x +
+                         np.float32(b * i[0, 1] + d * i[1, 1]) * y)
             g["uv"] = (u - np.floor(u), v - np.floor(v))
             g["t"] = t
         return g["uv"]
@@ -391,55 +408,61 @@ class MascaraAprendida:
                                (0, 0), sigma)
         return (sp / np.maximum(npd, 1e-6))[p:-p, p:-p]
 
-    def _fase(self, g: np.ndarray, celda: np.ndarray,
-              inicio: Optional[Tuple[float, float]] = None
-              ) -> Tuple[float, float]:
+    def _fase(self, g: np.ndarray, celda: np.ndarray):
         """
-        Dónde está la retícula en este cuadro.
+        Dónde está la retícula en este cuadro: la pose.
 
         Primero la correlación completa, que un defecto apenas mueve porque
-        el cuadro trae decenas de celdas.  Después dos pasos de Gauss-Newton
-        para la fracción de píxel, sin los píxeles que no calzan: si no, un
-        fallo grande jala la fase hacia sí mismo y se perdona solo.
+        el cuadro trae decenas de celdas.  Después Gauss-Newton para la
+        fracción de píxel y la deformación suave, sin los píxeles que no
+        calzan: si no, un fallo grande jala la pose hacia sí mismo y se
+        perdona solo.
         """
-        if inicio is None:
-            if self._f0 is None:
-                e0 = self._render(celda, (0.0, 0.0))
-                self._f0 = np.conj(np.fft.rfft2(e0 - float(e0.mean())))
-            f = np.fft.rfft2(g - float(g.mean()))
-            c = np.fft.irfft2(f * self._f0, g.shape)
-            y, x = np.unravel_index(int(np.argmax(c)), c.shape)
-            h, w = g.shape
-            t = [float(x if x < w // 2 else x - w),
-                 float(y if y < h // 2 else y - h)]
-        else:
-            t = list(inicio)
+        if self._f0 is None:
+            e0 = self._render(celda, (0.0, 0.0))
+            self._f0 = np.conj(np.fft.rfft2(e0 - float(e0.mean())))
+        f = np.fft.rfft2(g - float(g.mean()))
+        c = np.fft.irfft2(f * self._f0, g.shape)
+        y, x = np.unravel_index(int(np.argmax(c)), c.shape)
+        h, w = g.shape
+        p = np.array([float(x if x < w // 2 else x - w),
+                      float(y if y < h // 2 else y - h),
+                      0.0, 0.0, 0.0, 0.0])
 
-        m = self._geom["margen"] > 0
-        for _ in range(2):
-            e = self._render(celda, t)
-            ex = cv2.Sobel(e, cv2.CV_32F, 1, 0, ksize=3, scale=0.125)
-            ey = cv2.Sobel(e, cv2.CV_32F, 0, 1, ksize=3, scale=0.125)
-            r = g - e
-            med = float(np.median(r[m]))
-            r = r - med
-            mad = float(np.median(np.abs(r[m]))) * 1.4826 + 1e-4
-            ok = m & (np.abs(r) < 3.0 * mad)
-            a = np.array([[float((ex[ok] * ex[ok]).sum()),
-                           float((ex[ok] * ey[ok]).sum())],
-                          [float((ex[ok] * ey[ok]).sum()),
-                           float((ey[ok] * ey[ok]).sum())]])
-            b = np.array([float((ex[ok] * r[ok]).sum()),
-                          float((ey[ok] * r[ok]).sum())])
+        geo = self._geom
+        sub = (slice(_MARGEN, h - _MARGEN, 2), slice(_MARGEN, w - _MARGEN, 2))
+        cx, cy = geo["cx"][sub], geo["cy"][sub]
+        gs = g[sub]
+        # De grueso a fino.  La orilla de un motivo solo «jala» a un par de
+        # píxeles: con 0.8 grados de más, a la orilla del cuadro la deriva son
+        # 3 px y Gauss-Newton se quedaba en el mínimo equivocado.  Borroso,
+        # el alcance crece; después la imagen real da la precisión.
+        gb = cv2.GaussianBlur(g, (0, 0), 3.0)[sub]
+        for vuelta in range(4):
+            e = self._render(celda, p)
+            borroso = vuelta < 2
+            if borroso:
+                e = cv2.GaussianBlur(e, (0, 0), 3.0)
+            ex = cv2.Sobel(e, cv2.CV_32F, 1, 0, ksize=3, scale=0.125)[sub]
+            ey = cv2.Sobel(e, cv2.CV_32F, 0, 1, ksize=3, scale=0.125)[sub]
+            r = (gb if borroso else gs) - e[sub]
+            r = r - float(np.median(r))
+            mad = float(np.median(np.abs(r))) * 1.4826 + 1e-4
+            ok = np.abs(r) < (5.0 if borroso else 3.0) * mad
+            exo, eyo, xo, yo, ro = ex[ok], ey[ok], cx[ok], cy[ok], r[ok]
+            j = np.stack([exo, eyo, exo * xo, exo * yo, eyo * xo, eyo * yo],
+                         axis=1)
+            a = (j.T @ j).astype(np.float64)
+            b = (j.T @ ro).astype(np.float64)
             # Con rayas el sistema casi no tiene rango: a lo largo de la raya
             # no hay nada que medir.  El término de Tikhonov deja quieta esa
             # dirección en vez de mandarla lejos.
-            a += np.eye(2) * (1e-3 * float(np.trace(a)) + 1e-9)
+            a += np.eye(6) * (1e-3 * float(np.trace(a)) / 6.0 + 1e-9)
             d = np.linalg.solve(a, b)
-            # e(x) = celda(x - t): subir t mueve la imagen, de ahí el signo
-            t[0] -= float(np.clip(d[0], -1.5, 1.5))
-            t[1] -= float(np.clip(d[1], -1.5, 1.5))
-        return t[0], t[1]
+            # e(x) = celda(x - pose): subir la pose mueve la imagen, de ahí
+            # el signo
+            p -= np.clip(d, -2.0, 2.0)
+        return tuple(float(x) for x in p)
 
     # ── aprender ──────────────────────────────────────────────────────────
     def aprender(self, cuadros: Sequence[np.ndarray]) -> Informe:
@@ -540,7 +563,7 @@ class MascaraAprendida:
         # vacía: su piso no puede ser cero, o cualquier cosa la rebasaría.
         self._piso = (max(min(med_t, cota_t), 1e-4),
                       max(min(med_c, cota_c), 1e-4),
-                      max(float(np.median(pe)), 3e-5))
+                      max(float(np.median(pe)), 1e-4))
         self._enganche_ref = float(np.median(nccs))
 
         tinta = self._tinta > 0
@@ -656,8 +679,11 @@ class MascaraAprendida:
         w = self._render(self._peso, t) * marg
         k = self._geom["k"]
         if self.seguir_luz:
-            r = r - self._rampa(cv2.boxFilter(r * marg, -1, (k, k),
-                                              borderType=cv2.BORDER_CONSTANT))
+            # La luz multiplica: la misma rampa mueve más la tela clara que la
+            # tinta.  Restarla pareja dejaba cada zona con su propio resto.
+            s = self._rampa(cv2.boxFilter(r * marg, -1, (k, k),
+                                          borderType=cv2.BORDER_CONSTANT))
+            r = (r + e) / (1.0 + s / max(float(ee.mean()), 0.05)) - e
         tinta = self._render(self._tinta, t)
         rw = r * w
         rt = rw * tinta

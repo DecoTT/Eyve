@@ -277,6 +277,33 @@ check_true("los dos lo ven", len(pat.regions) > 0 and len(masc.regiones) > 0)
 juntas = fusionar(masc, pat)
 check("una sola deteccion por fallo", len(juntas), len(masc.regiones))
 
+print("\n[10b] Lo que cambia despues de aprender no es un fallo")
+masc = mascara("diamantes", "sarga")
+
+
+def rampa(f, val=0.04):
+    r = np.linspace(-val / 2, val / 2, f.shape[1], dtype=np.float32)[None, :, None]
+    return np.clip(f * (1.0 + r), 0, 255).astype(np.uint8)
+
+
+def recorrer(tela, cambio=lambda f: f, n=30):
+    c = 0
+    for _ in range(n):
+        tela.advance(0.6)
+        c += len(masc.analizar(cambio(tela.frame())))
+    return c
+
+
+check("rampa de luz de 4 %: 0 regiones",
+      recorrer(rollo("diamantes", "sarga", 2, seed=31), rampa), 0)
+check("tela 0.3 grados mas inclinada: 0 regiones",
+      recorrer(rollo("diamantes", "sarga", 2, seed=32, tilt_deg=2.1)), 0)
+girada = rollo("diamantes", "sarga", 2, seed=33, tilt_deg=2.1)
+girada.advance(1.0)
+fx, fy = girada.screen_to_fabric(480, 270)
+girada.ghost(fx, fy, size=190)
+check_true("y un fantasma en esa tela si se marca", len(masc.analizar(girada.frame())) > 0)
+
 print("\n[11] La ventana de revision decide")
 import tkinter as tk
 
