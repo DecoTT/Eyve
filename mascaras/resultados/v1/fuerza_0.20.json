@@ -1,0 +1,951 @@
+{
+ "conjunto": "dev",
+ "K": 6,
+ "sens": 50.0,
+ "tilt": null,
+ "perturba": "",
+ "fuerza": 0.2,
+ "segundos": 92.54099416732788,
+ "materiales": [
+  {
+   "motif": "diamantes",
+   "weave": "sarga",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9982088160404081,
+   "residuo_pct": 0.20228326320648193,
+   "a1": [
+    -47.97863400250441,
+    1.510213544782316
+   ],
+   "a2": [
+    25.497960914904084,
+    47.22094745893462
+   ],
+   "fallos": [
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 517,
+     "sy": 194,
+     "size": 177,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 769,
+     "sy": 161,
+     "size": 140,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 581,
+     "sy": 301,
+     "size": 146,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 780,
+     "sy": 247,
+     "size": 148,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 326,
+     "sy": 300,
+     "size": 135,
+     "visibles": 47,
+     "conf": {
+      "antes": 26,
+      "mascara": 41,
+      "despues": 41
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 42
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 488,
+     "sy": 209,
+     "size": 133,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 1,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 97.04850000161969,
+    "ms_patron": 81.42589999988559
+   }
+  },
+  {
+   "motif": "flores",
+   "weave": "sarga_fina",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9983144507156718,
+   "residuo_pct": 0.2537377178668976,
+   "a1": [
+    -47.98340035640459,
+    1.512635656157311
+   ],
+   "a2": [
+    25.49633381213954,
+    47.17023752151634
+   ],
+   "fallos": [
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 244,
+     "sy": 428,
+     "size": 196,
+     "visibles": 35,
+     "conf": {
+      "antes": 15,
+      "mascara": 33,
+      "despues": 33
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 34
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 293,
+     "sy": 121,
+     "size": 133,
+     "visibles": 42,
+     "conf": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {}
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 729,
+     "sy": 324,
+     "size": 145,
+     "visibles": 60,
+     "conf": {
+      "antes": 0,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 561,
+     "sy": 351,
+     "size": 191,
+     "visibles": 60,
+     "conf": {
+      "antes": 0,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 728,
+     "sy": 160,
+     "size": 146,
+     "visibles": 60,
+     "conf": {
+      "antes": 0,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 635,
+     "sy": 361,
+     "size": 188,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 1,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 90.17409999978554,
+    "ms_patron": 88.73420000054466
+   }
+  },
+  {
+   "motif": "flores",
+   "weave": "canasta",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9986268252296755,
+   "residuo_pct": 0.6308659911155701,
+   "a1": [
+    -47.988773693558656,
+    1.5132172256708287
+   ],
+   "a2": [
+    25.499133345681553,
+    47.16949233992233
+   ],
+   "fallos": [
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 171,
+     "sy": 338,
+     "size": 192,
+     "visibles": 23,
+     "conf": {
+      "antes": 0,
+      "mascara": 22,
+      "despues": 22
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 24
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 669,
+     "sy": 115,
+     "size": 157,
+     "visibles": 60,
+     "conf": {
+      "antes": 0,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 567,
+     "sy": 208,
+     "size": 166,
+     "visibles": 60,
+     "conf": {
+      "antes": 0,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 769,
+     "sy": 255,
+     "size": 196,
+     "visibles": 60,
+     "conf": {
+      "antes": 0,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 175,
+     "sy": 158,
+     "size": 137,
+     "visibles": 25,
+     "conf": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {}
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 299,
+     "sy": 303,
+     "size": 199,
+     "visibles": 42,
+     "conf": {
+      "antes": 0,
+      "mascara": 41,
+      "despues": 41
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 43
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 1,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 116.47420000008424,
+    "ms_patron": 79.71559999896272
+   }
+  },
+  {
+   "motif": "rayas",
+   "weave": "sarga",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9963782781490004,
+   "residuo_pct": 0.2676531672477722,
+   "a1": [
+    -47.93618123507011,
+    1.5810748201091798
+   ],
+   "a2": [
+    25.381597185841077,
+    47.18368267997374
+   ],
+   "fallos": [
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 152,
+     "sy": 225,
+     "size": 172,
+     "visibles": 21,
+     "conf": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {}
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 484,
+     "sy": 266,
+     "size": 187,
+     "visibles": 60,
+     "conf": {
+      "antes": 4,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 640,
+     "sy": 136,
+     "size": 146,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 200,
+     "sy": 386,
+     "size": 134,
+     "visibles": 28,
+     "conf": {
+      "antes": 13,
+      "mascara": 27,
+      "despues": 27
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 29
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 622,
+     "sy": 154,
+     "size": 189,
+     "visibles": 60,
+     "conf": {
+      "antes": 56,
+      "mascara": 0,
+      "despues": 56
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {}
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 516,
+     "sy": 220,
+     "size": 159,
+     "visibles": 60,
+     "conf": {
+      "antes": 26,
+      "mascara": 0,
+      "despues": 25
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 2
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 1,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 91.9052000008378,
+    "ms_patron": 85.48010000049544
+   }
+  },
+  {
+   "motif": "puntos",
+   "weave": "canasta",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9977021542046093,
+   "residuo_pct": 0.6471902132034302,
+   "a1": [
+    -47.981814158206056,
+    1.5119221791321138
+   ],
+   "a2": [
+    25.498188152679077,
+    47.16800804512233
+   ],
+   "fallos": [
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 266,
+     "sy": 372,
+     "size": 167,
+     "visibles": 38,
+     "conf": {
+      "antes": 27,
+      "mascara": 37,
+      "despues": 37
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 39
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 303,
+     "sy": 126,
+     "size": 189,
+     "visibles": 43,
+     "conf": {
+      "antes": 0,
+      "mascara": 42,
+      "despues": 42
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 43
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 399,
+     "sy": 344,
+     "size": 167,
+     "visibles": 57,
+     "conf": {
+      "antes": 0,
+      "mascara": 55,
+      "despues": 55
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 56
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 681,
+     "sy": 337,
+     "size": 131,
+     "visibles": 60,
+     "conf": {
+      "antes": 0,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 523,
+     "sy": 164,
+     "size": 180,
+     "visibles": 60,
+     "conf": {
+      "antes": 1,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 761,
+     "sy": 415,
+     "size": 183,
+     "visibles": 60,
+     "conf": {
+      "antes": 0,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 1,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 94.7786000015185,
+    "ms_patron": 75.29699999940931
+   }
+  },
+  {
+   "motif": "puntos",
+   "weave": "ninguno",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.99741523252643,
+   "residuo_pct": 0.14167502522468567,
+   "a1": [
+    -47.97623658651602,
+    1.5114968587853446
+   ],
+   "a2": [
+    25.495665235525166,
+    47.170050899855084
+   ],
+   "fallos": [
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 806,
+     "sy": 351,
+     "size": 187,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 713,
+     "sy": 288,
+     "size": 133,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 547,
+     "sy": 167,
+     "size": 144,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 568,
+     "sy": 373,
+     "size": 195,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 644,
+     "sy": 236,
+     "size": 193,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 227,
+     "sy": 366,
+     "size": 145,
+     "visibles": 32,
+     "conf": {
+      "antes": 21,
+      "mascara": 31,
+      "despues": 31
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 33
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 1,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 114.46649999925285,
+    "ms_patron": 103.11990000082005
+   }
+  }
+ ]
+}

@@ -1,0 +1,42 @@
+  RESUMEN
+================================================================
+  OK     test_counting.py                      1.2s
+  OK     test_conveyor_scene.py              102.2s
+  OK     test_counting_demo_screen.py          1.8s
+  OK     test_train_paths.py                   4.5s
+  OK     test_merge_fragments.py               0.2s
+  OK     test_pattern_module.py               67.0s
+  OK     test_anomalias_contadas.py            0.2s
+  OK     test_conteo_anomalias_fiabilidad.py  214.1s
+  OK     test_ui_counting.py                   1.9s
+  OK     test_textile.py                     201.5s
+  OK     test_dataset.py                       6.7s
+  OK     test_demo_screen.py                   1.8s
+  OK     test_demo_patron.py                   1.5s
+  OK     test_patron_pro.py                    3.4s
+  OK     test_patron_produccion.py             2.5s
+  OK     test_mascara.py                     102.8s
+  OK     test_texto_cv.py                      0.4s
+  OK     test_updater.py                       0.6s
+  OK     test_update_ui.py                     0.8s
+  OK     test_updater_red.py                   1.3s
+  OK     test_frame_rapido.py                  8.8s
+  OK     test_repintado.py                     1.3s
+  OK     test_jobs.py                          0.5s
+  OK     test_assembly_module.py               0.3s
+  OK     test_proyecto_copiado.py              0.2s
+  OK     test_licencia_marca.py                0.2s
+  OK     test_job_package.py                   0.5s
+  OK     test_jobs_ui.py                       2.6s
+  OK     test_ocultar_demos.py                 3.4s
+  OK     test_dialogos.py                     18.6s
+  OK     test_borrar_categoria.py              1.5s
+  OK     test_categorias_sin_nok.py            1.0s
+  OK     test_kiosco.py                        4.3s
+  OK     test_inactividad.py                   2.3s
+  OK     test_empezar_de_cero.py               2.5s
+  OK     test_app_integration.py es            3.7s
+  OK     test_app_integration.py en            4.0s
+  OK     test_demo_e2e.py                     26.2s
+
+todas las suites pasaron

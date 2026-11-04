@@ -1,0 +1,115 @@
+[
+ {
+  "mutacion": "marca sin aprobar",
+  "codigo": 1,
+  "fallas": [
+   "FALLA  sin aprobar no marca, aunque haya fallo: got=[(352, 152, 600, 380)] want=[]",
+   "FALLA  rechazada no marca: got=[(352, 152, 600, 380)] want=[]",
+   "FALLA  y no marca: got=[(354, 152, 600, 378)] want=[]",
+   "FALLA  y no marca: got=[(354, 152, 600, 378)] want=[]"
+  ],
+  "error": ""
+ },
+ {
+  "mutacion": "la huella no cubre la celda",
+  "codigo": 1,
+  "fallas": [
+   "FALLA  archivo alterado: pierde la aprobacion: got='aprobada' want='por_aprobar'",
+   "FALLA  y no marca: got=[(354, 152, 600, 378)] want=[]",
+   "FALLA  alterada en memoria: no esta lista: got=True want=False",
+   "FALLA  y no marca: got=[(354, 152, 600, 378)] want=[]"
+  ],
+  "error": ""
+ },
+ {
+  "mutacion": "piso = maximo (un fallo entre los buenos lo sube)",
+  "codigo": 1,
+  "fallas": [
+   "FALLA  sigue viendo un fantasma despues"
+  ],
+  "error": ""
+ },
+ {
+  "mutacion": "sin signo (valor absoluto, como Patron)",
+  "codigo": 1,
+  "fallas": [
+   "FALLA  puntos|canasta: la mascara lo marca cuadros=0",
+   "FALLA  puntos|canasta: caja sobre el fallo 0/0",
+   "FALLA  puntos|canasta: corrida 300 px ya casi no toca 0/0"
+  ],
+  "error": ""
+ },
+ {
+  "mutacion": "umbral a la mitad del piso",
+  "codigo": 1,
+  "fallas": [
+   "FALLA  flores|sarga_fina: caja sobre el fallo 68/243",
+   "FALLA  flores|sarga_fina: corrida 300 px ya casi no toca 165/243",
+   "FALLA  flores|canasta: caja sobre el fallo 56/386",
+   "FALLA  puntos|canasta: caja sobre el fallo 39/382",
+   "FALLA  flores·canasta: 0 regiones en 90 cuadros por todo el rollo: got=916 want=0",
+   "FALLA  puntos·canasta: 0 regiones en 90 cuadros por todo el rollo: got=1135 want=0",
+   "FALLA  rayas·sarga: 0 regiones en 90 cuadros por todo el rollo: got=940 want=0",
+   "FALLA  diamantes·tafetan: 0 regiones en 90 cuadros por todo el rollo: got=1218 want=0",
+   "FALLA  y la tela limpia sigue limpia: got=204 want=0",
+   "FALLA  rampa de luz de 4 %: 0 regiones: got=637 want=0",
+   "FALLA  tela 0.3 grados mas inclinada: 0 regiones: got=444 want=0"
+  ],
+  "error": ""
+ },
+ {
+  "mutacion": "cajas sin regresar a coordenadas del cuadro",
+  "codigo": 1,
+  "fallas": [
+   "FALLA  flores|sarga_fina: la mascara lo marca cuadros=0",
+   "FALLA  flores|sarga_fina: caja sobre el fallo 0/59",
+   "FALLA  flores|canasta: caja sobre el fallo 48/56",
+   "FALLA  flores|canasta: corrida 300 px ya casi no toca 19/56",
+   "FALLA  puntos|canasta: caja sobre el fallo 33/36",
+   "FALLA  una sola deteccion por fallo: got=2 want=1"
+  ],
+  "error": ""
+ },
+ {
+  "mutacion": "sin enganche: juzga aunque no calce",
+  "codigo": 1,
+  "fallas": [
+   "FALLA  ninguna region: got=104 want=0",
+   "FALLA  20 de 20 cuadros sin enganche: got=0 want=20"
+  ],
+  "error": ""
+ },
+ {
+  "mutacion": "tipo invertido",
+  "codigo": 1,
+  "fallas": [
+   "FALLA  fantasma = tinta de mas: got={'falta tinta'} want={'tinta de más'}",
+   "FALLA  falta de tinta = falta ['tinta de más']"
+  ],
+  "error": ""
+ },
+ {
+  "mutacion": "aprende material que no se repite",
+  "codigo": 1,
+  "fallas": [
+   "FALLA  material que no se repite: no aprende: got='por_aprobar' want='sin_aprender'"
+  ],
+  "error": ""
+ },
+ {
+  "mutacion": "pose solo traslacion",
+  "codigo": 1,
+  "fallas": [
+   "FALLA  tela 0.3 grados mas inclinada: 0 regiones: got=60 want=0"
+  ],
+  "error": ""
+ },
+ {
+  "mutacion": "la rampa de luz no se sigue",
+  "codigo": 1,
+  "fallas": [
+   "FALLA  rampa de luz de 4 %: 0 regiones: got=60 want=0"
+  ],
+  "error": ""
+ }
+]

@@ -1,0 +1,8212 @@
+{
+ "conjunto": "nuevo",
+ "K": 6,
+ "sens": 50.0,
+ "tilt": null,
+ "perturba": "",
+ "fuerza": 0.45,
+ "segundos": 2444.391640663147,
+ "materiales": [
+  {
+   "motif": "diamantes",
+   "weave": "sarga",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9983737190665019,
+   "residuo_pct": 0.19853562116622925,
+   "a1": [
+    -47.97863400250441,
+    1.510213544782316
+   ],
+   "a2": [
+    25.497960914904084,
+    47.22094745893462
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 179,
+     "sy": 425,
+     "size": 169,
+     "visibles": 25,
+     "conf": {
+      "antes": 24,
+      "mascara": 24,
+      "despues": 24
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 26
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 339,
+     "sy": 373,
+     "size": 183,
+     "visibles": 48,
+     "conf": {
+      "antes": 47,
+      "mascara": 47,
+      "despues": 47
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 49
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 311,
+     "sy": 189,
+     "size": 193,
+     "visibles": 44,
+     "conf": {
+      "antes": 43,
+      "mascara": 43,
+      "despues": 43
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 45
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 272,
+     "sy": 123,
+     "size": 136,
+     "visibles": 39,
+     "conf": {
+      "antes": 38,
+      "mascara": 38,
+      "despues": 38
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 40
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 494,
+     "sy": 172,
+     "size": 141,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 606,
+     "sy": 141,
+     "size": 155,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 322,
+     "sy": 374,
+     "size": 173,
+     "visibles": 46,
+     "conf": {
+      "antes": 38,
+      "mascara": 45,
+      "despues": 45
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 47
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 771,
+     "sy": 311,
+     "size": 181,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 464,
+     "sy": 195,
+     "size": 174,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 424,
+     "sy": 335,
+     "size": 140,
+     "visibles": 60,
+     "conf": {
+      "antes": 50,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 412,
+     "sy": 195,
+     "size": 151,
+     "visibles": 59,
+     "conf": {
+      "antes": 53,
+      "mascara": 58,
+      "despues": 58
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 642,
+     "sy": 252,
+     "size": 140,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 536,
+     "sy": 330,
+     "size": 199,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 384,
+     "sy": 363,
+     "size": 168,
+     "visibles": 55,
+     "conf": {
+      "antes": 54,
+      "mascara": 54,
+      "despues": 54
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 56
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 785,
+     "sy": 338,
+     "size": 193,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 376,
+     "sy": 237,
+     "size": 186,
+     "visibles": 54,
+     "conf": {
+      "antes": 53,
+      "mascara": 53,
+      "despues": 53
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 55
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 691,
+     "sy": 305,
+     "size": 150,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 211,
+     "sy": 383,
+     "size": 167,
+     "visibles": 30,
+     "conf": {
+      "antes": 29,
+      "mascara": 29,
+      "despues": 29
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 31
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 280.84565303568394,
+    "ms_patron": 223.51085571429914
+   }
+  },
+  {
+   "motif": "diamantes",
+   "weave": "tafetan",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9983342207550803,
+   "residuo_pct": 0.18894076347351074,
+   "a1": [
+    -47.97848976293233,
+    1.5102493592670923
+   ],
+   "a2": [
+    25.498019529679695,
+    47.220998707153484
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 158,
+     "sy": 122,
+     "size": 191,
+     "visibles": 22,
+     "conf": {
+      "antes": 21,
+      "mascara": 21,
+      "despues": 21
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 23
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 408,
+     "sy": 329,
+     "size": 182,
+     "visibles": 59,
+     "conf": {
+      "antes": 58,
+      "mascara": 58,
+      "despues": 58
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 510,
+     "sy": 235,
+     "size": 140,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 662,
+     "sy": 113,
+     "size": 184,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 646,
+     "sy": 423,
+     "size": 148,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 262,
+     "sy": 382,
+     "size": 189,
+     "visibles": 37,
+     "conf": {
+      "antes": 36,
+      "mascara": 36,
+      "despues": 36
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 38
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 176,
+     "sy": 203,
+     "size": 136,
+     "visibles": 25,
+     "conf": {
+      "antes": 14,
+      "mascara": 23,
+      "despues": 23
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 24
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 282,
+     "sy": 216,
+     "size": 158,
+     "visibles": 40,
+     "conf": {
+      "antes": 30,
+      "mascara": 39,
+      "despues": 39
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 41
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 528,
+     "sy": 182,
+     "size": 170,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 358,
+     "sy": 345,
+     "size": 188,
+     "visibles": 51,
+     "conf": {
+      "antes": 49,
+      "mascara": 50,
+      "despues": 50
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 52
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 443,
+     "sy": 249,
+     "size": 161,
+     "visibles": 60,
+     "conf": {
+      "antes": 56,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 248,
+     "sy": 205,
+     "size": 147,
+     "visibles": 36,
+     "conf": {
+      "antes": 24,
+      "mascara": 35,
+      "despues": 35
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 36
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 223,
+     "sy": 188,
+     "size": 149,
+     "visibles": 31,
+     "conf": {
+      "antes": 30,
+      "mascara": 30,
+      "despues": 30
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 32
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 253,
+     "sy": 123,
+     "size": 196,
+     "visibles": 35,
+     "conf": {
+      "antes": 34,
+      "mascara": 34,
+      "despues": 34
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 36
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 429,
+     "sy": 319,
+     "size": 165,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 345,
+     "sy": 385,
+     "size": 212,
+     "visibles": 49,
+     "conf": {
+      "antes": 48,
+      "mascara": 48,
+      "despues": 48
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 50
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 562,
+     "sy": 179,
+     "size": 201,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 263,
+     "sy": 233,
+     "size": 173,
+     "visibles": 37,
+     "conf": {
+      "antes": 36,
+      "mascara": 36,
+      "despues": 36
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 38
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 275.07810892861926,
+    "ms_patron": 218.1248496428387
+   }
+  },
+  {
+   "motif": "diamantes",
+   "weave": "sarga_fina",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9983202859822128,
+   "residuo_pct": 0.23787617683410645,
+   "a1": [
+    -47.978611692120936,
+    1.5102250633799206
+   ],
+   "a2": [
+    25.497842778274318,
+    47.22104936673425
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 464,
+     "sy": 309,
+     "size": 198,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 338,
+     "sy": 239,
+     "size": 136,
+     "visibles": 49,
+     "conf": {
+      "antes": 38,
+      "mascara": 48,
+      "despues": 48
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 42,
+      "tinta de más": 7
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 192,
+     "sy": 279,
+     "size": 179,
+     "visibles": 27,
+     "conf": {
+      "antes": 26,
+      "mascara": 26,
+      "despues": 26
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 28
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 284,
+     "sy": 183,
+     "size": 161,
+     "visibles": 40,
+     "conf": {
+      "antes": 39,
+      "mascara": 39,
+      "despues": 39
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 41
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 376,
+     "sy": 292,
+     "size": 183,
+     "visibles": 54,
+     "conf": {
+      "antes": 53,
+      "mascara": 53,
+      "despues": 53
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 55
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 372,
+     "sy": 251,
+     "size": 158,
+     "visibles": 53,
+     "conf": {
+      "antes": 50,
+      "mascara": 52,
+      "despues": 52
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 54
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 606,
+     "sy": 152,
+     "size": 188,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 293,
+     "sy": 273,
+     "size": 139,
+     "visibles": 42,
+     "conf": {
+      "antes": 24,
+      "mascara": 41,
+      "despues": 41
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 42
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 279,
+     "sy": 165,
+     "size": 161,
+     "visibles": 40,
+     "conf": {
+      "antes": 27,
+      "mascara": 36,
+      "despues": 36
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 37
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 293,
+     "sy": 425,
+     "size": 130,
+     "visibles": 42,
+     "conf": {
+      "antes": 27,
+      "mascara": 41,
+      "despues": 41
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 43
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 726,
+     "sy": 406,
+     "size": 193,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 568,
+     "sy": 313,
+     "size": 148,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 691,
+     "sy": 139,
+     "size": 213,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 671,
+     "sy": 347,
+     "size": 151,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 302,
+     "sy": 345,
+     "size": 165,
+     "visibles": 43,
+     "conf": {
+      "antes": 42,
+      "mascara": 42,
+      "despues": 42
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 44
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 416,
+     "sy": 247,
+     "size": 166,
+     "visibles": 59,
+     "conf": {
+      "antes": 58,
+      "mascara": 58,
+      "despues": 58
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 594,
+     "sy": 268,
+     "size": 204,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 394,
+     "sy": 249,
+     "size": 195,
+     "visibles": 56,
+     "conf": {
+      "antes": 55,
+      "mascara": 55,
+      "despues": 55
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 57
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 282.18384732140294,
+    "ms_patron": 224.34968428576667
+   }
+  },
+  {
+   "motif": "diamantes",
+   "weave": "canasta",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9988577897219912,
+   "residuo_pct": 0.6797626614570618,
+   "a1": [
+    -47.981148440960986,
+    1.5103640151875268
+   ],
+   "a2": [
+    25.499315921709226,
+    47.2203307147064
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 607,
+     "sy": 121,
+     "size": 163,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 426,
+     "sy": 231,
+     "size": 167,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 473,
+     "sy": 358,
+     "size": 167,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 330,
+     "sy": 155,
+     "size": 154,
+     "visibles": 47,
+     "conf": {
+      "antes": 45,
+      "mascara": 46,
+      "despues": 46
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 48
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 610,
+     "sy": 122,
+     "size": 122,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 536,
+     "sy": 170,
+     "size": 142,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 732,
+     "sy": 192,
+     "size": 141,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 329,
+     "sy": 249,
+     "size": 197,
+     "visibles": 46,
+     "conf": {
+      "antes": 35,
+      "mascara": 45,
+      "despues": 45
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 47
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 805,
+     "sy": 112,
+     "size": 140,
+     "visibles": 60,
+     "conf": {
+      "antes": 0,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 641,
+     "sy": 163,
+     "size": 198,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 391,
+     "sy": 222,
+     "size": 189,
+     "visibles": 55,
+     "conf": {
+      "antes": 47,
+      "mascara": 54,
+      "despues": 54
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 56
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 725,
+     "sy": 343,
+     "size": 165,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 458,
+     "sy": 142,
+     "size": 207,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 704,
+     "sy": 163,
+     "size": 171,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 346,
+     "sy": 188,
+     "size": 185,
+     "visibles": 49,
+     "conf": {
+      "antes": 48,
+      "mascara": 48,
+      "despues": 48
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 50
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 524,
+     "sy": 283,
+     "size": 140,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 342,
+     "sy": 204,
+     "size": 196,
+     "visibles": 48,
+     "conf": {
+      "antes": 47,
+      "mascara": 47,
+      "despues": 47
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 49
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 326,
+     "sy": 278,
+     "size": 214,
+     "visibles": 45,
+     "conf": {
+      "antes": 44,
+      "mascara": 44,
+      "despues": 44
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 46
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 281.3858412499972,
+    "ms_patron": 224.43331392857348
+   }
+  },
+  {
+   "motif": "diamantes",
+   "weave": "ninguno",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9981504252363832,
+   "residuo_pct": 0.16185790300369263,
+   "a1": [
+    -47.978718862811775,
+    1.5102882397418012
+   ],
+   "a2": [
+    25.497946102712703,
+    47.22104217465163
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 381,
+     "sy": 388,
+     "size": 121,
+     "visibles": 55,
+     "conf": {
+      "antes": 53,
+      "mascara": 54,
+      "despues": 54
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 56
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 272,
+     "sy": 115,
+     "size": 197,
+     "visibles": 39,
+     "conf": {
+      "antes": 38,
+      "mascara": 38,
+      "despues": 38
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 40
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 713,
+     "sy": 124,
+     "size": 178,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 415,
+     "sy": 327,
+     "size": 149,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 780,
+     "sy": 175,
+     "size": 158,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 471,
+     "sy": 332,
+     "size": 178,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 234,
+     "sy": 195,
+     "size": 192,
+     "visibles": 32,
+     "conf": {
+      "antes": 31,
+      "mascara": 31,
+      "despues": 31
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 33
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 669,
+     "sy": 240,
+     "size": 137,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 760,
+     "sy": 165,
+     "size": 147,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 661,
+     "sy": 229,
+     "size": 186,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 580,
+     "sy": 363,
+     "size": 145,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 416,
+     "sy": 125,
+     "size": 169,
+     "visibles": 59,
+     "conf": {
+      "antes": 57,
+      "mascara": 58,
+      "despues": 58
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 580,
+     "sy": 249,
+     "size": 179,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 680,
+     "sy": 355,
+     "size": 165,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 252,
+     "sy": 136,
+     "size": 190,
+     "visibles": 36,
+     "conf": {
+      "antes": 35,
+      "mascara": 35,
+      "despues": 35
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 37
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 236,
+     "sy": 418,
+     "size": 144,
+     "visibles": 34,
+     "conf": {
+      "antes": 33,
+      "mascara": 33,
+      "despues": 33
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 35
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 373,
+     "sy": 288,
+     "size": 169,
+     "visibles": 54,
+     "conf": {
+      "antes": 51,
+      "mascara": 53,
+      "despues": 53
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 55
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 583,
+     "sy": 144,
+     "size": 171,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 282.79200357143446,
+    "ms_patron": 225.38748857146598
+   }
+  },
+  {
+   "motif": "flores",
+   "weave": "sarga",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9981458351998649,
+   "residuo_pct": 0.21408945322036743,
+   "a1": [
+    -47.98347511748798,
+    1.5128075675088424
+   ],
+   "a2": [
+    25.496625105311807,
+    47.1700677492924
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 505,
+     "sy": 320,
+     "size": 153,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 665,
+     "sy": 150,
+     "size": 155,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 208,
+     "sy": 162,
+     "size": 138,
+     "visibles": 29,
+     "conf": {
+      "antes": 28,
+      "mascara": 28,
+      "despues": 28
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 30
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 426,
+     "sy": 246,
+     "size": 135,
+     "visibles": 60,
+     "conf": {
+      "antes": 56,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 683,
+     "sy": 291,
+     "size": 172,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 252,
+     "sy": 321,
+     "size": 150,
+     "visibles": 36,
+     "conf": {
+      "antes": 31,
+      "mascara": 35,
+      "despues": 35
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 37
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 618,
+     "sy": 240,
+     "size": 140,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 210,
+     "sy": 189,
+     "size": 139,
+     "visibles": 30,
+     "conf": {
+      "antes": 22,
+      "mascara": 29,
+      "despues": 29
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 31
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 326,
+     "sy": 131,
+     "size": 182,
+     "visibles": 46,
+     "conf": {
+      "antes": 41,
+      "mascara": 45,
+      "despues": 45
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 47
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 717,
+     "sy": 413,
+     "size": 181,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 167,
+     "sy": 339,
+     "size": 199,
+     "visibles": 23,
+     "conf": {
+      "antes": 14,
+      "mascara": 22,
+      "despues": 22
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 24
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 422,
+     "sy": 172,
+     "size": 162,
+     "visibles": 60,
+     "conf": {
+      "antes": 48,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 438,
+     "sy": 320,
+     "size": 182,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 551,
+     "sy": 127,
+     "size": 198,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 784,
+     "sy": 367,
+     "size": 140,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 256,
+     "sy": 110,
+     "size": 141,
+     "visibles": 36,
+     "conf": {
+      "antes": 35,
+      "mascara": 35,
+      "despues": 35
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 37
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 427,
+     "sy": 167,
+     "size": 172,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 269,
+     "sy": 322,
+     "size": 198,
+     "visibles": 38,
+     "conf": {
+      "antes": 37,
+      "mascara": 37,
+      "despues": 37
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 39
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 274.8440619642874,
+    "ms_patron": 221.0902869642918
+   }
+  },
+  {
+   "motif": "flores",
+   "weave": "tafetan",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.998030032627695,
+   "residuo_pct": 0.2057105302810669,
+   "a1": [
+    -47.983500210720315,
+    1.5128263174271057
+   ],
+   "a2": [
+    25.496615257500565,
+    47.170153484305935
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 256,
+     "sy": 334,
+     "size": 169,
+     "visibles": 36,
+     "conf": {
+      "antes": 35,
+      "mascara": 35,
+      "despues": 35
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 37
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 709,
+     "sy": 207,
+     "size": 167,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 379,
+     "sy": 178,
+     "size": 199,
+     "visibles": 54,
+     "conf": {
+      "antes": 53,
+      "mascara": 53,
+      "despues": 53
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 55
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 643,
+     "sy": 376,
+     "size": 162,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 193,
+     "sy": 261,
+     "size": 200,
+     "visibles": 27,
+     "conf": {
+      "antes": 26,
+      "mascara": 26,
+      "despues": 26
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 28
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 256,
+     "sy": 118,
+     "size": 138,
+     "visibles": 37,
+     "conf": {
+      "antes": 29,
+      "mascara": 36,
+      "despues": 36
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 37
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 598,
+     "sy": 337,
+     "size": 167,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 294,
+     "sy": 362,
+     "size": 136,
+     "visibles": 42,
+     "conf": {
+      "antes": 18,
+      "mascara": 41,
+      "despues": 41
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 43
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 462,
+     "sy": 351,
+     "size": 162,
+     "visibles": 60,
+     "conf": {
+      "antes": 51,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 529,
+     "sy": 203,
+     "size": 173,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 168,
+     "sy": 248,
+     "size": 188,
+     "visibles": 23,
+     "conf": {
+      "antes": 13,
+      "mascara": 22,
+      "despues": 22
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 24
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 678,
+     "sy": 333,
+     "size": 190,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 527,
+     "sy": 163,
+     "size": 200,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 264,
+     "sy": 120,
+     "size": 160,
+     "visibles": 37,
+     "conf": {
+      "antes": 36,
+      "mascara": 36,
+      "despues": 36
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 38
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 513,
+     "sy": 401,
+     "size": 182,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 261,
+     "sy": 135,
+     "size": 160,
+     "visibles": 37,
+     "conf": {
+      "antes": 34,
+      "mascara": 36,
+      "despues": 36
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 38
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 336,
+     "sy": 353,
+     "size": 181,
+     "visibles": 48,
+     "conf": {
+      "antes": 47,
+      "mascara": 47,
+      "despues": 47
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 49
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 374,
+     "sy": 282,
+     "size": 166,
+     "visibles": 53,
+     "conf": {
+      "antes": 52,
+      "mascara": 52,
+      "despues": 52
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 54
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 283.98540535705644,
+    "ms_patron": 223.22498517861666
+   }
+  },
+  {
+   "motif": "flores",
+   "weave": "sarga_fina",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9984860083644724,
+   "residuo_pct": 0.24904906749725342,
+   "a1": [
+    -47.98340035640459,
+    1.512635656157311
+   ],
+   "a2": [
+    25.49633381213954,
+    47.17023752151634
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 568,
+     "sy": 338,
+     "size": 196,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 196,
+     "sy": 126,
+     "size": 160,
+     "visibles": 27,
+     "conf": {
+      "antes": 26,
+      "mascara": 26,
+      "despues": 26
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 28
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 695,
+     "sy": 403,
+     "size": 153,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 659,
+     "sy": 315,
+     "size": 196,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 373,
+     "sy": 284,
+     "size": 199,
+     "visibles": 53,
+     "conf": {
+      "antes": 52,
+      "mascara": 52,
+      "despues": 52
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 54
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 698,
+     "sy": 144,
+     "size": 154,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 557,
+     "sy": 404,
+     "size": 184,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 512,
+     "sy": 424,
+     "size": 164,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 172,
+     "sy": 426,
+     "size": 145,
+     "visibles": 24,
+     "conf": {
+      "antes": 3,
+      "mascara": 23,
+      "despues": 23
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 25
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 797,
+     "sy": 375,
+     "size": 138,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 250,
+     "sy": 131,
+     "size": 195,
+     "visibles": 36,
+     "conf": {
+      "antes": 26,
+      "mascara": 35,
+      "despues": 35
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 37
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 639,
+     "sy": 110,
+     "size": 149,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 301,
+     "sy": 389,
+     "size": 140,
+     "visibles": 43,
+     "conf": {
+      "antes": 42,
+      "mascara": 42,
+      "despues": 42
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 44
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 462,
+     "sy": 267,
+     "size": 202,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 541,
+     "sy": 206,
+     "size": 142,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 464,
+     "sy": 333,
+     "size": 200,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 440,
+     "sy": 372,
+     "size": 181,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 762,
+     "sy": 388,
+     "size": 171,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 216.99072089284073,
+    "ms_patron": 174.72467803569154
+   }
+  },
+  {
+   "motif": "flores",
+   "weave": "canasta",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9987778957506587,
+   "residuo_pct": 0.6118170917034149,
+   "a1": [
+    -47.988773693558656,
+    1.5132172256708287
+   ],
+   "a2": [
+    25.499133345681553,
+    47.16949233992233
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 752,
+     "sy": 299,
+     "size": 125,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 788,
+     "sy": 183,
+     "size": 180,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 728,
+     "sy": 236,
+     "size": 190,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 302,
+     "sy": 276,
+     "size": 146,
+     "visibles": 43,
+     "conf": {
+      "antes": 42,
+      "mascara": 42,
+      "despues": 42
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 44
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 663,
+     "sy": 155,
+     "size": 161,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 461,
+     "sy": 408,
+     "size": 194,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 157,
+     "sy": 152,
+     "size": 154,
+     "visibles": 22,
+     "conf": {
+      "antes": 0,
+      "mascara": 20,
+      "despues": 20
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 21
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 221,
+     "sy": 361,
+     "size": 139,
+     "visibles": 32,
+     "conf": {
+      "antes": 10,
+      "mascara": 31,
+      "despues": 31
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 33
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 241,
+     "sy": 169,
+     "size": 172,
+     "visibles": 34,
+     "conf": {
+      "antes": 18,
+      "mascara": 33,
+      "despues": 33
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 35
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 190,
+     "sy": 204,
+     "size": 182,
+     "visibles": 27,
+     "conf": {
+      "antes": 3,
+      "mascara": 26,
+      "despues": 26
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 28
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 243,
+     "sy": 149,
+     "size": 136,
+     "visibles": 34,
+     "conf": {
+      "antes": 20,
+      "mascara": 33,
+      "despues": 33
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 35
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 771,
+     "sy": 122,
+     "size": 139,
+     "visibles": 60,
+     "conf": {
+      "antes": 37,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 555,
+     "sy": 374,
+     "size": 155,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 698,
+     "sy": 322,
+     "size": 161,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 756,
+     "sy": 264,
+     "size": 175,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 528,
+     "sy": 247,
+     "size": 161,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 489,
+     "sy": 255,
+     "size": 159,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 376,
+     "sy": 286,
+     "size": 185,
+     "visibles": 53,
+     "conf": {
+      "antes": 52,
+      "mascara": 52,
+      "despues": 52
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 54
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 214.32362535710712,
+    "ms_patron": 172.7509616072179
+   }
+  },
+  {
+   "motif": "flores",
+   "weave": "ninguno",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9976730461427755,
+   "residuo_pct": 0.1829087734222412,
+   "a1": [
+    -47.98339750743181,
+    1.5128115436860416
+   ],
+   "a2": [
+    25.49667583003024,
+    47.17027622106528
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 368,
+     "sy": 426,
+     "size": 171,
+     "visibles": 53,
+     "conf": {
+      "antes": 52,
+      "mascara": 52,
+      "despues": 52
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 54
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 706,
+     "sy": 382,
+     "size": 196,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 700,
+     "sy": 367,
+     "size": 169,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 643,
+     "sy": 177,
+     "size": 200,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 209,
+     "sy": 426,
+     "size": 143,
+     "visibles": 29,
+     "conf": {
+      "antes": 28,
+      "mascara": 28,
+      "despues": 28
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 30
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 287,
+     "sy": 140,
+     "size": 121,
+     "visibles": 42,
+     "conf": {
+      "antes": 37,
+      "mascara": 41,
+      "despues": 41
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 43
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 155,
+     "sy": 411,
+     "size": 180,
+     "visibles": 21,
+     "conf": {
+      "antes": 10,
+      "mascara": 20,
+      "despues": 20
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 22
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 533,
+     "sy": 353,
+     "size": 162,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 271,
+     "sy": 215,
+     "size": 139,
+     "visibles": 38,
+     "conf": {
+      "antes": 24,
+      "mascara": 37,
+      "despues": 37
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 39
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 630,
+     "sy": 125,
+     "size": 198,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 481,
+     "sy": 190,
+     "size": 182,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 252,
+     "sy": 186,
+     "size": 161,
+     "visibles": 35,
+     "conf": {
+      "antes": 10,
+      "mascara": 34,
+      "despues": 34
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 36
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 313,
+     "sy": 272,
+     "size": 164,
+     "visibles": 45,
+     "conf": {
+      "antes": 43,
+      "mascara": 44,
+      "despues": 44
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 46
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 328,
+     "sy": 311,
+     "size": 215,
+     "visibles": 46,
+     "conf": {
+      "antes": 45,
+      "mascara": 45,
+      "despues": 45
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 47
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 744,
+     "sy": 237,
+     "size": 185,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 527,
+     "sy": 219,
+     "size": 182,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 183,
+     "sy": 249,
+     "size": 176,
+     "visibles": 25,
+     "conf": {
+      "antes": 24,
+      "mascara": 24,
+      "despues": 24
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 26
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 632,
+     "sy": 267,
+     "size": 215,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 219.98771410713158,
+    "ms_patron": 174.26563410712268
+   }
+  },
+  {
+   "motif": "rayas",
+   "weave": "sarga",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9994467297670424,
+   "residuo_pct": 0.2417236566543579,
+   "a1": [
+    -47.93618123507011,
+    1.5810748201091798
+   ],
+   "a2": [
+    25.381597185841077,
+    47.18368267997374
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 549,
+     "sy": 422,
+     "size": 131,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 415,
+     "sy": 338,
+     "size": 165,
+     "visibles": 59,
+     "conf": {
+      "antes": 58,
+      "mascara": 58,
+      "despues": 58
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 650,
+     "sy": 423,
+     "size": 126,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 256,
+     "sy": 372,
+     "size": 164,
+     "visibles": 36,
+     "conf": {
+      "antes": 35,
+      "mascara": 35,
+      "despues": 35
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 37
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 408,
+     "sy": 418,
+     "size": 176,
+     "visibles": 58,
+     "conf": {
+      "antes": 57,
+      "mascara": 57,
+      "despues": 57
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 59
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 273,
+     "sy": 382,
+     "size": 140,
+     "visibles": 39,
+     "conf": {
+      "antes": 38,
+      "mascara": 38,
+      "despues": 38
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 40
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 762,
+     "sy": 186,
+     "size": 148,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 698,
+     "sy": 112,
+     "size": 144,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 585,
+     "sy": 126,
+     "size": 162,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 410,
+     "sy": 244,
+     "size": 171,
+     "visibles": 59,
+     "conf": {
+      "antes": 50,
+      "mascara": 58,
+      "despues": 58
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 806,
+     "sy": 395,
+     "size": 141,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 553,
+     "sy": 344,
+     "size": 161,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 697,
+     "sy": 281,
+     "size": 190,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 175,
+     "sy": 132,
+     "size": 153,
+     "visibles": 24,
+     "conf": {
+      "antes": 23,
+      "mascara": 23,
+      "despues": 23
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 25
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 229,
+     "sy": 149,
+     "size": 195,
+     "visibles": 32,
+     "conf": {
+      "antes": 31,
+      "mascara": 31,
+      "despues": 31
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 33
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 646,
+     "sy": 208,
+     "size": 152,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 407,
+     "sy": 424,
+     "size": 206,
+     "visibles": 56,
+     "conf": {
+      "antes": 55,
+      "mascara": 55,
+      "despues": 55
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 57
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 344,
+     "sy": 250,
+     "size": 182,
+     "visibles": 49,
+     "conf": {
+      "antes": 48,
+      "mascara": 48,
+      "despues": 48
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 50
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 218.14110571431553,
+    "ms_patron": 173.64286857141127
+   }
+  },
+  {
+   "motif": "rayas",
+   "weave": "tafetan",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9994446715456557,
+   "residuo_pct": 0.2343982458114624,
+   "a1": [
+    -47.936168577446,
+    1.581039817813732
+   ],
+   "a2": [
+    25.381562435133652,
+    47.183765218895175
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 406,
+     "sy": 392,
+     "size": 143,
+     "visibles": 58,
+     "conf": {
+      "antes": 53,
+      "mascara": 57,
+      "despues": 57
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 59
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 751,
+     "sy": 131,
+     "size": 134,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 316,
+     "sy": 143,
+     "size": 125,
+     "visibles": 45,
+     "conf": {
+      "antes": 44,
+      "mascara": 44,
+      "despues": 44
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 46
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 390,
+     "sy": 234,
+     "size": 168,
+     "visibles": 56,
+     "conf": {
+      "antes": 55,
+      "mascara": 55,
+      "despues": 55
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 57
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 637,
+     "sy": 428,
+     "size": 121,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 760,
+     "sy": 171,
+     "size": 137,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 648,
+     "sy": 198,
+     "size": 168,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 636,
+     "sy": 403,
+     "size": 147,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 453,
+     "sy": 121,
+     "size": 148,
+     "visibles": 60,
+     "conf": {
+      "antes": 56,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 591,
+     "sy": 384,
+     "size": 180,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 542,
+     "sy": 283,
+     "size": 161,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 770,
+     "sy": 374,
+     "size": 137,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 297,
+     "sy": 189,
+     "size": 208,
+     "visibles": 42,
+     "conf": {
+      "antes": 41,
+      "mascara": 41,
+      "despues": 41
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 43
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 703,
+     "sy": 387,
+     "size": 194,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 159,
+     "sy": 159,
+     "size": 192,
+     "visibles": 22,
+     "conf": {
+      "antes": 21,
+      "mascara": 21,
+      "despues": 21
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 23
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 252,
+     "sy": 154,
+     "size": 172,
+     "visibles": 36,
+     "conf": {
+      "antes": 35,
+      "mascara": 35,
+      "despues": 35
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 37
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 607,
+     "sy": 201,
+     "size": 178,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 381,
+     "sy": 430,
+     "size": 151,
+     "visibles": 54,
+     "conf": {
+      "antes": 53,
+      "mascara": 53,
+      "despues": 53
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 55
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 218.1329632143031,
+    "ms_patron": 173.1457858928317
+   }
+  },
+  {
+   "motif": "rayas",
+   "weave": "sarga_fina",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9994501897264197,
+   "residuo_pct": 0.2765953540802002,
+   "a1": [
+    -47.93611377188745,
+    1.580983212407773
+   ],
+   "a2": [
+    25.38134758112753,
+    47.18389934095261
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 469,
+     "sy": 161,
+     "size": 149,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 617,
+     "sy": 210,
+     "size": 158,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 327,
+     "sy": 304,
+     "size": 186,
+     "visibles": 46,
+     "conf": {
+      "antes": 45,
+      "mascara": 45,
+      "despues": 45
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 47
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 469,
+     "sy": 379,
+     "size": 144,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 560,
+     "sy": 165,
+     "size": 122,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 602,
+     "sy": 270,
+     "size": 175,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 567,
+     "sy": 307,
+     "size": 152,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 732,
+     "sy": 223,
+     "size": 182,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 572,
+     "sy": 358,
+     "size": 133,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 257,
+     "sy": 166,
+     "size": 169,
+     "visibles": 37,
+     "conf": {
+      "antes": 32,
+      "mascara": 36,
+      "despues": 36
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 38
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 630,
+     "sy": 143,
+     "size": 143,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 169,
+     "sy": 215,
+     "size": 142,
+     "visibles": 23,
+     "conf": {
+      "antes": 17,
+      "mascara": 22,
+      "despues": 22
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 24
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 368,
+     "sy": 225,
+     "size": 159,
+     "visibles": 53,
+     "conf": {
+      "antes": 52,
+      "mascara": 52,
+      "despues": 52
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 54
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 501,
+     "sy": 203,
+     "size": 205,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 741,
+     "sy": 395,
+     "size": 201,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 364,
+     "sy": 321,
+     "size": 207,
+     "visibles": 51,
+     "conf": {
+      "antes": 50,
+      "mascara": 50,
+      "despues": 50
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 52
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 298,
+     "sy": 240,
+     "size": 199,
+     "visibles": 42,
+     "conf": {
+      "antes": 40,
+      "mascara": 41,
+      "despues": 41
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 43
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 795,
+     "sy": 185,
+     "size": 198,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 217.30858107144806,
+    "ms_patron": 174.09852303568252
+   }
+  },
+  {
+   "motif": "rayas",
+   "weave": "canasta",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9988983028099505,
+   "residuo_pct": 0.6529301404953003,
+   "a1": [
+    -47.97800146316995,
+    1.509468669870074
+   ],
+   "a2": [
+    25.40165135359852,
+    47.21852877768614
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 732,
+     "sy": 429,
+     "size": 182,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 281,
+     "sy": 328,
+     "size": 160,
+     "visibles": 40,
+     "conf": {
+      "antes": 37,
+      "mascara": 39,
+      "despues": 39
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 41
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 248,
+     "sy": 131,
+     "size": 161,
+     "visibles": 35,
+     "conf": {
+      "antes": 34,
+      "mascara": 34,
+      "despues": 34
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 36
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 242,
+     "sy": 279,
+     "size": 164,
+     "visibles": 35,
+     "conf": {
+      "antes": 26,
+      "mascara": 34,
+      "despues": 34
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 36
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 155,
+     "sy": 234,
+     "size": 150,
+     "visibles": 22,
+     "conf": {
+      "antes": 17,
+      "mascara": 21,
+      "despues": 21
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 23
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 578,
+     "sy": 283,
+     "size": 128,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 248,
+     "sy": 399,
+     "size": 193,
+     "visibles": 35,
+     "conf": {
+      "antes": 32,
+      "mascara": 34,
+      "despues": 34
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 36
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 631,
+     "sy": 195,
+     "size": 143,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 272,
+     "sy": 378,
+     "size": 167,
+     "visibles": 38,
+     "conf": {
+      "antes": 33,
+      "mascara": 37,
+      "despues": 37
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 39
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 299,
+     "sy": 263,
+     "size": 134,
+     "visibles": 43,
+     "conf": {
+      "antes": 29,
+      "mascara": 42,
+      "despues": 42
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 44
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 473,
+     "sy": 200,
+     "size": 141,
+     "visibles": 60,
+     "conf": {
+      "antes": 58,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 212,
+     "sy": 313,
+     "size": 154,
+     "visibles": 30,
+     "conf": {
+      "antes": 0,
+      "mascara": 26,
+      "despues": 26
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 27
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 404,
+     "sy": 189,
+     "size": 167,
+     "visibles": 58,
+     "conf": {
+      "antes": 54,
+      "mascara": 57,
+      "despues": 57
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 59
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 552,
+     "sy": 167,
+     "size": 213,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 180,
+     "sy": 330,
+     "size": 167,
+     "visibles": 26,
+     "conf": {
+      "antes": 19,
+      "mascara": 25,
+      "despues": 25
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 27
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 776,
+     "sy": 341,
+     "size": 199,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 556,
+     "sy": 180,
+     "size": 181,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 158,
+     "sy": 277,
+     "size": 150,
+     "visibles": 22,
+     "conf": {
+      "antes": 17,
+      "mascara": 21,
+      "despues": 21
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 23
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 135,
+     "despues": 135
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 222.79615250002476,
+    "ms_patron": 175.6517353571488
+   }
+  },
+  {
+   "motif": "rayas",
+   "weave": "ninguno",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9994095435766703,
+   "residuo_pct": 0.21100342273712158,
+   "a1": [
+    -47.936157158747,
+    1.581019905300792
+   ],
+   "a2": [
+    25.38159678755602,
+    47.18377644961484
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 742,
+     "sy": 284,
+     "size": 143,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 661,
+     "sy": 416,
+     "size": 140,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 791,
+     "sy": 375,
+     "size": 165,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 762,
+     "sy": 211,
+     "size": 169,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 160,
+     "sy": 123,
+     "size": 162,
+     "visibles": 22,
+     "conf": {
+      "antes": 21,
+      "mascara": 21,
+      "despues": 21
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 23
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 157,
+     "sy": 181,
+     "size": 174,
+     "visibles": 21,
+     "conf": {
+      "antes": 20,
+      "mascara": 20,
+      "despues": 20
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 22
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 241,
+     "sy": 264,
+     "size": 155,
+     "visibles": 34,
+     "conf": {
+      "antes": 28,
+      "mascara": 33,
+      "despues": 33
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 35
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 334,
+     "sy": 362,
+     "size": 188,
+     "visibles": 47,
+     "conf": {
+      "antes": 42,
+      "mascara": 46,
+      "despues": 46
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 48
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 582,
+     "sy": 244,
+     "size": 187,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 474,
+     "sy": 243,
+     "size": 193,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 155,
+     "sy": 320,
+     "size": 150,
+     "visibles": 22,
+     "conf": {
+      "antes": 13,
+      "mascara": 21,
+      "despues": 21
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 23
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 367,
+     "sy": 116,
+     "size": 138,
+     "visibles": 52,
+     "conf": {
+      "antes": 40,
+      "mascara": 51,
+      "despues": 51
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 53
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 507,
+     "sy": 395,
+     "size": 174,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 388,
+     "sy": 315,
+     "size": 177,
+     "visibles": 55,
+     "conf": {
+      "antes": 54,
+      "mascara": 54,
+      "despues": 54
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 56
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 312,
+     "sy": 362,
+     "size": 159,
+     "visibles": 44,
+     "conf": {
+      "antes": 43,
+      "mascara": 43,
+      "despues": 43
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 45
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 657,
+     "sy": 276,
+     "size": 198,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 739,
+     "sy": 184,
+     "size": 164,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 488,
+     "sy": 288,
+     "size": 173,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 262.79797982137035,
+    "ms_patron": 210.2962014286017
+   }
+  },
+  {
+   "motif": "puntos",
+   "weave": "sarga",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9976444411661756,
+   "residuo_pct": 0.16849935054779053,
+   "a1": [
+    -47.97616554211295,
+    1.5116637929969887
+   ],
+   "a2": [
+    25.495521890176917,
+    47.16943666083812
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 174,
+     "sy": 429,
+     "size": 145,
+     "visibles": 25,
+     "conf": {
+      "antes": 17,
+      "mascara": 24,
+      "despues": 24
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 26
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 709,
+     "sy": 312,
+     "size": 186,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 591,
+     "sy": 233,
+     "size": 162,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 585,
+     "sy": 324,
+     "size": 122,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 797,
+     "sy": 119,
+     "size": 153,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 465,
+     "sy": 407,
+     "size": 190,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 597,
+     "sy": 280,
+     "size": 180,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 160,
+     "sy": 295,
+     "size": 165,
+     "visibles": 22,
+     "conf": {
+      "antes": 17,
+      "mascara": 21,
+      "despues": 21
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 23
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 512,
+     "sy": 374,
+     "size": 132,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 376,
+     "sy": 303,
+     "size": 169,
+     "visibles": 53,
+     "conf": {
+      "antes": 47,
+      "mascara": 52,
+      "despues": 52
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 54
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 204,
+     "sy": 151,
+     "size": 170,
+     "visibles": 28,
+     "conf": {
+      "antes": 25,
+      "mascara": 27,
+      "despues": 27
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 29
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 208,
+     "sy": 251,
+     "size": 197,
+     "visibles": 29,
+     "conf": {
+      "antes": 28,
+      "mascara": 28,
+      "despues": 28
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 30
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 205,
+     "sy": 400,
+     "size": 200,
+     "visibles": 29,
+     "conf": {
+      "antes": 28,
+      "mascara": 28,
+      "despues": 28
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 30
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 591,
+     "sy": 306,
+     "size": 204,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 439,
+     "sy": 154,
+     "size": 187,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 791,
+     "sy": 419,
+     "size": 188,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 602,
+     "sy": 423,
+     "size": 140,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 453,
+     "sy": 171,
+     "size": 197,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 264.32620732148604,
+    "ms_patron": 209.47014303566058
+   }
+  },
+  {
+   "motif": "puntos",
+   "weave": "tafetan",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9974488597464293,
+   "residuo_pct": 0.15945807099342346,
+   "a1": [
+    -47.976096163826966,
+    1.5116300842895791
+   ],
+   "a2": [
+    25.49546366858206,
+    47.16956944788159
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 690,
+     "sy": 266,
+     "size": 156,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 636,
+     "sy": 181,
+     "size": 198,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 341,
+     "sy": 347,
+     "size": 166,
+     "visibles": 48,
+     "conf": {
+      "antes": 47,
+      "mascara": 47,
+      "despues": 47
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 49
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 337,
+     "sy": 327,
+     "size": 127,
+     "visibles": 48,
+     "conf": {
+      "antes": 43,
+      "mascara": 47,
+      "despues": 47
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 49
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 809,
+     "sy": 359,
+     "size": 169,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 644,
+     "sy": 219,
+     "size": 178,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 514,
+     "sy": 313,
+     "size": 179,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 322,
+     "sy": 299,
+     "size": 191,
+     "visibles": 45,
+     "conf": {
+      "antes": 43,
+      "mascara": 44,
+      "despues": 44
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 46
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 314,
+     "sy": 265,
+     "size": 172,
+     "visibles": 45,
+     "conf": {
+      "antes": 28,
+      "mascara": 44,
+      "despues": 44
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 46
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 713,
+     "sy": 338,
+     "size": 184,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 665,
+     "sy": 376,
+     "size": 163,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 257,
+     "sy": 216,
+     "size": 156,
+     "visibles": 36,
+     "conf": {
+      "antes": 29,
+      "mascara": 35,
+      "despues": 35
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 37
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 510,
+     "sy": 116,
+     "size": 180,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 484,
+     "sy": 176,
+     "size": 146,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 336,
+     "sy": 430,
+     "size": 212,
+     "visibles": 46,
+     "conf": {
+      "antes": 45,
+      "mascara": 45,
+      "despues": 45
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 47
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 624,
+     "sy": 275,
+     "size": 182,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 349,
+     "sy": 237,
+     "size": 156,
+     "visibles": 50,
+     "conf": {
+      "antes": 49,
+      "mascara": 49,
+      "despues": 49
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 51
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 189,
+     "sy": 134,
+     "size": 214,
+     "visibles": 27,
+     "conf": {
+      "antes": 26,
+      "mascara": 26,
+      "despues": 26
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 28
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 263.6776612500203,
+    "ms_patron": 209.68020982141493
+   }
+  },
+  {
+   "motif": "puntos",
+   "weave": "sarga_fina",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9981248704712714,
+   "residuo_pct": 0.20706802606582642,
+   "a1": [
+    47.976119315479764,
+    -1.5114852080540047
+   ],
+   "a2": [
+    25.495283294169237,
+    47.16973745790808
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 413,
+     "sy": 187,
+     "size": 127,
+     "visibles": 60,
+     "conf": {
+      "antes": 52,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 429,
+     "sy": 310,
+     "size": 161,
+     "visibles": 60,
+     "conf": {
+      "antes": 58,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 529,
+     "sy": 214,
+     "size": 178,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 770,
+     "sy": 132,
+     "size": 182,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 166,
+     "sy": 271,
+     "size": 139,
+     "visibles": 23,
+     "conf": {
+      "antes": 22,
+      "mascara": 22,
+      "despues": 22
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 24
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 303,
+     "sy": 195,
+     "size": 192,
+     "visibles": 43,
+     "conf": {
+      "antes": 42,
+      "mascara": 42,
+      "despues": 42
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 44
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 521,
+     "sy": 389,
+     "size": 177,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 381,
+     "sy": 294,
+     "size": 165,
+     "visibles": 54,
+     "conf": {
+      "antes": 40,
+      "mascara": 53,
+      "despues": 53
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 55
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 739,
+     "sy": 233,
+     "size": 142,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 414,
+     "sy": 242,
+     "size": 200,
+     "visibles": 59,
+     "conf": {
+      "antes": 51,
+      "mascara": 58,
+      "despues": 58
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 569,
+     "sy": 337,
+     "size": 194,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 248,
+     "sy": 240,
+     "size": 145,
+     "visibles": 35,
+     "conf": {
+      "antes": 24,
+      "mascara": 33,
+      "despues": 33
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 34
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 752,
+     "sy": 201,
+     "size": 190,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 331,
+     "sy": 206,
+     "size": 180,
+     "visibles": 47,
+     "conf": {
+      "antes": 46,
+      "mascara": 46,
+      "despues": 46
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 48
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 448,
+     "sy": 143,
+     "size": 143,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 440,
+     "sy": 229,
+     "size": 196,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 644,
+     "sy": 348,
+     "size": 162,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 226,
+     "sy": 236,
+     "size": 196,
+     "visibles": 31,
+     "conf": {
+      "antes": 30,
+      "mascara": 30,
+      "despues": 30
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 32
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 269.2275060714045,
+    "ms_patron": 208.66688589285656
+   }
+  },
+  {
+   "motif": "puntos",
+   "weave": "canasta",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.9979471253209032,
+   "residuo_pct": 0.6390407681465149,
+   "a1": [
+    -47.981814158206056,
+    1.5119221791321138
+   ],
+   "a2": [
+    25.498188152679077,
+    47.16800804512233
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 495,
+     "sy": 119,
+     "size": 156,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 245,
+     "sy": 116,
+     "size": 140,
+     "visibles": 35,
+     "conf": {
+      "antes": 24,
+      "mascara": 34,
+      "despues": 34
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 36
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 291,
+     "sy": 278,
+     "size": 172,
+     "visibles": 41,
+     "conf": {
+      "antes": 40,
+      "mascara": 40,
+      "despues": 40
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 42
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 565,
+     "sy": 276,
+     "size": 152,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 431,
+     "sy": 355,
+     "size": 187,
+     "visibles": 60,
+     "conf": {
+      "antes": 58,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 224,
+     "sy": 382,
+     "size": 172,
+     "visibles": 31,
+     "conf": {
+      "antes": 30,
+      "mascara": 30,
+      "despues": 30
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 32
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 402,
+     "sy": 383,
+     "size": 166,
+     "visibles": 58,
+     "conf": {
+      "antes": 45,
+      "mascara": 57,
+      "despues": 57
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 59
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 289,
+     "sy": 267,
+     "size": 145,
+     "visibles": 42,
+     "conf": {
+      "antes": 28,
+      "mascara": 39,
+      "despues": 39
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 40
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 616,
+     "sy": 254,
+     "size": 135,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 486,
+     "sy": 277,
+     "size": 136,
+     "visibles": 60,
+     "conf": {
+      "antes": 56,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 603,
+     "sy": 360,
+     "size": 144,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 566,
+     "sy": 194,
+     "size": 155,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 352,
+     "sy": 370,
+     "size": 177,
+     "visibles": 50,
+     "conf": {
+      "antes": 48,
+      "mascara": 49,
+      "despues": 49
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 51
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 650,
+     "sy": 206,
+     "size": 215,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 177,
+     "sy": 384,
+     "size": 218,
+     "visibles": 24,
+     "conf": {
+      "antes": 23,
+      "mascara": 23,
+      "despues": 23
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 25
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 309,
+     "sy": 311,
+     "size": 206,
+     "visibles": 43,
+     "conf": {
+      "antes": 42,
+      "mascara": 42,
+      "despues": 42
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 44
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 744,
+     "sy": 260,
+     "size": 220,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 152,
+     "sy": 137,
+     "size": 199,
+     "visibles": 21,
+     "conf": {
+      "antes": 15,
+      "mascara": 20,
+      "despues": 20
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 22
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 260.90600946427327,
+    "ms_patron": 204.8657387500303
+   }
+  },
+  {
+   "motif": "puntos",
+   "weave": "ninguno",
+   "avisos": [],
+   "estado": "aprobada",
+   "enganche": 0.996954629997068,
+   "residuo_pct": 0.1372113823890686,
+   "a1": [
+    -47.97623658651602,
+    1.5114968587853446
+   ],
+   "a2": [
+    25.495665235525166,
+    47.170050899855084
+   ],
+   "fallos": [
+    {
+     "fault": "falta_impresion",
+     "k": 0,
+     "sx": 780,
+     "sy": 310,
+     "size": 190,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 1,
+     "sx": 707,
+     "sy": 336,
+     "size": 122,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 2,
+     "sx": 341,
+     "sy": 369,
+     "size": 189,
+     "visibles": 49,
+     "conf": {
+      "antes": 45,
+      "mascara": 48,
+      "despues": 48
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 50
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 3,
+     "sx": 458,
+     "sy": 288,
+     "size": 158,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 60
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 4,
+     "sx": 253,
+     "sy": 223,
+     "size": 183,
+     "visibles": 35,
+     "conf": {
+      "antes": 34,
+      "mascara": 34,
+      "despues": 34
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 36
+     }
+    },
+    {
+     "fault": "falta_impresion",
+     "k": 5,
+     "sx": 168,
+     "sy": 393,
+     "size": 154,
+     "visibles": 23,
+     "conf": {
+      "antes": 22,
+      "mascara": 22,
+      "despues": 22
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "falta tinta": 24
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 0,
+     "sx": 678,
+     "sy": 415,
+     "size": 146,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 1,
+     "sx": 366,
+     "sy": 272,
+     "size": 170,
+     "visibles": 52,
+     "conf": {
+      "antes": 44,
+      "mascara": 51,
+      "despues": 51
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 53
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 2,
+     "sx": 576,
+     "sy": 137,
+     "size": 172,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 3,
+     "sx": 263,
+     "sy": 388,
+     "size": 163,
+     "visibles": 37,
+     "conf": {
+      "antes": 30,
+      "mascara": 36,
+      "despues": 36
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 38
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 4,
+     "sx": 789,
+     "sy": 344,
+     "size": 166,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "fantasma",
+     "k": 5,
+     "sx": 656,
+     "sy": 393,
+     "size": 162,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 0,
+     "sx": 469,
+     "sy": 353,
+     "size": 173,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 1,
+     "sx": 602,
+     "sy": 281,
+     "size": 148,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 2,
+     "sx": 614,
+     "sy": 202,
+     "size": 210,
+     "visibles": 60,
+     "conf": {
+      "antes": 59,
+      "mascara": 59,
+      "despues": 59
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 60
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 3,
+     "sx": 156,
+     "sy": 162,
+     "size": 166,
+     "visibles": 21,
+     "conf": {
+      "antes": 19,
+      "mascara": 20,
+      "despues": 20
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 22
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 4,
+     "sx": 302,
+     "sy": 342,
+     "size": 159,
+     "visibles": 43,
+     "conf": {
+      "antes": 39,
+      "mascara": 42,
+      "despues": 42
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 44
+     }
+    },
+    {
+     "fault": "offset",
+     "k": 5,
+     "sx": 251,
+     "sy": 138,
+     "size": 204,
+     "visibles": 35,
+     "conf": {
+      "antes": 34,
+      "mascara": 34,
+      "despues": 34
+     },
+     "lejos": {
+      "antes": 0,
+      "mascara": 0,
+      "despues": 0
+     },
+     "tipos": {
+      "tinta de más": 36
+     }
+    }
+   ],
+   "limpia": {
+    "cuadros": 560,
+    "falsas": {
+     "antes": 0,
+     "mascara": 0,
+     "despues": 0
+    },
+    "falsas64": {
+     "antes": 0
+    },
+    "sin_enganche": 0,
+    "ms": 268.0714437500423,
+    "ms_patron": 207.4728375000177
+   }
+  }
+ ]
+}

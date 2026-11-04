@@ -1,0 +1,382 @@
+{
+ "diamantes|sarga|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 97.2
+ },
+ "diamantes|sarga|fantasma": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 98.3
+ },
+ "diamantes|sarga|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 96.2
+ },
+ "diamantes|sarga|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "diamantes|tafetan|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 96.2
+ },
+ "diamantes|tafetan|fantasma": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 95.7
+ },
+ "diamantes|tafetan|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 97.9
+ },
+ "diamantes|tafetan|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "diamantes|sarga_fina|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 95.9
+ },
+ "diamantes|sarga_fina|fantasma": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 90.1
+ },
+ "diamantes|sarga_fina|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 98.1
+ },
+ "diamantes|sarga_fina|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "diamantes|canasta|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 93.0
+ },
+ "diamantes|canasta|fantasma": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 71.4
+ },
+ "diamantes|canasta|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 97.6
+ },
+ "diamantes|canasta|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "diamantes|ninguno|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 96.3
+ },
+ "diamantes|ninguno|fantasma": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 94.3
+ },
+ "diamantes|ninguno|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 98.2
+ },
+ "diamantes|ninguno|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "flores|sarga|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 98.3
+ },
+ "flores|sarga|fantasma": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 93.2
+ },
+ "flores|sarga|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 97.8
+ },
+ "flores|sarga|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "flores|tafetan|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 98.1
+ },
+ "flores|tafetan|fantasma": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 98.3
+ },
+ "flores|tafetan|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 98.3
+ },
+ "flores|tafetan|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "flores|sarga_fina|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 97.7
+ },
+ "flores|sarga_fina|fantasma": {
+  "atrapados": 3,
+  "de": 4,
+  "pct_cuadros": 73.8
+ },
+ "flores|sarga_fina|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 96.5
+ },
+ "flores|sarga_fina|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "flores|canasta|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 96.9
+ },
+ "flores|canasta|fantasma": {
+  "atrapados": 3,
+  "de": 4,
+  "pct_cuadros": 43.2
+ },
+ "flores|canasta|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 96.2
+ },
+ "flores|canasta|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "flores|ninguno|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 97.2
+ },
+ "flores|ninguno|fantasma": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 80.4
+ },
+ "flores|ninguno|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 98.3
+ },
+ "flores|ninguno|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "rayas|sarga|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 93.6
+ },
+ "rayas|sarga|fantasma": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 91.2
+ },
+ "rayas|sarga|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 98.3
+ },
+ "rayas|sarga|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "rayas|tafetan|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 96.3
+ },
+ "rayas|tafetan|fantasma": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 96.2
+ },
+ "rayas|tafetan|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 98.3
+ },
+ "rayas|tafetan|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "rayas|sarga_fina|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 97.2
+ },
+ "rayas|sarga_fina|fantasma": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 95.8
+ },
+ "rayas|sarga_fina|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 97.6
+ },
+ "rayas|sarga_fina|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "rayas|canasta|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 98.0
+ },
+ "rayas|canasta|fantasma": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 62.5
+ },
+ "rayas|canasta|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 98.3
+ },
+ "rayas|canasta|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "rayas|ninguno|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 98.1
+ },
+ "rayas|ninguno|fantasma": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 90.0
+ },
+ "rayas|ninguno|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 98.3
+ },
+ "rayas|ninguno|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "puntos|sarga|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 98.0
+ },
+ "puntos|sarga|fantasma": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 85.7
+ },
+ "puntos|sarga|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 96.0
+ },
+ "puntos|sarga|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "puntos|tafetan|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 95.6
+ },
+ "puntos|tafetan|fantasma": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 83.6
+ },
+ "puntos|tafetan|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 97.7
+ },
+ "puntos|tafetan|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "puntos|sarga_fina|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 96.0
+ },
+ "puntos|sarga_fina|fantasma": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 91.6
+ },
+ "puntos|sarga_fina|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 98.0
+ },
+ "puntos|sarga_fina|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "puntos|canasta|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 97.9
+ },
+ "puntos|canasta|fantasma": {
+  "atrapados": 3,
+  "de": 4,
+  "pct_cuadros": 81.6
+ },
+ "puntos|canasta|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 95.5
+ },
+ "puntos|canasta|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ },
+ "puntos|ninguno|falta_impresion": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 94.6
+ },
+ "puntos|ninguno|fantasma": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 95.6
+ },
+ "puntos|ninguno|offset": {
+  "atrapados": 4,
+  "de": 4,
+  "pct_cuadros": 98.0
+ },
+ "puntos|ninguno|limpia": {
+  "cuadros_con_falsa": 0,
+  "de": 64
+ }
+}
