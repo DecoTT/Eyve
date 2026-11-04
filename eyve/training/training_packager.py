@@ -47,7 +47,9 @@ def create_package(project: Project) -> Path:
         # dataset files
         ds = project.paths.dataset
         for f in ds.rglob("*"):
-            if f.is_file():
+            # Los .cache de Ultralytics llevan las rutas de esta PC y en otra
+            # no sirven: los vuelve a generar.
+            if f.is_file() and f.suffix != ".cache":
                 zf.write(f, f"dataset/{f.relative_to(ds)}")
 
         # project metadata
@@ -91,8 +93,8 @@ How to train on another machine
 --------------------------------
 1. Copy this zip to the target machine.
 2. Unzip it.
-3. Install: pip install ultralytics
-4. Run:
+3. Install: pip install -U ultralytics
+4. From the folder that contains dataset/, run:
        yolo detect train data=dataset/data.yaml model=yolov8n.pt epochs=50 imgsz=640
 
 5. Find your trained model in:

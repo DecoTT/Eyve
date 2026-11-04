@@ -164,7 +164,9 @@ class TrainManager:
 
             device = cfg.device_arg()
             results = model.train(
-                data=str(yaml_path),
+                # Absoluta: data.yaml no lleva `path:` y un Ultralytics 8.3
+                # buscaria una ruta relativa en su datasets_dir.
+                data=str(Path(yaml_path).resolve()),
                 epochs=cfg.epochs,
                 imgsz=cfg.imgsz,
                 batch=cfg.batch,

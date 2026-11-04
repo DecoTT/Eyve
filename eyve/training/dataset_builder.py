@@ -153,8 +153,11 @@ def build_dataset(project: Project, val_split: float = 0.15, seed: int = 42,
         shutil.copy2(lbl, ds / "labels" / split / f"{stem}.txt")
 
     # write data.yaml
+    # Sin `path:` a proposito. Ultralytics toma entonces la carpeta del propio
+    # yaml, y el dataset se puede mover o empaquetar: con la ruta absoluta,
+    # el zip de «Crear Paquete» daba FileNotFoundError en otra PC. Tampoco
+    # sirve `path: .`, que se resuelve contra la carpeta de trabajo.
     data_yaml = {
-        "path": str(ds.resolve()).replace("\\", "/"),
         "train": "images/train",
         "val": "images/val",
         "nc": len(project.classes),
