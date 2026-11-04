@@ -69,6 +69,10 @@ _LAG_MIN = 14
 
 #: cuántas dispersiones puede estar el pico de un cuadro bueno
 _PICO_DISP = 8.0
+#: Por debajo de esto ya no hay señal: un 0.06 de nivel de gris promediado
+#: por celda.  La zona de tinta de un estampado ralo casi no tiene ruido, y sin
+#: este piso la máscara marcaba la costura del rollo de rayas.
+_PISO_MIN = 2.5e-4
 #: la energía es más ruidosa que la media: pide más
 _EXTRA_ENERGIA = 2.5
 
@@ -561,8 +565,8 @@ class MascaraAprendida:
                               "buenos: revisar antes de aprobar")
         # Un material sin zona de tinta (o sin tela limpia) deja una zona
         # vacía: su piso no puede ser cero, o cualquier cosa la rebasaría.
-        self._piso = (max(min(med_t, cota_t), 1e-4),
-                      max(min(med_c, cota_c), 1e-4),
+        self._piso = (max(min(med_t, cota_t), _PISO_MIN),
+                      max(min(med_c, cota_c), _PISO_MIN),
                       max(float(np.median(pe)), 1e-4))
         self._enganche_ref = float(np.median(nccs))
 

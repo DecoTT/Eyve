@@ -26,7 +26,7 @@ MUTACIONES = {
         M, "for a in (self._celda, self._peso, self._tinta, self._luz, self._base):",
         "for a in (self._peso, self._tinta, self._luz, self._base):"),
     "piso = maximo (un fallo entre los buenos lo sube)": (
-        M, "max(min(med_c, cota_c), 1e-4)", "max(max(pc), 1e-4)"),
+        M, "max(min(med_c, cota_c), _PISO_MIN)", "max(max(pc), _PISO_MIN)"),
     "sin signo (valor absoluto, como Patron)": (
         M, "        rw = r * w\n", "        rw = np.abs(r) * w\n"),
     "umbral a la mitad del piso": (
