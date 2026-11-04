@@ -394,6 +394,74 @@ Checklist de esta versión:
       mientras `curl` sí entra), así que `updater.check()` no se pudo
       correr de punta a punta en esta máquina.
 
+## 12. Versión 2.1.7 — LISTA, SIN PUBLICAR (4-nov-2026)
+
+`__version__ = "2.1.7"` y `$Version = "2.1.7"` en `build_release.ps1`. **El
+nombre del asset no cambia**, así que la tienda no se toca. Comandos y notas
+listas para pegar: `Release\PUBLICAR_2.1.7.md`.
+
+Qué entra, de cara al usuario:
+
+- **Patrón en Producción** (`7d92a01`). Sus anomalías pasan por el tracker,
+  como en la demo: recuadro magenta, ID y conteo. Antes el cuadro salía NO OK
+  sin caja y sin llegar al contador.
+- **Etiquetas sin «??»** (`8a887c4`). `cv2.putText` solo dibuja ASCII; ahora
+  el texto se pasa a ASCII al dibujarlo y los datos no cambian.
+- **«Crear Paquete» portable** (`42dfc56`). `data.yaml` llevaba `path:` con la
+  ruta absoluta de la PC de origen y en otra PC `check_det_dataset` daba
+  `FileNotFoundError`. Ahora no lleva `path:` (Ultralytics usa la carpeta del
+  yaml; `path: .` no sirve porque se resuelve contra la carpeta de trabajo).
+  El zip tampoco lleva los `labels/*.cache`, que traían las rutas de la PC.
+  `TrainManager` pasa `data=` absoluto. Los paquetes ya hechos siguen rotos:
+  hay que crearlos de nuevo o borrar su línea `path:`.
+
+Otros archivos con rutas absolutas, revisados el 4-nov (ninguno rompe, no se
+tocaron):
+
+- `project.yaml`, `active_model`: en otra PC lo cubre `load_project`, y el
+  `.eyvejob` lo reescribe. **Hueco:** un proyecto copiado a otra carpeta de la
+  MISMA PC sigue usando el `best.pt` del original mientras ese exista, porque
+  el arreglo solo actúa si la ruta guardada ya no existe. No se probó; sale de
+  leer el código.
+- `models/training_metadata.yaml`, `dataset` y `best_model`: informativo; solo
+  se lee `date`.
+- `jobs/<SKU>.yaml`, `source.video_path`: es un archivo o URL del usuario.
+  «Importar Job» lo limpia, pero el `.eyvejob` lo lleva dentro.
+- `sessions/*.csv` y `summary.txt`: registro histórico de esa PC.
+- `best.pt`: Ultralytics guarda en `train_args` las rutas de entrenamiento. El
+  modelo de la demo que va en el ZIP lleva `D:\Desarrollo\Claude Code\…`; no
+  afecta la inferencia y no nombra a ningún cliente.
+
+Checklist de esta versión:
+
+- [x] `eyve/__init__.py` → `__version__ = "2.1.7"`.
+- [x] `Release\build_release.ps1` → `$Version = "2.1.7"`; `$AssetName` sin tocar.
+- [x] `tests/test_paquete_portable.py`: descomprime en otra carpeta, BORRA el
+      origen y valida con `check_det_dataset` (ruta absoluta, como el README y
+      desde `dataset/`). Con el código anterior falla; con `path:` metido a
+      propósito exige el `FileNotFoundError`; sin el `resolve()` y sin el
+      filtro de `.cache` también falla.
+- [x] `yolo detect train` real sobre un paquete de 60 frames de la demo,
+      descomprimido en otra carpeta y con el origen borrado: 1 época en CPU
+      (`imgsz=320`), exit 0, deja `runs/detect/train/weights/best.pt`, la ruta
+      que dice el README del paquete. Ultralytics 8.4.117.
+- [x] Suite completa: 38 de 38 en verde (4-nov, 67 min con la máquina cargada).
+- [x] ZIP: 5.67 MB, 79 archivos, SHA-256
+      `22991d278c870eceac509cb950e631517f387d435769f5ee79e7fc65401498cd`.
+- [x] Prueba fría desde el ZIP (4-nov): `setup.bat` en carpeta limpia, exit 0,
+      en 1012 s con otros procesos ocupando la CPU; instala Ultralytics 8.4.202
+      y torch 2.15.0+cpu. Con ese Python pasan test_paquete_portable,
+      test_texto_cv, test_patron_produccion y test_job_package. La app abre
+      con título «Eyve 2.1» y carga el modelo de la demo desde el paquete.
+- [ ] `run.bat` no se lanzó tal cual: cerrar la app con un `Stop-Process` fue
+      rechazado por permisos, así que se abrió con un guion que construye
+      `EyveApp` con el Python de esa instalación y se cierra solo. Falta
+      doble clic en `run.bat`.
+- [ ] Sin mirar a ojo: el recuadro magenta y las etiquetas en Producción con
+      cámara real; lo cubren las pruebas.
+- [ ] Push de `main`, tag `v2.1.7` y `gh release create v2.1.7 --latest`.
+- [ ] Verificado contra lo publicado.
+
 ## Lo que NO hay que hacer
 
 - No poner el ZIP en Mega ni en el bucket público: un enlace suelto no tiene versión ni checksum y hay que reemplazarlo a mano cada vez.
