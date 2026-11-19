@@ -463,6 +463,7 @@ class ProductionScreen(ctk.CTkFrame):
                 self._filtrar_como(self._job)
 
     def _capturar_job(self, nombre: str, company=None, product=None):
+        self._harness.n_hilos = self._har_n_val()     # va en el job aunque no haya golden
         fuente = {
             "camera_source": self._cam_index(),
             "video_path": self._prod_stream_url or str(self._prod_video_path or ""),
@@ -679,7 +680,8 @@ class ProductionScreen(ctk.CTkFrame):
         self._har_code.delete(0, "end")
         if har.codigo:
             self._har_code.insert(0, har.codigo)
-        n_ = next(iter(har.golden.values()))["n"] if har.golden else None
+        self._har_filas.set(self._har_filas_txt(har))
+        n_ = har.n_total if har.golden else (har.n_hilos or None)
         if n_:
             self._har_n.delete(0, "end")
             self._har_n.insert(0, str(n_))
@@ -1303,6 +1305,15 @@ class ProductionScreen(ctk.CTkFrame):
                                    fg_color=T.BG_INPUT, border_color=T.BORDER)
         self._har_n.insert(0, "6")
         self._har_n.pack(side="left")
+        # una o dos filas de pines (JST PUD: impares en una, pares en la otra)
+        ctk.CTkLabel(row_hn, text=t("har_rows"), anchor="w", font=T.font(T.FONT_XS),
+                     text_color=T.TEXT_DIM).pack(side="left", padx=(8, 2))
+        self._har_filas = ctk.CTkOptionMenu(row_hn, values=list(self._HAR_FILAS), height=24,
+                                            width=104, font=T.font(T.FONT_XS),
+                                            fg_color=T.BG_INPUT, button_color=T.BORDER,
+                                            command=self._on_har_filas)
+        self._har_filas.set("1")
+        self._har_filas.pack(side="left")
         ctk.CTkButton(row_hn, text=t("har_forget"), height=24, width=90,
                       fg_color="transparent", hover_color=T.BG_INPUT, text_color=T.TEXT_DIM,
                       font=T.font(T.FONT_XS), command=self._forget_harness).pack(side="right")
@@ -1742,6 +1753,30 @@ class ProductionScreen(ctk.CTkFrame):
         self._harness.reset()
         self._refresh_har_status()
 
+    #: filas del conector y, con dos, qué fila ve la cara A (JST: impares en
+    #: una fila, pares en la otra)
+    _HAR_FILAS = {"1": (1, "impares"), "2 · A impares": (2, "impares"),
+                  "2 · A pares": (2, "pares")}
+
+    def _har_filas_txt(self, h) -> str:
+        for k, v in self._HAR_FILAS.items():
+            if v == (h.filas, h.fila_a if h.filas == 2 else "impares"):
+                return k
+        return "1"
+
+    def _on_har_filas(self, value: str) -> None:
+        h = self._harness
+        filas, fila_a = self._HAR_FILAS.get(value, (1, "impares"))
+        if (filas, fila_a) == (h.filas, h.fila_a):
+            return
+        # de una a dos filas el golden no sirve; cambiar la fila de la A solo
+        # renumera los pines (y la verificación se pierde: cambia la huella)
+        if filas != h.filas and h.golden:
+            h.forget()
+        h.filas, h.fila_a = filas, fila_a
+        h.reset()
+        self._refresh_har_status()
+
     def _har_n_val(self) -> int:
         try:
             return max(1, min(40, int(self._har_n.get())))
@@ -1773,6 +1808,11 @@ class ProductionScreen(ctk.CTkFrame):
         if not h.calibrated:
             self._har_verif.configure(text=t("har_no_golden"), text_color=T.WARN)
             return
+        if h.faltan_caras():
+            self._har_verif.configure(
+                text=t("har_need_faces", caras=", ".join(f.upper() for f in h.faltan_caras())),
+                text_color=T.WARN)
+            return
         if not h.verificar(self._har_by.get()):
             self._har_verif.configure(text=t("har_verify_need"), text_color=T.WARN)
             return
@@ -1791,9 +1831,12 @@ class ProductionScreen(ctk.CTkFrame):
             caras = []
             for f in ("a", "b"):
                 if f in h.golden:
+                    # con dos filas cada cara trae otros pines: se dice cuáles
+                    pines = h.pines_de(f) if h.filas == 2 else [None] * len(h.nombres(f))
                     caras.append(f"{f.upper()} " + " ".join(
-                        ABREV_H.get(b, "?") + (f"/{ABREV_H.get(tz, '?')}" if tz else "")
-                        for b, tz in h.nombres(f)))
+                        (f"{p}:" if p else "") + ABREV_H.get(b, "?")
+                        + (f"/{ABREV_H.get(tz, '?')}" if tz else "")
+                        for p, (b, tz) in zip(pines, h.nombres(f))))
             self._har_faces.configure(text=t("har_faces", caras="  ·  ".join(caras)),
                                       text_color=T.TEXT_SEC)
         else:
@@ -2187,7 +2230,14 @@ class ProductionScreen(ctk.CTkFrame):
                             # un modulo nunca tumba el bucle de produccion
                             log.debug(f"patron: {e}")
                     tracks = self._tracker.update(raw, frame)
-                    annotated = self._annotate_tracks(frame, tracks, inspection)
+                    # Se dibujan las instancias VIVAS, no solo las vistas en
+                    # este cuadro: update() devuelve las de frames_lost == 0,
+                    # y si el detector se saltaba la pieza un cuadro la caja
+                    # se borraba aunque la instancia (y su #ID) siguiera ahí.
+                    # Cuánto vive una instancia sin verse lo decide la
+                    # persistencia del job (max_lost_frames). La LÓGICA
+                    # (conteo, polaridad, veredicto) sigue usando *tracks*.
+                    annotated = self._annotate_tracks(frame, self._tracks_a_dibujar(), inspection)
 
                     # ── polarity: analyze each instance ONCE, verdict is ──
                     #    sticky for the life of the track (no flicker)
@@ -2202,11 +2252,13 @@ class ProductionScreen(ctk.CTkFrame):
                                 else:
                                     tr.skip_module("polarity")
                         last_lbl = ""
-                        for tr in tracks:
+                        for tr in self._tracks_a_dibujar():
                             res = tr.get_result("polarity")
-                            if res is None:
+                            if res is None or not tr.confirmed:
                                 continue
                             PolarityAnalyzer.draw_on_frame(annotated, tr.bbox, res)
+                            if tr.frames_lost:
+                                continue        # se dibuja, pero no vota
                             if res.quadrant is not None:
                                 last_lbl = (f"#{tr.id} {res.side} "
                                             f"{res.confidence:.0%}")
@@ -2323,7 +2375,12 @@ class ProductionScreen(ctk.CTkFrame):
                     if self._harness.enabled:
                         h = self._harness
                         if self._har_learn_left > 0:
-                            cara_, k_ = h.learn(frame, result.detections, self._har_n_val())
+                            if h.learn_n(self._har_n_val()) <= 0:
+                                self._har_learn_left = 0
+                                self._refresh_har_status(aviso=t("har_rows_even"))
+                                cara_, k_ = None, 0
+                            else:
+                                cara_, k_ = h.learn(frame, result.detections, self._har_n_val())
                             self._har_learn_left -= 1
                             if self._har_learn_left == 0:
                                 hechas = h.finish_learning()
@@ -2336,8 +2393,10 @@ class ProductionScreen(ctk.CTkFrame):
                         else:
                             h.update(frame, from_tracks(self._tracker.get_all()))
                             har_closed = h.last_closed
-                            if h.paused:
-                                annotated = frame.copy()
+                            # A diferencia de Ensamble no se ocultan las cajas
+                            # con movimiento: no hay mano que tape la pieza, y
+                            # el estado salta movimiento/asentando varias veces
+                            # por segundo: ocultarlas las hacía parpadear.
                             h.draw(annotated)
                             if h.state == "resultado" and h.verdict:
                                 inspection = InspectionResult(
@@ -2399,25 +2458,12 @@ class ProductionScreen(ctk.CTkFrame):
                         self._update_counts()
                     self._update_canvas(annotated)
                     self._update_status(inspection)
-                elif (self._harness.enabled and self._harness.calibrated
-                      and self._har_learn_left == 0):
-                    # igual que Ensamble: sin resultado nuevo, el HUD se queda
-                    shown = frame.copy()
-                    self._harness.draw(shown)
-                    self._draw_watermark(shown)
-                    self._update_canvas(shown)
-                elif (self._assembly.enabled and self._assembly.calibrated
-                      and self._asm_learn_left == 0):
-                    # sin resultado nuevo (en CPU, la mayoria de los frames):
-                    # el HUD del ensamble se queda; con el frame crudo el
-                    # veredicto parpadea y en una demo parece que falla
-                    shown = frame.copy()
-                    self._assembly.draw(shown)
-                    self._draw_watermark(shown)
-                    self._update_canvas(shown)
                 else:
-                    # Waiting for first inference result — show raw frame
-                    self._update_canvas(self._con_marca(frame))
+                    # Sin resultado nuevo del detector (en CPU, la mayoría de
+                    # los cuadros): se redibuja lo que ya se sabe. Antes aquí
+                    # iba el cuadro crudo y las cajas aparecían y desaparecían
+                    # al ritmo del detector.
+                    self._update_canvas(self._redibujar(frame))
             else:
                 # Preview mode — no model yet, show raw feed
                 self._update_canvas(self._con_marca(frame))
@@ -2426,6 +2472,50 @@ class ProductionScreen(ctk.CTkFrame):
         self.after(_loop_delay(), self._loop)
 
     # ── drawing ───────────────────────────────────────────────────────────────
+    #: resultados del detector que una instancia puede ir sin verse y seguir
+    #: dibujada. Tapa los saltos sueltos del detector (el parpadeo) sin dejar
+    #: cajas fantasma donde la pieza ya no está: la persistencia del job
+    #: (max_lost_frames) puede ser de segundos, y es para la LÓGICA (conteo,
+    #: veredicto), no para el dibujo.
+    DIBUJO_MAX_PERDIDOS = 2
+
+    def _tracks_a_dibujar(self) -> list:
+        return [tr for tr in self._tracker.get_all() if tr.frames_lost <= self.DIBUJO_MAX_PERDIDOS]
+
+    def _redibujar(self, frame) -> np.ndarray:
+        """
+        Un cuadro SIN resultado nuevo del detector, con lo que ya se sabe:
+        las instancias vivas del tracker (mismas cajas e #ID que el último
+        resultado), la polaridad pegada a cada una, la geometría del conteo y
+        el HUD de Ensamble o Arnés. No corre ningún módulo: solo dibuja.
+
+        Antes del primer resultado no hay nada que dibujar: cuadro crudo.
+        """
+        if self._last_result is None:
+            return self._con_marca(frame)
+        asm_hud = (self._assembly.enabled and self._assembly.calibrated
+                   and self._asm_learn_left == 0)
+        har_hud = (self._harness.enabled and self._harness.calibrated
+                   and self._har_learn_left == 0)
+        # con la mano en zona, Ensamble no muestra las cajas del detector
+        # (igual que en el cuadro con resultado). Arnés sí: no hay mano.
+        pausa = asm_hud and self._assembly.paused
+        vivas = [] if pausa else self._tracks_a_dibujar()
+        shown = self._annotate_tracks(frame, vivas, self._last_result)
+        if self._polarity.enabled:
+            for tr in vivas:
+                res = tr.get_result("polarity")
+                if res is not None and tr.confirmed:
+                    PolarityAnalyzer.draw_on_frame(shown, tr.bbox, res)
+        if self._counting.enabled:
+            self._counting.draw(shown)
+        if asm_hud:
+            self._assembly.draw(shown)
+        if har_hud:
+            self._harness.draw(shown)
+        self._draw_watermark(shown)
+        return shown
+
     def _class_color(self, class_name: str) -> tuple:
         if class_name == PatternModule.ANOMALY_LABEL:
             return (255, 120, 255)        # magenta, como en la demo

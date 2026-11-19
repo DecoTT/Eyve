@@ -3,7 +3,7 @@
 Módulo Arnés: colores de hilo contra el golden del job.
 
 Las imágenes se dibujan aquí (conector blanco, hilos cilíndricos, traza,
-termo), así que cada prueba sabe la verdad. Cada caso bueno lleva su caso
+termofit), así que cada prueba sabe la verdad. Cada caso bueno lleva su caso
 malo, y lo que se dice detectar se comprueba con una entrada que TIENE que
 fallar.
 """
@@ -38,16 +38,16 @@ SKU = [("azul", None), ("amarillo", None), ("café", None), ("rojo", None),
        ("verde", None), ("blanco", "rojo")]
 
 
-def dibujar(hilos, cara="a", ang=0.0, luz=(1.0, 1.0, 1.0), termo=0.0, sin_traza_en_a=False,
-            W=960, H=540, cx=480, cy=200, pitch=30, ruido=2.0, seed=0):
+def dibujar(hilos, cara="a", ang=0.0, luz=(1.0, 1.0, 1.0), termofit=0.0, sin_traza_en_a=False,
+            W=960, H=540, cx=480, cy=200, pitch=30, ruido=2.0, seed=0, tapete=(92, 98, 104)):
     """
     Conector arriba, hilos hacia abajo, girado *ang* grados alrededor del
-    centro del conector. La cara B se ve espejada. *termo*: fracción de la
+    centro del conector. La cara B se ve espejada. *termofit*: fracción de la
     banda tapada desde el conector. Devuelve (frame BGR, dets).
     """
     rng = np.random.default_rng(seed)
     n = len(hilos)
-    img = np.full((H, W, 3), (92, 98, 104), np.float32)       # tapete gris
+    img = np.full((H, W, 3), tapete, np.float32)              # tapete (BGR)
     cw, ch = pitch * n + 18, 58
     x0, y0 = cx - cw // 2, cy - ch // 2
     orden = hilos if cara == "a" else hilos[::-1]
@@ -72,16 +72,16 @@ def dibujar(hilos, cara="a", ang=0.0, luz=(1.0, 1.0, 1.0), termo=0.0, sin_traza_
         elif k in (0, n - 1):
             img[y0 + 8:y0 + 20, xk + 4:xk + pitch - 4] = (190, 192, 195)
     hb = (x0 + 6, yb0, x0 + cw - 6, yb0 + 64)
-    if termo > 0:
-        img[yb0:yb0 + int(termo * 120), x0:x0 + cw] = (230, 232, 233)
-        hb = (hb[0], yb0 + int(termo * 120), hb[2], yb0 + max(int(termo * 120) + 4, 64))
+    if termofit > 0:
+        img[yb0:yb0 + int(termofit * 120), x0:x0 + cw] = (230, 232, 233)
+        hb = (hb[0], yb0 + int(termofit * 120), hb[2], yb0 + max(int(termofit * 120) + 4, 64))
     img = img * np.array(luz[::-1], np.float32)[None, None, :]
     img += rng.normal(0, ruido, img.shape)
     img = np.clip(img, 0, 255).astype(np.uint8)
     cb = (x0, y0, x0 + cw, y0 + ch)
     if ang:
         M = cv2.getRotationMatrix2D((cx, cy), ang, 1.0)
-        img = cv2.warpAffine(img, M, (W, H), borderValue=(92, 98, 104))
+        img = cv2.warpAffine(img, M, (W, H), borderValue=tapete)
 
         def caja(b):
             p = np.array([[b[0], b[1], 1], [b[2], b[1], 1], [b[0], b[3], 1], [b[2], b[3], 1]]) @ M.T
@@ -297,11 +297,11 @@ m.verificar("prueba")
 juzgar(m, SKU, "a", luz=calida)
 check("PREVIO: sin balance de blancos la misma luz la tumba", m.face_ok.get("a") is False, m.defects)
 
-print("\n[13] El termo tapa")
+print("\n[13] El termofit tapa")
 m = aprendido()
-t = juzgar(m, SKU, "a", termo=0.6)
-check("termo tapando → no juzga y pide subirlo", m.verdict is None and m.state == "tapado"
-      and m.action_text() == "Sube el termo", (m.state, m.verdict))
+t = juzgar(m, SKU, "a", termofit=0.6)
+check("termofit tapando → no juzga y pide subirlo", m.verdict is None and m.state == "tapado"
+      and m.action_text() == "Sube el termofit", (m.state, m.verdict))
 t = juzgar(m, SKU, "a", t0=mover(m, t))
 check("lo sube → sigue leyendo y la cara sale bien", m.face_ok.get("a") is True, (m.state, m.defects))
 

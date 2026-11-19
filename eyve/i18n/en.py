@@ -192,6 +192,9 @@ STRINGS = {
     "har_help":         "Wire colours next to the connector against the job golden. "
                         "Show each face of a good part and learn it; a person "
                         "verifies. Motion pauses it.",
+    "har_rows":         "Rows",
+    "har_need_faces":   "Face {caras} not learned yet: with two rows each face shows half the pins",
+    "har_rows_even":    "With two rows the number of wires must be even",
     "har_wires":        "Wires",
     "har_learn":        "Learn face (good part)",
     "har_learning":     "Learning face {f}… ({n})",

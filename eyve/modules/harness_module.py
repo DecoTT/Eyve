@@ -342,9 +342,12 @@ def leer_banda(frame: np.ndarray, conn_box, band_box, gains=None,
         if peso.sum() < 0.3 * len(cols):           # el «fondo» era otra cosa: no se usa
             peso = np.ones(len(cols))
             fondo = None
+        else:
+            peso = _huecos_en_frontera(peso, n_hint)
     return {"cols": cols, "px": lab, "angle": float(ang), "peso": peso,
             "fondo": None if fondo is None else [float(v) for v in fondo],
             "depth_rel": float(depth / max(conn_w, 1.0)), "white_frac": float(white),
+            "aspect": float(conn_w / max(conn_l, 1.0)),
             "strip_bgr": strip.astype(np.uint8)}
 
 
@@ -382,6 +385,19 @@ def segmentar(cols: np.ndarray, n: int, prior: Optional[list] = None,
     paso = W / n
     minw = max(1, int(min_frac * paso))
     INF = 1e18
+    # Si el tapete se ve entre los hilos, los cortes van EN los huecos: sin
+    # esto, un hilo con traza junto a uno del color de la traza (blanco/rojo
+    # al lado de rojo) pierde su raya, que se va con el vecino. Solo si hay
+    # huecos para todos los cortes; si los hilos se tocan, como antes.
+    fuera_hueco = np.zeros(W + 1)
+    if peso is not None and (w == 0).any():
+        hueco = w == 0
+        en_hueco = np.zeros(W + 1, bool)
+        en_hueco[1:W] = hueco[:-1] | hueco[1:]
+        orillas = np.flatnonzero(np.diff(hueco.astype(np.int8)) == 1)   # hilo → hueco
+        interiores = [k for k in orillas if 0 < k and hueco[k + 1:].size and (~hueco[k + 1:]).any()]
+        if len(interiores) >= n - 1:
+            fuera_hueco = np.where(en_hueco, 0.0, 1e12)
     best = np.full((n + 1, W + 1), INF)
     arg = np.zeros((n + 1, W + 1), np.int64)
     best[0, 0] = 0.0
@@ -394,6 +410,8 @@ def segmentar(cols: np.ndarray, n: int, prior: Optional[list] = None,
             c = best[k - 1, i] + coste(i, j)
             if prior is not None and k < n:
                 c = c + lam * ((j - prior[k] * W) / paso) ** 2
+            if k < n:
+                c = c + fuera_hueco[j]
             m = int(np.argmin(c))
             best[k, j] = c[m]
             arg[k, j] = i[m]
@@ -403,6 +421,33 @@ def segmentar(cols: np.ndarray, n: int, prior: Optional[list] = None,
         j = int(arg[k, j])
         cortes.append(j)
     return cortes[::-1]
+
+
+def _huecos_en_frontera(peso: np.ndarray, n: int, lejos: float = 0.3) -> np.ndarray:
+    """
+    El tapete entre hilos cae en la FRONTERA entre dos hilos (a múltiplos del
+    paso). Una racha "de fondo" lejos de toda frontera está dentro de un
+    hilo: es una traza de un color parecido al tapete (azul oscuro sobre un
+    tapete azul gris), no tapete. Se devuelve como hilo; si no, la traza se
+    borra y la pieza buena sale "no se ve la traza", o la mala pasa.
+    """
+    peso = np.asarray(peso, np.float64).copy()
+    W = len(peso)
+    pc = W / max(n, 1)
+    i = 0
+    while i < W:
+        if peso[i] > 0:
+            i += 1
+            continue
+        j = i
+        while j < W and peso[j] == 0:
+            j += 1
+        centro = (i + j) / 2.0                    # en columnas
+        d = abs(centro / pc - round(centro / pc)) * pc
+        if i > 0 and j < W and d > lejos * pc:
+            peso[i:j] = 1.0
+        i = j
+    return peso
 
 
 def color_tramo(px: np.ndarray, cols: np.ndarray, a: int, b: int,
@@ -483,9 +528,17 @@ class HarnessModule(InspectionModule):
 
     def __init__(self) -> None:
         super().__init__()
-        #: clases del modelo. Las caras se reconocen por sufijo.
-        self.target_class = "conector"          # prefijo de la familia
+        #: clases del modelo. Las caras se reconocen por sufijo (conector_a,
+        #: pud_b…). Sin prefijo vale cualquier clase con sufijo de cara.
+        self.target_class = ""
         self.band_class = "hilos"
+        #: filas de pines del conector. Con dos filas cada cara ve UNA fila:
+        #: JST numera impares en una y pares en la otra; *fila_a* dice cuál
+        #: queda del lado de la cara A ("impares" o "pares").
+        self.filas = 1
+        self.fila_a = "impares"
+        #: hilos de la pieza que pidió el job (antes de tener golden)
+        self.n_hilos = 0
         self.face_suffix = {"a": "_a", "b": "_b"}
         #: golden por cara: {"a": {"n", "cuts", "colors": [{base, traza, frac}], "depth"}}
         self.golden: dict = {}
@@ -495,6 +548,7 @@ class HarnessModule(InspectionModule):
         self.verificado: dict = {}
         self.tolerance = 11.0                   # ΔE2000
         self.traza_pen = 14.0                   # tener/no tener traza
+        self.aspect_tol = 0.12                  # ancho/largo del conector contra el golden
         self.white_balance = True
         self.min_conf = 0.30
         self.settle_s = 0.35
@@ -537,7 +591,19 @@ class HarnessModule(InspectionModule):
 
     @property
     def faces_required(self) -> list[str]:
+        if self.filas == 2:
+            return ["a", "b"]           # cada cara trae la mitad de los pines
         return sorted(self.golden)
+
+    @property
+    def n_total(self) -> int:
+        """Hilos de la pieza (las dos filas)."""
+        if not self.golden:
+            return 0
+        return next(iter(self.golden.values()))["n"] * self.filas
+
+    def faltan_caras(self) -> list[str]:
+        return [f for f in self.faces_required if f not in self.golden]
 
     @property
     def paused(self) -> bool:
@@ -549,7 +615,10 @@ class HarnessModule(InspectionModule):
                                          + ([round(x, 1) for x in c["traza"]] if c["traza"] else [])
                                          for c in v["colors"]]}
              for f, v in sorted(self.golden.items())}
-        s = json.dumps({"g": g, "t": self.codigo.strip()}, sort_keys=True, ensure_ascii=False)
+        d = {"g": g, "t": self.codigo.strip()}
+        if self.filas == 2:          # (una fila: la huella de siempre)
+            d["filas"] = [2, self.fila_a]
+        s = json.dumps(d, sort_keys=True, ensure_ascii=False)
         return hashlib.sha256(s.encode("utf-8")).hexdigest()[:16]
 
     @property
@@ -558,11 +627,18 @@ class HarnessModule(InspectionModule):
 
     def verificar(self, por: str) -> bool:
         """Una persona revisó golden y codificación: se firma con su nombre."""
-        if not self.golden or not (por or "").strip():
+        if not self.golden or not (por or "").strip() or self.faltan_caras():
             return False
         self.verificado = {"por": por.strip(), "en": datetime.now().isoformat(timespec="minutes"),
                            "huella": self.huella()}
         return True
+
+    def pines_de(self, cara: str) -> list[int]:
+        """Pines que se ven desde la cara, en orden de pin."""
+        g = self.golden.get(cara)
+        if not g:
+            return []
+        return sorted(self._pin(cara, i, g["n"]) for i in range(g["n"]))
 
     def nombres(self, cara: str) -> list[tuple[str, Optional[str]]]:
         """Nombres sugeridos de la cara, en orden de PIN (la B va espejada)."""
@@ -571,11 +647,11 @@ class HarnessModule(InspectionModule):
             return []
         esp = self.trazas()
         n = g["n"]
-        out = [None] * n
+        por_pin = {}
         for i, c in enumerate(g["colors"]):
             p = self._pin(cara, i, n)
-            out[p - 1] = (nombre_de(c["base"]), nombre_de(esp[p]) if p in esp else None)
-        return out
+            por_pin[p] = (nombre_de(c["base"]), nombre_de(esp[p]) if p in esp else None)
+        return [por_pin[p] for p in sorted(por_pin)]
 
     def cotejar(self) -> list[str]:
         """
@@ -586,15 +662,25 @@ class HarnessModule(InspectionModule):
         txt = parse_codigo(self.codigo)
         avisos = []
         esp = self.trazas()
-        for cara in self.faces_required:
+        for f in self.faltan_caras():
+            avisos.append(f"falta la cara {f.upper()}: sin ella no se revisan los pines "
+                          + ("pares" if (f == "b") == (self.fila_a == "impares") else "impares"))
+        for cara in sorted(self.golden):
             vistos = self.nombres(cara)
-            if txt and len(txt) != len(vistos):
-                avisos.append(f"cara {cara.upper()}: el texto tiene {len(txt)} hilos y Eyve ve {len(vistos)}")
+            pines = self.pines_de(cara)
+            n_txt = len(vistos) * self.filas
+            if txt and len(txt) != n_txt:
+                avisos.append(f"cara {cara.upper()}: el texto tiene {len(txt)} hilos y Eyve ve {n_txt}")
                 continue
-            for i, ((tb, _), (vb, _)) in enumerate(zip(txt, vistos)):
+            for p, (vb, _) in zip(pines, vistos):
+                if p > len(txt):
+                    continue
+                tb = txt[p - 1][0]
                 if tb != vb:
-                    avisos.append(f"cara {cara.upper()} pin {i + 1}: texto {ABREV.get(tb, tb)}"
+                    avisos.append(f"cara {cara.upper()} pin {p}: texto {ABREV.get(tb, tb)}"
                                   f", Eyve ve {ABREV.get(vb, vb)}")
+        if txt and self.n_total and len(txt) != self.n_total:
+            return avisos
         # la traza se coteja por pin: basta con que una cara la haya visto
         for i, (_, tt) in enumerate(txt):
             vt = nombre_de(esp[i + 1]) if (i + 1) in esp else None
@@ -605,7 +691,7 @@ class HarnessModule(InspectionModule):
 
     # ── detecciones ───────────────────────────────────────────────────────
     def _face_of(self, cls: str) -> Optional[str]:
-        if not cls.startswith(self.target_class):
+        if cls == self.band_class or not cls.startswith(self.target_class or ""):
             return None
         for f, suf in self.face_suffix.items():
             if cls.endswith(suf):
@@ -649,10 +735,34 @@ class HarnessModule(InspectionModule):
                        for i in range(n)]
         return r
 
+    def _pin(self, cara: str, i: int, n: int) -> int:
+        """
+        Posición i (de izquierda a derecha en la cara) → número de pin; *n*
+        es cuántos hilos ve esa cara. La B es la pieza girada 180° sobre el
+        eje de los hilos: el orden de las columnas se invierte.
+
+        Dos filas (JST PUD y similares): impares en una fila y pares en la
+        otra, el 1 y el 2 en la misma columna. La cara A ve la fila
+        *fila_a*; la B, la otra.
+        """
+        if self.filas != 2:
+            return i + 1 if cara == "a" else n - i
+        col = i + 1 if cara == "a" else n - i            # columna 1..n
+        impar = (cara == "a") == (self.fila_a == "impares")
+        return 2 * col - 1 if impar else 2 * col
+
     @staticmethod
-    def _pin(cara: str, i: int, n: int) -> int:
-        """Posición i (de izquierda a derecha en la cara) → número de pin."""
-        return i + 1 if cara == "a" else n - i
+    def _pareja(p: int) -> int:
+        """El pin de la otra fila en la misma columna (1↔2, 3↔4…)."""
+        return p + 1 if p % 2 else p - 1
+
+    def _golden_pin(self, p: int) -> Optional[dict]:
+        for cara in sorted(self.golden):
+            g = self.golden[cara]
+            for i, c in enumerate(g["colors"]):
+                if self._pin(cara, i, g["n"]) == p:
+                    return c
+        return None
 
     def trazas(self) -> dict:
         """
@@ -685,6 +795,15 @@ class HarnessModule(InspectionModule):
 
     def compare(self, cara: str, leido: dict) -> list[str]:
         """Defectos de una cara leída contra su golden (vacío = OK)."""
+        # Mismo conector, otro tamaño (un 2×5 en el job del 2×4): los hilos
+        # se reparten en N tramos y el color podría cuadrar por casualidad.
+        # El ancho del conector contra su largo lo delata (8 → 10 pines: +20 %).
+        ga = self.golden[cara].get("aspect") or 0.0
+        la = leido.get("aspect") or 0.0
+        if ga > 0 and la > 0 and abs(la / ga - 1.0) > self.aspect_tol:
+            self.last_eval = []
+            return [f"el conector es más {'ancho' if la > ga else 'angosto'} que el del job"
+                    f" (¿otro número de parte?)"]
         g = self.golden[cara]["colors"]
         c = leido["colors"]
         n = len(g)
@@ -720,6 +839,14 @@ class HarnessModule(InspectionModule):
                 out.append(f"cruzados {a}↔{b}")
             else:
                 usados.add(i)
+                if self.filas == 2:
+                    # ¿es el hilo de la otra fila, misma columna? Encimado
+                    # (se reacomoda) o cruzado entre filas: lo dice la otra cara
+                    q = self._pareja(pin(i))
+                    gq = self._golden_pin(q)
+                    if gq is not None and self._dist(c[i], gq, esp.get(q)) <= self.tolerance:
+                        out.append(f"pin {pin(i)}: hilo encimado, se ve el del pin {q}")
+                        continue
                 vb = nombre_de(c[i]["base"]) + (f"/{nombre_de(c[i]['traza'])}" if c[i]["traza"] else "")
                 gb = nombre_de(g[i]["base"]) + (f"/{nombre_de(g[i]['traza'])}" if g[i]["traza"] else "")
                 out.append(f"pin {pin(i)}: va {gb}, hay {vb}")
@@ -729,6 +856,7 @@ class HarnessModule(InspectionModule):
     def learn(self, frame, detections, n: int) -> tuple[Optional[str], int]:
         """Acumula una lectura de la cara que se ve; devuelve (cara, cuántas)."""
         cb, face, bb = self._split(detections)
+        n = self.learn_n(n)
         if cb is None or bb is None or n <= 0:
             return face, len(self._learn.get(face, [])) if face else 0
         r = self.read_face(frame, cb, bb, n)
@@ -758,6 +886,7 @@ class HarnessModule(InspectionModule):
                                "frac": float(np.median([r["colors"][i]["frac"] for r in lecturas]))})
             self.golden[f] = {"n": n, "cuts": [float(v) for v in cuts], "colors": colors,
                               "depth": float(np.median([r["depth_rel"] for r in lecturas])),
+                              "aspect": float(np.median([r.get("aspect", 0.0) for r in lecturas])),
                               "cols": W}
             hechas.append(f)
             del self._learn[f]
@@ -770,6 +899,12 @@ class HarnessModule(InspectionModule):
         self._learn = {}
         self.reset()
 
+    def learn_n(self, n_total: int) -> int:
+        """Hilos por cara para *n_total* hilos de la pieza."""
+        if self.filas == 2:
+            return n_total // 2 if n_total % 2 == 0 else 0
+        return n_total
+
     # ── señales ───────────────────────────────────────────────────────────
     def _moving(self, frame) -> bool:
         small = cv2.resize(frame, (160, 120), interpolation=cv2.INTER_AREA)
@@ -781,7 +916,7 @@ class HarnessModule(InspectionModule):
         return moving
 
     def _tapado(self, leido: Optional[dict], cara: str) -> bool:
-        """¿El termo (u otra cosa blanca) tapa la banda?"""
+        """¿El termofit (u otra cosa blanca) tapa la banda?"""
         g = self.golden.get(cara)
         if g is None:
             return False
@@ -854,9 +989,26 @@ class HarnessModule(InspectionModule):
                                               .most_common(1)[0][0])
                 self._settle_verdict()
 
+    _ENCIMADO = re.compile(r"pin (\d+): hilo encimado, se ve el del pin (\d+)")
+
     def _settle_verdict(self) -> None:
         faltan = [f for f in self.faces_required if f not in self.face_ok]
         self.defects.pop("*", None)
+        if self.filas == 2:
+            # pin p muestra el hilo de q en una cara y q el de p en la otra:
+            # no es un hilo encimado, están cruzados entre filas
+            vistos = {}
+            for f in ("a", "b"):
+                for d in self.defects.get(f, []):
+                    m = self._ENCIMADO.match(d)
+                    if m:
+                        vistos[(int(m.group(1)), int(m.group(2)))] = (f, d)
+            for (p, q), (f, d) in list(vistos.items()):
+                if p < q and (q, p) in vistos:
+                    f2, d2 = vistos[(q, p)]
+                    self.defects[f] = [x for x in self.defects[f] if x != d]
+                    self.defects[f2] = [x for x in self.defects[f2] if x != d2]
+                    self.defects.setdefault("*", []).append(f"cruzados {p}↔{q} (entre filas)")
         if any(v is False for v in self.face_ok.values()):
             self.verdict = "NOT_OK"
         elif faltan:
@@ -869,7 +1021,8 @@ class HarnessModule(InspectionModule):
             sin = sorted(p for p in esp if p not in self.traza_vista)
             if sin:
                 self.verdict = "NOT_OK"
-                self.defects["*"] = [
+                self.defects.setdefault("*", [])
+                self.defects["*"] += [
                     f"pin {p}: no se ve la traza (va {nombre_de(self._base_pin(p))}/{nombre_de(esp[p])})"
                     for p in sin]
             else:
@@ -896,12 +1049,13 @@ class HarnessModule(InspectionModule):
 
     # ── texto ─────────────────────────────────────────────────────────────
     def _base_pin(self, p: int):
-        for cara in sorted(self.golden):
-            g = self.golden[cara]
-            for i, c in enumerate(g["colors"]):
-                if self._pin(cara, i, g["n"]) == p:
-                    return c["base"]
-        return None
+        c = self._golden_pin(p)
+        return c["base"] if c else None
+
+    def encimados(self) -> bool:
+        """¿Todo lo malo son hilos encimados? Entonces se reacomoda, no se rechaza."""
+        ds = [d for v in self.defects.values() for d in v]
+        return bool(ds) and all(self._ENCIMADO.match(d) for d in ds)
 
     def defects_text(self) -> str:
         partes = []
@@ -917,6 +1071,8 @@ class HarnessModule(InspectionModule):
     def state_text(self) -> str:
         if not self.calibrated:
             return "Sin golden · muestra una pieza buena y pulsa Aprender cara"
+        if self.faltan_caras():
+            return f"Falta aprender la cara {', '.join(f.upper() for f in self.faltan_caras())}"
         if not self.verified:
             return "Golden sin verificar · una persona debe revisarlo"
         faltan = [f.upper() for f in self.faces_required if f not in self.face_ok]
@@ -932,7 +1088,7 @@ class HarnessModule(InspectionModule):
 
     def action_text(self) -> str:
         if self.state == "tapado":
-            return "Sube el termo"
+            return "Sube el termofit"
         if self.state == "voltea":
             return "Voltea el arnés"
         if self.verdict is None:
@@ -941,6 +1097,8 @@ class HarnessModule(InspectionModule):
             return ("Corregida → sigue a la línea" if self._history and not all(self._history)
                     else "OK → sigue a la línea")
         txt = self.defects_text() or "NOT OK"
+        if self.encimados():
+            return f"{txt[0].upper() + txt[1:]} → reacomoda los hilos"
         return f"{txt[0].upper() + txt[1:]} → corregir o a RECHAZO"
 
     # ── dibujo ────────────────────────────────────────────────────────────
@@ -998,6 +1156,7 @@ class HarnessModule(InspectionModule):
             return
         g = self.golden[self.face]
         n = g["n"]
+        N = n * self.filas                 # pines de la pieza
         malos = {i for i, d in (self.last_eval or []) if d > self.tolerance}
         # la traza que ninguna cara vio es un defecto del PIN: también se marca
         if self.state == "resultado":
@@ -1007,21 +1166,32 @@ class HarnessModule(InspectionModule):
                     p_ = int(m_.group(1))
                     malos |= {i for i in range(n) if self._pin(self.face, i, n) == p_}
         esp = self.trazas()
-        lado = int(max(18, min(34 * s, 520 * s / max(n, 1) - 8 * s)))
+        lado = int(max(18, min(34 * s, 520 * s / max(N, 1) - 8 * s)))
         paso = lado + int(8 * s)
         etq = int(54 * s)
         pad = int(12 * s)
         f_num, f_etq = self._f(int(17 * s)), self._f(int(18 * s))
         if f_num is None:
             return
-        ancho = pad * 2 + etq + paso * n
-        alto = pad * 2 + int(22 * s) + lado * 2 + int(10 * s)
+        cab = int(22 * s)
+        fila_txt = ""
+        if self.filas == 2:
+            vis = self.pines_de(self.face)
+            fila_txt = (f"Cara {self.face.upper()}: se ve la fila de los "
+                        f"{'impares' if vis and vis[0] % 2 else 'pares'}")
+            cab += int(26 * s)
+        ancho = max(pad * 2 + etq + paso * N, pad * 2 + int(len(fila_txt) * 9.5 * s))
+        alto = pad * 2 + cab + lado * 2 + int(10 * s)
         im = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
         d = ImageDraw.Draw(im, "RGBA")
         d.rounded_rectangle([x0, y0, x0 + ancho, y0 + alto], radius=int(10 * s),
                             fill=(20, 22, 26, 205))
-        ytop = y0 + pad + int(22 * s)
+        ytop = y0 + pad + cab
         ybot = ytop + lado + int(10 * s)
+        if fila_txt:
+            d.text((x0 + pad, y0 + pad + int(9 * s)), fila_txt, font=f_etq,
+                   fill=(235, 200, 90), anchor="lm")
+        ynum = ytop - int(13 * s)
         d.text((x0 + pad, ytop + lado / 2), "Visto", font=f_etq, fill=(230, 230, 230), anchor="lm")
         d.text((x0 + pad, ybot + lado / 2), "Va", font=f_etq, fill=(170, 170, 170), anchor="lm")
 
@@ -1035,13 +1205,26 @@ class HarnessModule(InspectionModule):
                 t0 = x + int(lado * 0.42)
                 d.rectangle([t0, y, t0 + max(3, lado // 5), y + lado], fill=rgb(traza))
             d.rectangle([x, y, x + lado, y + lado], outline=(235, 235, 235, 160), width=1)
+        if self.filas == 2:
+            # los pines de la otra fila: lo que va, apagado; arriba, sin lectura
+            vis = set(self.pines_de(self.face))
+            for p_ in range(1, N + 1):
+                if p_ in vis:
+                    continue
+                x = x0 + pad + etq + (p_ - 1) * paso
+                d.rectangle([x, ytop, x + lado, ytop + lado], outline=(110, 110, 110), width=1)
+                gp = self._golden_pin(p_)
+                if gp is not None:
+                    cuadro(x, ybot, gp["base"], esp.get(p_))
+                    d.rectangle([x, ybot, x + lado, ybot + lado], fill=(20, 22, 26, 150))
+                d.text((x + lado / 2, ynum), str(p_), font=f_num, fill=(120, 120, 120), anchor="mm")
         for i in range(n):
             p_ = self._pin(self.face, i, n)
             x = x0 + pad + etq + (p_ - 1) * paso
             c = self.last_read["colors"][i]
             cuadro(x, ytop, c["base"], c["traza"])
             cuadro(x, ybot, g["colors"][i]["base"], esp.get(p_))
-            d.text((x + lado / 2, y0 + pad + int(9 * s)), str(p_), font=f_num,
+            d.text((x + lado / 2, ynum), str(p_), font=f_num,
                    fill=(230, 230, 230), anchor="mm")
             if i in malos:
                 m_ = int(4 * s)
@@ -1066,6 +1249,8 @@ class HarnessModule(InspectionModule):
         c.update(golden=json.loads(json.dumps(self.golden)), codigo=self.codigo,
                  verificado=dict(self.verificado), tolerance=self.tolerance,
                  band_class=self.band_class, white_balance=bool(self.white_balance),
+                 filas=int(self.filas), fila_a=self.fila_a, target_class=self.target_class,
+                 n_hilos=int(self.n_total or self.n_hilos or 0),
                  settle_s=self.settle_s, window_s=self.window_s, gone_s=self.gone_s)
         return c
 
@@ -1081,6 +1266,7 @@ class HarnessModule(InspectionModule):
                                                     "frac": float(c.get("frac", 0.0))}
                                                    for c in v["colors"]],
                                         "depth": float(v.get("depth", 1.0)),
+                                        "aspect": float(v.get("aspect", 0.0)),
                                         "cols": int(v.get("cols", 0))}
                                for f, v in g.items()}
             except (KeyError, TypeError, ValueError):
@@ -1090,6 +1276,16 @@ class HarnessModule(InspectionModule):
         self.verificado = dict(v) if isinstance(v, dict) else {}
         if cfg.get("band_class"):
             self.band_class = str(cfg["band_class"])
+        self.target_class = str(cfg.get("target_class") or "")
+        try:
+            self.filas = 2 if int(cfg.get("filas", 1)) == 2 else 1
+        except (TypeError, ValueError):
+            self.filas = 1
+        self.fila_a = "pares" if cfg.get("fila_a") == "pares" else "impares"
+        try:
+            self.n_hilos = int(cfg.get("n_hilos") or 0)
+        except (TypeError, ValueError):
+            self.n_hilos = 0
         if "white_balance" in cfg:
             self.white_balance = bool(cfg["white_balance"])
         for k in ("tolerance", "settle_s", "window_s", "gone_s"):

@@ -191,6 +191,9 @@ STRINGS = {
     "har_help":         "Colores de los hilos junto al conector contra el golden del job. "
                         "Muestra cada cara de una pieza buena y apréndela; una persona "
                         "verifica. Con movimiento, pausa.",
+    "har_rows":         "Filas",
+    "har_need_faces":   "Falta aprender la cara {caras}: con dos filas cada cara trae la mitad de los pines",
+    "har_rows_even":    "Con dos filas el número de hilos tiene que ser par",
     "har_wires":        "Hilos",
     "har_learn":        "Aprender cara (pieza buena)",
     "har_learning":     "Aprendiendo cara {f}… ({n})",
