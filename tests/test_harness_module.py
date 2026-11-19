@@ -39,11 +39,13 @@ SKU = [("azul", None), ("amarillo", None), ("café", None), ("rojo", None),
 
 
 def dibujar(hilos, cara="a", ang=0.0, luz=(1.0, 1.0, 1.0), termofit=0.0, sin_traza_en_a=False,
-            W=960, H=540, cx=480, cy=200, pitch=30, ruido=2.0, seed=0, tapete=(92, 98, 104)):
+            W=960, H=540, cx=480, cy=200, pitch=30, ruido=2.0, seed=0, tapete=(92, 98, 104),
+            llenado=0.86):
     """
     Conector arriba, hilos hacia abajo, girado *ang* grados alrededor del
     centro del conector. La cara B se ve espejada. *termofit*: fracción de la
-    banda tapada desde el conector. Devuelve (frame BGR, dets).
+    banda tapada desde el conector. *llenado*: ancho del hilo / paso (1.0 o más:
+    hilos pegados, sin tapete entre ellos). Devuelve (frame BGR, dets).
     """
     rng = np.random.default_rng(seed)
     n = len(hilos)
@@ -53,7 +55,7 @@ def dibujar(hilos, cara="a", ang=0.0, luz=(1.0, 1.0, 1.0), termofit=0.0, sin_tra
     orden = hilos if cara == "a" else hilos[::-1]
     # hilos: de la base del conector hacia abajo
     yb0, yb1 = y0 + ch, y0 + ch + 170
-    wd = int(pitch * 0.86)
+    wd = int(round(pitch * llenado))
     for k, (base, traza) in enumerate(orden):
         xc = x0 + 9 + pitch * k + pitch / 2
         for dx in range(-wd // 2, wd // 2 + 1):
@@ -341,6 +343,65 @@ check("la pieza del SKU A en el job del SKU B → NOT OK", mb.verdict == "NOT_OK
 mb2 = aprendido(hilos=sku_b)
 juzgar(mb2, sku_b, "a")
 check("y la del B en su job → bien", mb2.face_ok.get("a") is True, mb2.defects)
+
+print("\n[17] Hilos pegados, sin tapete entre ellos (como en un arnés real)")
+# Un blanco/rojo pegado al rojo: sin hueco donde cortar, la varianza de color
+# mandaba el corte hacia el blanco, su raya se iba con el rojo y salía
+# "rojo/gris". Antes de la ventana alrededor del paso: golden mal aprendido
+# a 108 % y la pieza buena girada +8° como NOT OK.
+SK4 = [("amarillo", None), ("rojo", None), ("blanco", "rojo"), ("naranja", None)]
+
+
+def aprendido4(llenado):
+    m = HarnessModule()
+    m.enabled = True
+    for cara in ("a", "b"):
+        for s in range(6):
+            img, dets = dibujar(SK4, cara=cara, seed=s, llenado=llenado)
+            m.learn(img, dets, n=4)
+        m.finish_learning(cara)
+    m.codigo = "1 AM · 2 RJ · 3 BL/RJ · 4 NA"
+    m.verificar("prueba")
+    return m
+
+
+for ll in (1.0, 1.08):
+    m = aprendido4(ll)
+    check(f"{ll:.0%}: golden con la raya en el blanco, no en el rojo",
+          m.nombres("a") == SK4 and m.nombres("b") == SK4 and m.cotejar() == [], m.nombres("b"))
+    t = 0.0
+    for ang in (-8, 8):
+        t = juzgar(m, SK4, "a", t0=t + 1, ang=ang, llenado=ll, seed=10)
+        t = juzgar(m, SK4, "b", t0=t + 1, ang=ang, llenado=ll, seed=11)
+        check(f"{ll:.0%}, {ang:+}°: la buena sale OK", m.verdict == "OK", m.defects)
+        t = salir(m, t + 1)
+    liso = [SK4[0], SK4[1], ("blanco", None), SK4[3]]
+    t = juzgar(m, liso, "a", t0=t + 1, llenado=ll, seed=6)
+    t = juzgar(m, liso, "b", t0=t + 1, llenado=ll, seed=7)
+    check(f"{ll:.0%}: blanco liso donde va blanco/rojo → NOT OK por la traza",
+          m.verdict == "NOT_OK" and m.defects.get("*") == ["pin 3: no se ve la traza (va blanco/rojo)"],
+          m.defects)
+    t = salir(m, t + 1)
+    t = juzgar(m, [SK4[0], SK4[2], SK4[1], SK4[3]], "a", t0=t + 1, llenado=ll, seed=8)
+    check(f"{ll:.0%}: rojo y blanco/rojo cruzados → cruzados 2↔3",
+          m.defects.get("a") == ["cruzados 2↔3"], m.defects)
+    t = salir(m, t + 1)
+
+# la caja de la banda corrida unos px (YOLO no es exacto): los cortes se
+# mueven todos juntos, no solo el que conviene al color
+m = aprendido4(1.0)
+t = 0.0
+for dx in (-4, 4):
+    img, dets = dibujar(SK4, "a", llenado=1.0, seed=12)
+    dets[1].x1 += dx
+    dets[1].x2 += dx
+    t += 1
+    for _ in range(30):
+        m.update(img, dets, now=t)
+        t += 0.05
+    check(f"banda corrida {dx:+} px con hilos pegados: la cara A sale bien",
+          m.face_ok.get("a") is True, m.defects)
+    t = salir(m, t + 1)
 
 print("\n" + "=" * 60)
 print("ARNÉS: COLORES DE HILO CONTRA EL GOLDEN, POR CARA")

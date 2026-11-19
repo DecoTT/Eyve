@@ -390,6 +390,7 @@ def segmentar(cols: np.ndarray, n: int, prior: Optional[list] = None,
     # al lado de rojo) pierde su raya, que se va con el vecino. Solo si hay
     # huecos para todos los cortes; si los hilos se tocan, como antes.
     fuera_hueco = np.zeros(W + 1)
+    con_huecos = False
     if peso is not None and (w == 0).any():
         hueco = w == 0
         en_hueco = np.zeros(W + 1, bool)
@@ -398,29 +399,51 @@ def segmentar(cols: np.ndarray, n: int, prior: Optional[list] = None,
         interiores = [k for k in orillas if 0 < k and hueco[k + 1:].size and (~hueco[k + 1:]).any()]
         if len(interiores) >= n - 1:
             fuera_hueco = np.where(en_hueco, 0.0, 1e12)
-    best = np.full((n + 1, W + 1), INF)
-    arg = np.zeros((n + 1, W + 1), np.int64)
-    best[0, 0] = 0.0
+            con_huecos = True
     idx = np.arange(W + 1)
-    for k in range(1, n + 1):
-        for j in range(k * minw, W + 1):
-            i = idx[(k - 1) * minw: j - minw + 1]
-            if len(i) == 0:
-                continue
-            c = best[k - 1, i] + coste(i, j)
-            if prior is not None and k < n:
-                c = c + lam * ((j - prior[k] * W) / paso) ** 2
-            if k < n:
-                c = c + fuera_hueco[j]
-            m = int(np.argmin(c))
-            best[k, j] = c[m]
-            arg[k, j] = i[m]
-    cortes = [W]
-    j = W
-    for k in range(n, 0, -1):
-        j = int(arg[k, j])
-        cortes.append(j)
-    return cortes[::-1]
+
+    def resolver(ventana):
+        best = np.full((n + 1, W + 1), INF)
+        arg = np.zeros((n + 1, W + 1), np.int64)
+        best[0, 0] = 0.0
+        for k in range(1, n + 1):
+            for j in (range(k * minw, W + 1) if k < n else (W,)):
+                if k < n and ventana is not None and abs(j - ventana[k]) > ventana_cols:
+                    continue
+                i = idx[(k - 1) * minw: j - minw + 1]
+                if len(i) == 0:
+                    continue
+                c = best[k - 1, i] + coste(i, j)
+                if prior is not None and k < n:
+                    c = c + lam * ((j - prior[k] * W) / paso) ** 2
+                if k < n:
+                    c = c + fuera_hueco[j]
+                m = int(np.argmin(c))
+                best[k, j] = c[m]
+                arg[k, j] = i[m]
+        cortes = [W]
+        j = W
+        for k in range(n, 0, -1):
+            j = int(arg[k, j])
+            cortes.append(j)
+        return best[n, W], cortes[::-1]
+
+    # Hilos que se tocan (sin tapete entre ellos): cada hilo ocupa su paso,
+    # porque sale del conector al paso de los pines. Sin esto la varianza de
+    # color manda y un hilo con traza junto a uno del color de la traza
+    # (blanco/rojo pegado al rojo) se queda angosto: su raya se va con el
+    # vecino, que sale "rojo/gris". Cada corte se mueve poco alrededor del
+    # suyo, y todos juntos un poco (la caja de la banda no es exacta).
+    if prior is None or con_huecos or n < 2:
+        return resolver(None)[1]
+    ventana_cols = 0.15 * paso
+    mejor = None
+    for corr in np.linspace(-0.2, 0.2, 9):
+        v = [prior[k] * W + corr * paso for k in range(n + 1)]
+        r = resolver(v)
+        if r[0] < INF / 2 and (mejor is None or r[0] < mejor[0]):
+            mejor = r
+    return (mejor or resolver(None))[1]
 
 
 def _huecos_en_frontera(peso: np.ndarray, n: int, lejos: float = 0.3) -> np.ndarray:
