@@ -72,6 +72,12 @@ class Job:
 
     name: str
     notes: str = ""
+    #: Para encontrar el job entre cientos: compañía y proyecto (en la
+    #: interfaz se llama «Proyecto»; aquí `product` para no confundirlo con
+    #: el proyecto de Eyve, que es el modelo). Vacío = sin agrupar; los jobs
+    #: de antes de estos campos caen ahí y siguen abriendo igual.
+    company: str = ""
+    product: str = ""
     source: dict = field(default_factory=lambda: dict(SOURCE_DEFAULTS))
     tracker: dict = field(default_factory=lambda: dict(TRACKER_DEFAULTS))
     #: key del módulo -> su config(). Ver InspectionModule.config().
@@ -95,6 +101,8 @@ class Job:
         return {
             "name": self.name,
             "notes": self.notes,
+            "company": self.company,
+            "product": self.product,
             "source": dict(self.source),
             "tracker": dict(self.tracker),
             "modules": {k: dict(v) for k, v in self.modules.items()},
@@ -107,6 +115,8 @@ class Job:
     def from_dict(cls, d: dict) -> "Job":
         job = cls(name=str(d.get("name") or "job"))
         job.notes = str(d.get("notes") or "")
+        job.company = str(d.get("company") or "").strip()
+        job.product = str(d.get("product") or "").strip()
         job.source = {**SOURCE_DEFAULTS, **(d.get("source") or {})}
         job.tracker = {**TRACKER_DEFAULTS, **(d.get("tracker") or {})}
         job.modules = {k: dict(v) for k, v in (d.get("modules") or {}).items()}
@@ -170,18 +180,19 @@ class Job:
         return p
 
     @classmethod
-    def load(cls, path: Path) -> "Job":
+    def load(cls, path: Path, ref: bool = True) -> "Job":
+        """*ref*=False no lee la referencia (.npy): para listar no hace falta."""
         path = Path(path)
         with open(path, encoding="utf-8") as f:
             d = yaml.safe_load(f) or {}
         job = cls.from_dict(d)
         job._stem = path.stem
-        ref = path.parent / f"{job._stem}.ref.npy"
-        if ref.exists():
+        npy = path.parent / f"{job._stem}.ref.npy"
+        if ref and npy.exists():
             try:
-                job.reference_image = np.load(ref)
+                job.reference_image = np.load(npy)
             except Exception:
-                log.warning(f"Job {job.name}: no se pudo leer {ref.name}")
+                log.warning(f"Job {job.name}: no se pudo leer {npy.name}")
         return job
 
     def delete(self, jobs_dir: Path) -> None:
@@ -209,14 +220,22 @@ class Job:
 # ── pasar de los módulos al job y al revés ───────────────────────────────
 def capture(modulos, tracker=None, source: Optional[dict] = None,
             name: str = "", notes: str = "",
-            base: Optional[Job] = None) -> Job:
+            base: Optional[Job] = None,
+            company: Optional[str] = None,
+            product: Optional[str] = None) -> Job:
     """Construye un Job con el estado ACTUAL de los módulos y el tracker."""
     job = Job(name=name or (base.name if base else "job"))
     if base is not None:
         job.created_at = base.created_at
         job.notes = base.notes
+        job.company = base.company
+        job.product = base.product
     if notes:
         job.notes = notes
+    if company is not None:
+        job.company = company.strip()
+    if product is not None:
+        job.product = product.strip()
     if source:
         job.source = {**SOURCE_DEFAULTS, **source}
     if tracker is not None:
@@ -264,25 +283,79 @@ def apply(job: Job, modulos, tracker=None) -> None:
 
 
 # ── listado ──────────────────────────────────────────────────────────────
-def list_jobs(jobs_dir: Path) -> list[Job]:
-    """Los jobs de un proyecto, por nombre."""
+def list_jobs(jobs_dir: Path, refs: bool = True) -> list[Job]:
+    """
+    Los jobs de un proyecto, por nombre.
+
+    *refs*=False no lee las referencias del Patrón: un selector con cientos
+    de SKU no debe cargar cientos de imágenes para enseñar nombres. Esos
+    jobs NO se aplican ni se guardan; para eso, `find()`.
+    """
     jobs_dir = Path(jobs_dir)
     if not jobs_dir.exists():
         return []
     out = []
     for p in sorted(jobs_dir.glob("*.yaml")):
         try:
-            out.append(Job.load(p))
+            out.append(Job.load(p, ref=refs))
         except Exception:
             log.warning(f"Job ilegible: {p.name}")
     return sorted(out, key=lambda j: j.name.lower())
 
 
 def find(jobs_dir: Path, name: str) -> Optional[Job]:
+    """
+    El job que se llama *name*, o None.
+
+    Primero el archivo que le toca por su slug, pero solo si de verdad es
+    suyo: "SKU 1" y "SKU/1" comparten slug, y el segundo en guardarse queda
+    con sufijo (`_resolve_stem`). Devolver el del slug sin mirar el nombre
+    cargaba los parámetros del OTRO SKU.
+    """
     p = Path(jobs_dir) / f"{slug(name)}.yaml"
-    if not p.exists():
-        return None
-    try:
-        return Job.load(p)
-    except Exception:
-        return None
+    if p.exists():
+        try:
+            job = Job.load(p)
+            if job.name == name:
+                return job
+        except Exception:
+            pass
+    for job in list_jobs(jobs_dir, refs=False):
+        if job.name == name:
+            return Job.load(Path(jobs_dir) / f"{job._stem}.yaml")
+    return None
+
+
+# ── agrupar: compañía → proyecto → SKU ───────────────────────────────────
+# Con cientos de SKU un solo menú no sirve: el operador va filtrando. None
+# en un filtro = todos; "" = los que no tienen ese campo.
+
+def companies(jobs) -> list[str]:
+    """Las compañías que hay, en orden; "" al final si hay jobs sin compañía."""
+    hay = {j.company for j in jobs}
+    return sorted((c for c in hay if c), key=str.lower) + ([""] if "" in hay else [])
+
+
+def products(jobs, company: Optional[str] = None) -> list[str]:
+    """Los proyectos de *company* (None = de todas), con "" al final si hay sin proyecto."""
+    hay = {j.product for j in jobs if company is None or j.company == company}
+    return sorted((p for p in hay if p), key=str.lower) + ([""] if "" in hay else [])
+
+
+def filter_jobs(jobs, company: Optional[str] = None,
+                product: Optional[str] = None, text: str = "") -> list:
+    """
+    Los jobs que pasan los filtros. *text* busca en SKU, compañía y
+    proyecto, sin mayúsculas, y con varias palabras exige todas.
+    """
+    palabras = [w for w in (text or "").lower().split() if w]
+    out = []
+    for j in jobs:
+        if company is not None and j.company != company:
+            continue
+        if product is not None and j.product != product:
+            continue
+        donde = f"{j.name} {j.company} {j.product}".lower()
+        if all(w in donde for w in palabras):
+            out.append(j)
+    return out

@@ -38,8 +38,6 @@ from __future__ import annotations
 import time
 from collections import Counter
 from types import SimpleNamespace
-from types import SimpleNamespace
-from types import SimpleNamespace
 from typing import Optional
 
 import cv2
@@ -78,48 +76,6 @@ def _abs(rel, base) -> tuple[int, int, int, int]:
     bw, bh = bx2 - bx1, by2 - by1
     return (int(bx1 + rel[0] * bw), int(by1 + rel[1] * bh),
             int(bx1 + rel[2] * bw), int(by1 + rel[3] * bh))
-
-
-def from_tracks(tracks, max_lost: int = 3) -> list:
-    """
-    Instancias del tracker → detecciones para el módulo.
-
-    El ensamble se juzga sobre las instancias PERSISTENTES (las mismas que
-    dibuja Producción), no sobre la detección cruda de cada frame: si el
-    detector pierde la antena un frame, la instancia sigue ahí y la pieza no
-    "pierde" la antena. Solo confirmadas, y como mucho *max_lost* frames sin
-    verse: una parte que de verdad se quitó no debe seguir contando como
-    puesta.
-    """
-    out = []
-    for tr in tracks:
-        if not getattr(tr, "confirmed", True) or tr.frames_lost > max_lost:
-            continue
-        x1, y1, x2, y2 = tr.bbox
-        out.append(SimpleNamespace(class_name=tr.label, confidence=tr.confidence,
-                                   x1=float(x1), y1=float(y1), x2=float(x2), y2=float(y2)))
-    return out
-
-
-def from_tracks(tracks, max_lost: int = 3) -> list:
-    """
-    Instancias del tracker → detecciones para el módulo.
-
-    El ensamble se juzga sobre las instancias PERSISTENTES (las mismas que
-    dibuja Producción), no sobre la detección cruda de cada frame: si el
-    detector pierde la antena un frame, la instancia sigue ahí y la pieza no
-    "pierde" la antena. Solo confirmadas, y como mucho *max_lost* frames sin
-    verse: una parte que de verdad se quitó no debe seguir contando como
-    puesta.
-    """
-    out = []
-    for tr in tracks:
-        if not getattr(tr, "confirmed", True) or tr.frames_lost > max_lost:
-            continue
-        x1, y1, x2, y2 = tr.bbox
-        out.append(SimpleNamespace(class_name=tr.label, confidence=tr.confidence,
-                                   x1=float(x1), y1=float(y1), x2=float(x2), y2=float(y2)))
-    return out
 
 
 def from_tracks(tracks, max_lost: int = 3) -> list:

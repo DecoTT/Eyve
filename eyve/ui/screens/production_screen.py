@@ -238,8 +238,36 @@ class ProductionScreen(ctk.CTkFrame):
         ctk.CTkLabel(parent, text=t("job_section"),
                      font=T.bold(T.FONT_SM), text_color=T.TEXT_SEC).pack(
             padx=12, anchor="w", pady=(6, 0))
+
+        # Filtros: compañía → proyecto → SKU, más una búsqueda. Con cientos
+        # de SKU un solo menú no se puede usar; el operador va depurando.
+        # None = todos; "" = los que no tienen ese campo.
+        self._f_company = None
+        self._f_product = None
+        self._jobs_cache = []
+        self._map_company = {}
+        self._map_product = {}
+        menu_kw = dict(width=108, height=24, dynamic_resizing=False,
+                       fg_color=T.BG_INPUT, button_color=T.BG_INPUT,
+                       dropdown_fg_color=T.BG_CARD, font=T.font(T.FONT_XS))
+        frow = ctk.CTkFrame(parent, fg_color="transparent")
+        frow.pack(fill="x", padx=12, pady=(2, 0))
+        self._job_company_menu = ctk.CTkOptionMenu(
+            frow, values=[t("job_all_f")], command=self._on_company_selected, **menu_kw)
+        self._job_company_menu.pack(side="left")
+        self._job_product_menu = ctk.CTkOptionMenu(
+            frow, values=[t("job_all_m")], command=self._on_product_selected, **menu_kw)
+        self._job_product_menu.pack(side="right")
+        self._job_search = ctk.CTkEntry(
+            parent, height=24, placeholder_text=t("job_search"),
+            font=T.font(T.FONT_XS), fg_color=T.BG_INPUT, border_color=T.BORDER)
+        self._job_search.pack(fill="x", padx=12, pady=(3, 0))
+        self._job_search.bind("<KeyRelease>",
+                              lambda e: self._refresh_job_list(releer=False))
+        self._job_search.bind("<Escape>", lambda e: self._limpiar_busqueda())
+
         row = ctk.CTkFrame(parent, fg_color="transparent")
-        row.pack(fill="x", padx=12, pady=(2, 2))
+        row.pack(fill="x", padx=12, pady=(3, 0))
         self._job_row = row
         self._job_menu = ctk.CTkOptionMenu(
             row, values=[t("job_none")], width=130, height=26,
@@ -255,28 +283,57 @@ class ProductionScreen(ctk.CTkFrame):
                       font=T.bold(T.FONT_XS), fg_color=T.BG_INPUT,
                       text_color=T.TEXT_PRI,
                       command=self._toggle_nuevo_job).pack(side="right")
+
+        # cuántos pasan el filtro, y mover el job cargado de grupo
+        crow = ctk.CTkFrame(parent, fg_color="transparent")
+        crow.pack(fill="x", padx=12, pady=(1, 0))
+        self._job_count_row = crow
+        self._job_count = ctk.CTkLabel(crow, text="", height=18,
+                                       font=T.font(T.FONT_XS),
+                                       text_color=T.TEXT_SEC)
+        self._job_count.pack(side="left")
+        ctk.CTkButton(crow, text="\u270e", width=26, height=18,
+                      font=T.font(T.FONT_XS), fg_color="transparent",
+                      hover_color=T.BG_INPUT, text_color=T.TEXT_SEC,
+                      command=lambda: self._toggle_nuevo_job(True, regroup=True)
+                      ).pack(side="right")
+
         # paquete del job para otra PC: modelo + clases + parametros
         ctk.CTkButton(parent, text=t("job_export"), height=22,
                       font=T.font(T.FONT_XS), fg_color="transparent",
                       hover_color=T.BG_INPUT, text_color=T.TEXT_SEC, anchor="w",
                       command=self._exportar_job).pack(fill="x", padx=12, pady=(0, 2))
-        # Fila para el nombre, oculta hasta que se pulsa "+". Un campo en
-        # linea y no un dialogo: en produccion un modal estorba.  (Al
-        # escribir esto los modales tampoco se veian en esta pantalla; eso
-        # ya esta arreglado en eyve/ui/ventanas.py, pero el campo en linea
-        # se queda por lo primero.)
+        # Campos para un job nuevo (o para cambiarle el grupo al cargado),
+        # ocultos hasta que se pulsa "+" o el lapiz. Campos en linea y no un
+        # dialogo: en produccion un modal estorba.  (Al escribir esto los
+        # modales tampoco se veian en esta pantalla; eso ya esta arreglado
+        # en eyve/ui/ventanas.py, pero el campo en linea se queda por lo
+        # primero.)
+        self._job_new_mode = "nuevo"
         self._job_new_row = ctk.CTkFrame(parent, fg_color="transparent")
+        entry_kw = dict(height=24, font=T.font(T.FONT_XS),
+                        fg_color=T.BG_INPUT, border_color=T.BORDER)
+        self._job_new_company = ctk.CTkEntry(
+            self._job_new_row, placeholder_text=t("job_ask_company"), **entry_kw)
+        self._job_new_company.pack(fill="x", pady=(0, 2))
+        self._job_new_product = ctk.CTkEntry(
+            self._job_new_row, placeholder_text=t("job_ask_product"), **entry_kw)
+        self._job_new_product.pack(fill="x", pady=(0, 2))
+        nrow = ctk.CTkFrame(self._job_new_row, fg_color="transparent")
+        nrow.pack(fill="x")
         self._job_new_entry = ctk.CTkEntry(
-            self._job_new_row, width=130, height=26,
+            nrow, width=130, height=26,
             placeholder_text=t("job_ask_name"), font=T.font(T.FONT_XS),
             fg_color=T.BG_INPUT, border_color=T.BORDER)
         self._job_new_entry.pack(side="left")
-        self._job_new_entry.bind("<Return>", lambda e: self._crear_job())
-        self._job_new_entry.bind("<Escape>", lambda e: self._toggle_nuevo_job(False))
-        ctk.CTkButton(self._job_new_row, text=t("job_create"), width=54,
-                      height=26, font=T.font(T.FONT_XS), fg_color=T.ACCENT,
-                      text_color="#000",
-                      command=self._crear_job).pack(side="right", padx=(4, 0))
+        self._job_new_btn = ctk.CTkButton(
+            nrow, text=t("job_create"), width=54,
+            height=26, font=T.font(T.FONT_XS), fg_color=T.ACCENT,
+            text_color="#000", command=self._confirmar_job_row)
+        self._job_new_btn.pack(side="right", padx=(4, 0))
+        for e in (self._job_new_company, self._job_new_product, self._job_new_entry):
+            e.bind("<Return>", lambda ev: self._confirmar_job_row())
+            e.bind("<Escape>", lambda ev: self._toggle_nuevo_job(False))
 
         #: avisos del job: calibracion vieja, geometria de otro encuadre,
         #: modulos Pro sin licencia. Vacio = nada que decir.
@@ -286,16 +343,80 @@ class ProductionScreen(ctk.CTkFrame):
         self._job_warn.pack(padx=12, anchor="w")
         self._refresh_job_list()
 
-    def _refresh_job_list(self, seleccionar: str = "") -> None:
-        d = self._jobs_dir()
-        nombres = [j.name for j in J.list_jobs(d)] if d else []
+    # ── filtros del selector ──────────────────────────────────────────────
+    @staticmethod
+    def _etiquetas(valores, sin: str) -> dict:
+        """{texto del menu: valor}; el valor "" se ve como «(sin …)»."""
+        return {(v or sin): v for v in valores}
+
+    def _refresh_job_list(self, seleccionar: str = "", releer: bool = True) -> None:
+        """
+        Rehace los tres menus. *releer*=False usa la lista ya leida: es lo
+        que pasa en cada tecla de la busqueda, y releer cientos de YAML por
+        tecla se nota.
+        """
+        if releer:
+            d = self._jobs_dir()
+            self._jobs_cache = J.list_jobs(d, refs=False) if d else []
+        todos = self._jobs_cache
+
+        comps = J.companies(todos)
+        if self._f_company is not None and self._f_company not in comps:
+            self._f_company = None
+        self._map_company = self._etiquetas(comps, t("job_no_company"))
+        inv_c = {v: k for k, v in self._map_company.items()}
+        self._job_company_menu.configure(values=[t("job_all_f")] + list(self._map_company))
+        self._job_company_menu.set(t("job_all_f") if self._f_company is None
+                                   else inv_c[self._f_company])
+
+        prods = J.products(todos, self._f_company)
+        if self._f_product is not None and self._f_product not in prods:
+            self._f_product = None
+        self._map_product = self._etiquetas(prods, t("job_no_product"))
+        inv_p = {v: k for k, v in self._map_product.items()}
+        self._job_product_menu.configure(values=[t("job_all_m")] + list(self._map_product))
+        self._job_product_menu.set(t("job_all_m") if self._f_product is None
+                                   else inv_p[self._f_product])
+
+        try:
+            texto = self._job_search.get()
+        except Exception:
+            texto = ""
+        visibles = J.filter_jobs(todos, self._f_company, self._f_product, texto)
+        nombres = [j.name for j in visibles]
         self._job_menu.configure(values=[t("job_none")] + nombres)
-        if seleccionar and seleccionar in nombres:
+        # El job cargado se sigue viendo aunque el filtro lo deje fuera:
+        # filtrar es para buscar el siguiente, no descarga el actual.
+        existen = {j.name for j in todos}
+        if seleccionar and seleccionar in existen:
             self._job_menu.set(seleccionar)
-        elif self._job and self._job.name in nombres:
+        elif self._job and self._job.name in existen:
             self._job_menu.set(self._job.name)
         else:
             self._job_menu.set(t("job_none"))
+        self._job_count.configure(
+            text=t("job_count", k=len(visibles), n=len(todos)) if todos else "")
+
+    def _on_company_selected(self, etiqueta: str) -> None:
+        self._f_company = (None if etiqueta == t("job_all_f")
+                           else self._map_company.get(etiqueta))
+        self._f_product = None
+        self._refresh_job_list(releer=False)
+
+    def _on_product_selected(self, etiqueta: str) -> None:
+        self._f_product = (None if etiqueta == t("job_all_m")
+                           else self._map_product.get(etiqueta))
+        self._refresh_job_list(releer=False)
+
+    def _limpiar_busqueda(self) -> None:
+        self._job_search.delete(0, "end")
+        self._refresh_job_list(releer=False)
+
+    def _filtrar_como(self, job) -> None:
+        """Deja los filtros en el grupo de *job*: el turno entra ya filtrado."""
+        self._f_company = job.company
+        self._f_product = job.product
+        self._refresh_job_list(job.name, releer=False)
 
     def _on_job_selected(self, nombre: str) -> None:
         if nombre == t("job_none"):
@@ -333,8 +454,10 @@ class ProductionScreen(ctk.CTkFrame):
         if d and J.find(d, nombre) is not None:
             self._job_menu.set(nombre)
             self._on_job_selected(nombre)
+            if self._job is not None:
+                self._filtrar_como(self._job)
 
-    def _capturar_job(self, nombre: str):
+    def _capturar_job(self, nombre: str, company=None, product=None):
         fuente = {
             "camera_source": self._cam_index(),
             "video_path": self._prod_stream_url or str(self._prod_video_path or ""),
@@ -343,7 +466,8 @@ class ProductionScreen(ctk.CTkFrame):
             "conf": round(float(self._conf_slider.get()) / 100.0, 2),
         }
         return J.capture(self._modulos(), self._tracker, source=fuente,
-                         name=nombre, base=self._job)
+                         name=nombre, base=self._job,
+                         company=company, product=product)
 
     def _cam_index(self) -> int:
         try:
@@ -390,17 +514,46 @@ class ProductionScreen(ctk.CTkFrame):
             return
         self._aviso_job(t("job_exported", f=out.name), T.ACCENT)
 
-    def _toggle_nuevo_job(self, mostrar=None) -> None:
-        """Enseña u oculta el campo para nombrar un job nuevo."""
+    def _toggle_nuevo_job(self, mostrar=None, regroup: bool = False) -> None:
+        """
+        Enseña u oculta los campos del job. Dos modos: «nuevo» (compañía y
+        proyecto vienen del filtro, el SKU se escribe) y «regroup» (el job
+        cargado, para cambiarle compañía/proyecto; el nombre no se toca).
+        """
         if mostrar is None:
             mostrar = not self._job_new_row.winfo_ismapped()
-        if mostrar:
-            self._job_new_row.pack(fill="x", padx=12, pady=(0, 2),
-                                   after=self._job_row)
-            self._job_new_entry.delete(0, "end")
-            self._job_new_entry.focus_set()
-        else:
+        if not mostrar:
             self._job_new_row.pack_forget()
+            return
+        if regroup and self._job is None:
+            self._aviso_job(t("job_regroup_need"), T.WARN)
+            return
+        self._job_new_mode = "regroup" if regroup else "nuevo"
+        if regroup:
+            comp, prod = self._job.company, self._job.product
+        else:
+            comp, prod = self._f_company or "", self._f_product or ""
+
+        def poner(entry, valor):
+            entry.delete(0, "end")
+            if valor:
+                entry.insert(0, valor)
+        self._job_new_entry.configure(state="normal")
+        poner(self._job_new_company, comp)
+        poner(self._job_new_product, prod)
+        poner(self._job_new_entry, self._job.name if regroup else "")
+        if regroup:
+            self._job_new_entry.configure(state="disabled")
+        self._job_new_btn.configure(text=t("job_apply" if regroup else "job_create"))
+        self._job_new_row.pack(fill="x", padx=12, pady=(0, 2),
+                               after=self._job_count_row)
+        (self._job_new_company if regroup else self._job_new_entry).focus_set()
+
+    def _confirmar_job_row(self) -> None:
+        if self._job_new_mode == "regroup":
+            self._regroup_job()
+        else:
+            self._crear_job()
 
     def _crear_job(self) -> None:
         d = self._jobs_dir()
@@ -410,7 +563,9 @@ class ProductionScreen(ctk.CTkFrame):
         nombre = self._job_new_entry.get().strip()
         if not nombre:
             return
-        job = self._capturar_job(nombre)
+        job = self._capturar_job(nombre,
+                                 company=self._job_new_company.get(),
+                                 product=self._job_new_product.get())
         job.save(d)
         self._job = job
         self._toggle_nuevo_job(False)
@@ -418,6 +573,30 @@ class ProductionScreen(ctk.CTkFrame):
         self._recordar_ultimo_job(job.name)
         self._avisos_del_job()
         self._aviso_job(t("job_saved", n=job.name), T.ACCENT)
+
+    def _regroup_job(self) -> None:
+        """
+        Cambia compañía/proyecto del job cargado y nada más: se lee del
+        disco y se guarda solo ese cambio. Lo que el operador tenga movido
+        en los controles sin guardar no se cuela por aquí.
+        """
+        d = self._jobs_dir()
+        if d is None or self._job is None:
+            self._aviso_job(t("job_regroup_need"), T.WARN)
+            return
+        comp = self._job_new_company.get().strip()
+        prod = self._job_new_product.get().strip()
+        en_disco = J.find(d, self._job.name)
+        if en_disco is not None:
+            en_disco.company, en_disco.product = comp, prod
+            en_disco.save(d)
+        self._job.company, self._job.product = comp, prod
+        self._toggle_nuevo_job(False)
+        self._refresh_job_list()
+        self._filtrar_como(self._job)
+        self._aviso_job(t("job_regrouped", n=self._job.name,
+                          c=comp or t("job_no_company"),
+                          p=prod or t("job_no_product")), T.ACCENT)
 
     def _aviso_job(self, texto: str, color: str) -> None:
         """
