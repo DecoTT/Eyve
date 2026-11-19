@@ -31,7 +31,9 @@ from eyve.core.logger import log
 from eyve.core.texto_cv import ascii_cv, put_text, text_size
 from eyve.inference.tracker import InstanceTracker, RawDetection, TrackerConfig
 from eyve.modules import PolarityModule, CountingModule, PatternModule, AssemblyModule
+from eyve.modules import HarnessModule
 from eyve.modules.assembly_module import GLOVES as ASM_GLOVES, from_tracks
+from eyve.modules.harness_module import ABREV as ABREV_H
 from eyve.production.ok_nok_logic import decide, InspectionStatus, InspectionResult
 from eyve.production.production_session import ProductionSession
 from eyve.ui.components.dialogs import show_error
@@ -143,6 +145,9 @@ class ProductionScreen(ctk.CTkFrame):
         self._assembly = AssemblyModule()
         self._asm_learn_left = 0       # frames que faltan para aprender la referencia
         self._asm_last = ""
+        self._harness = HarnessModule()
+        self._har_learn_left = 0       # frames que faltan para aprender la cara
+        self._har_last = ""
         #: fuente en vivo por URL (cámara IP, estación interactiva); manda
         #: sobre el archivo de video cuando está puesta
         self._prod_stream_url = ""
@@ -220,7 +225,7 @@ class ProductionScreen(ctk.CTkFrame):
     # comparten proyecto y modelo, y cada uno tiene su job.
 
     def _modulos(self):
-        return [self._polarity, self._counting, self._pattern, self._assembly]
+        return [self._polarity, self._counting, self._pattern, self._assembly, self._harness]
 
     def _jobs_dir(self):
         """
@@ -667,6 +672,20 @@ class ProductionScreen(ctk.CTkFrame):
         self._asm_tol.set(asm.tolerance * 100.0)
         self._asm_tol_val.configure(text=f"{int(asm.tolerance * 100)}%")
         self._refresh_asm_status()
+
+        # arnés
+        har = self._harness
+        self._har_var.set(bool(har.enabled))
+        self._har_code.delete(0, "end")
+        if har.codigo:
+            self._har_code.insert(0, har.codigo)
+        n_ = next(iter(har.golden.values()))["n"] if har.golden else None
+        if n_:
+            self._har_n.delete(0, "end")
+            self._har_n.insert(0, str(n_))
+        self._har_tol.set(har.tolerance)
+        self._har_tol_val.configure(text=f"{int(har.tolerance)}")
+        self._refresh_har_status()
 
         # fuente: un job de validación con video vuelve a abrir su video
         if self._job and self._job.source.get("kind") == "stream":
@@ -1261,6 +1280,80 @@ class ProductionScreen(ctk.CTkFrame):
         self._asm_status.pack(fill="x")
         self._refresh_asm_status()
 
+        sep2h = ctk.CTkFrame(parent, height=1, fg_color=T.BORDER)
+        sep2h.pack(fill="x", padx=12, pady=4)
+
+        # ── modulo Arnés: colores de hilo contra el golden, por cara ──────────
+        self._har_var = ctk.BooleanVar(value=False)
+        self._har_chk = ctk.CTkCheckBox(parent, text=self._harness.name, variable=self._har_var,
+                                        font=T.font(T.FONT_XS), text_color=T.TEXT_PRI,
+                                        command=self._on_harness_toggle)
+        self._har_chk.pack(padx=12, anchor="w", pady=(2, 0))
+        if not self._pro_ok:
+            self._har_chk.configure(state="disabled", text=f"{self._harness.name}  (Pro)")
+        har_cfg = ctk.CTkFrame(parent, fg_color="transparent")
+        har_cfg.pack(fill="x", padx=12, pady=(2, 0))
+        ctk.CTkLabel(har_cfg, text=t("har_help"), font=T.font(T.FONT_XS),
+                     text_color=T.TEXT_DIM, wraplength=210, justify="left",
+                     anchor="w").pack(fill="x", pady=(0, 2))
+        row_hn = ctk.CTkFrame(har_cfg, fg_color="transparent"); row_hn.pack(fill="x", pady=1)
+        ctk.CTkLabel(row_hn, text=t("har_wires"), width=64, anchor="w",
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
+        self._har_n = ctk.CTkEntry(row_hn, width=44, height=24, font=T.font(T.FONT_XS),
+                                   fg_color=T.BG_INPUT, border_color=T.BORDER)
+        self._har_n.insert(0, "6")
+        self._har_n.pack(side="left")
+        ctk.CTkButton(row_hn, text=t("har_forget"), height=24, width=90,
+                      fg_color="transparent", hover_color=T.BG_INPUT, text_color=T.TEXT_DIM,
+                      font=T.font(T.FONT_XS), command=self._forget_harness).pack(side="right")
+        ctk.CTkButton(har_cfg, text=t("har_learn"), height=26,
+                      fg_color=T.BG_INPUT, border_width=1, border_color=T.BORDER,
+                      font=T.font(T.FONT_XS), command=self._learn_harness).pack(fill="x", pady=2)
+        self._har_faces = ctk.CTkLabel(har_cfg, text="", font=T.font(T.FONT_XS),
+                                       text_color=T.TEXT_DIM, wraplength=210,
+                                       justify="left", anchor="w")
+        self._har_faces.pack(fill="x")
+        ctk.CTkLabel(har_cfg, text=t("har_code"), font=T.font(T.FONT_XS),
+                     text_color=T.TEXT_DIM, anchor="w").pack(fill="x", pady=(3, 0))
+        self._har_code = ctk.CTkEntry(har_cfg, height=24, font=T.font(T.FONT_XS),
+                                      placeholder_text=t("har_code_ph"),
+                                      fg_color=T.BG_INPUT, border_color=T.BORDER)
+        self._har_code.pack(fill="x")
+        self._har_code.bind("<KeyRelease>", lambda e: self._on_har_code())
+        row_hv = ctk.CTkFrame(har_cfg, fg_color="transparent"); row_hv.pack(fill="x", pady=(3, 1))
+        self._har_by = ctk.CTkEntry(row_hv, width=130, height=24, font=T.font(T.FONT_XS),
+                                    placeholder_text=t("har_by_ph"),
+                                    fg_color=T.BG_INPUT, border_color=T.BORDER)
+        self._har_by.pack(side="left")
+        ctk.CTkButton(row_hv, text=t("har_verify"), width=70, height=24,
+                      fg_color=T.BG_INPUT, border_width=1, border_color=T.BORDER,
+                      font=T.font(T.FONT_XS), command=self._verify_harness).pack(side="right")
+        self._har_verif = ctk.CTkLabel(har_cfg, text="", font=T.font(T.FONT_XS),
+                                       text_color=T.WARN, wraplength=210,
+                                       justify="left", anchor="w")
+        self._har_verif.pack(fill="x")
+        row_ht = ctk.CTkFrame(har_cfg, fg_color="transparent"); row_ht.pack(fill="x", pady=1)
+        ctk.CTkLabel(row_ht, text=t("har_tol"), width=72, anchor="w",
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_DIM).pack(side="left")
+        self._har_tol_val = ctk.CTkLabel(row_ht, text="", width=32,
+                                         font=T.font(T.FONT_XS), text_color=T.TEXT_SEC)
+        self._har_tol_val.pack(side="right")
+        self._har_tol = ctk.CTkSlider(row_ht, from_=4, to=25, width=84,
+                                      command=self._on_har_tol)
+        self._har_tol.pack(side="right", padx=4)
+        self._har_tol.set(self._harness.tolerance)
+        self._har_tol_val.configure(text=f"{int(self._harness.tolerance)}")
+        row_hr = ctk.CTkFrame(har_cfg, fg_color="transparent"); row_hr.pack(fill="x", pady=2)
+        self._har_lbl = ctk.CTkLabel(row_hr, text="", font=T.bold(T.FONT_SM),
+                                     text_color=T.ACCENT2, wraplength=170,
+                                     anchor="w", justify="left")
+        self._har_lbl.pack(side="left", fill="x", expand=True)
+        ctk.CTkButton(row_hr, text="↺", width=28, height=26,
+                      font=T.font(T.FONT_XS), fg_color="transparent",
+                      text_color=T.TEXT_DIM, hover_color=T.BG_INPUT,
+                      command=self._reset_harness).pack(side="right")
+        self._refresh_har_status()
+
         sep2c = ctk.CTkFrame(parent, height=1, fg_color=T.BORDER)
         sep2c.pack(fill="x", padx=12, pady=4)
 
@@ -1640,6 +1733,90 @@ class ProductionScreen(ctk.CTkFrame):
             self._asm_status.configure(text=t("asm_no_ref"), text_color=T.WARN)
         self._asm_lbl.configure(text=a.summary() if a.enabled else "")
 
+    # ── Arnés ─────────────────────────────────────────────────────────────
+    def _on_harness_toggle(self) -> None:
+        if self._har_var.get() and not self._pro_ok:
+            self._har_var.set(False)
+            return
+        self._harness.enabled = self._har_var.get()
+        self._harness.reset()
+        self._refresh_har_status()
+
+    def _har_n_val(self) -> int:
+        try:
+            return max(1, min(40, int(self._har_n.get())))
+        except (ValueError, TypeError):
+            return 6
+
+    def _learn_harness(self) -> None:
+        """Aprende la cara que se ve ahora: la pieza buena, quieta, bajo la cámara."""
+        if not self._pro_ok and not self._harness.enabled:
+            self._har_faces.configure(text=t("lic_pro_required"), text_color=T.WARN)
+            return
+        self._harness._learn = {}
+        self._har_learn_left = 15
+        self._har_var.set(True)
+        self._harness.enabled = True
+        self._har_faces.configure(text=t("har_learning", f="…", n=15), text_color=T.TEXT_DIM)
+
+    def _forget_harness(self) -> None:
+        self._harness.forget()
+        self._refresh_har_status()
+
+    def _on_har_code(self) -> None:
+        self._harness.codigo = self._har_code.get()
+        self._refresh_har_status()
+
+    def _verify_harness(self) -> None:
+        h = self._harness
+        h.codigo = self._har_code.get()
+        if not h.calibrated:
+            self._har_verif.configure(text=t("har_no_golden"), text_color=T.WARN)
+            return
+        if not h.verificar(self._har_by.get()):
+            self._har_verif.configure(text=t("har_verify_need"), text_color=T.WARN)
+            return
+        h.reset()
+        self._refresh_har_status()
+
+    def _on_har_tol(self, value: float) -> None:
+        self._harness.tolerance = float(value)
+        self._har_tol_val.configure(text=f"{int(value)}")
+
+    def _refresh_har_status(self, aviso: str = "") -> None:
+        h = self._harness
+        if aviso:
+            self._har_faces.configure(text=aviso, text_color=T.WARN)
+        elif h.calibrated:
+            caras = []
+            for f in ("a", "b"):
+                if f in h.golden:
+                    caras.append(f"{f.upper()} " + " ".join(
+                        ABREV_H.get(b, "?") + (f"/{ABREV_H.get(tz, '?')}" if tz else "")
+                        for b, tz in h.nombres(f)))
+            self._har_faces.configure(text=t("har_faces", caras="  ·  ".join(caras)),
+                                      text_color=T.TEXT_SEC)
+        else:
+            self._har_faces.configure(text=t("har_no_golden"), text_color=T.WARN)
+        if h.verified:
+            v = h.verificado
+            txt = t("har_verified", por=v.get("por", ""), en=str(v.get("en", "")).replace("T", " "))
+            avisos = h.cotejar() if h.codigo else []
+            self._har_verif.configure(text=txt + ("\n" + "\n".join(avisos[:3]) if avisos else ""),
+                                      text_color=T.ACCENT if not avisos else T.WARN)
+        elif h.calibrated:
+            avisos = h.cotejar() if h.codigo else []
+            self._har_verif.configure(text="\n".join([t("har_unverified")] + avisos[:3]),
+                                      text_color=T.WARN)
+        else:
+            self._har_verif.configure(text="", text_color=T.WARN)
+        self._har_lbl.configure(text=h.summary() if h.enabled else "")
+
+    def _reset_harness(self) -> None:
+        self._harness.reset_counts()
+        self._har_last = ""
+        self._refresh_har_status()
+
     def _reset_assembly(self) -> None:
         self._assembly.reset()
         self._asm_last = ""
@@ -1920,6 +2097,8 @@ class ProductionScreen(ctk.CTkFrame):
         self._counting.reset()
         self._assembly.reset()
         self._asm_last = ""
+        self._harness.reset()
+        self._har_last = ""
         self._pat_last = ""
         self._count_last = ""
         if self._worker:
@@ -2139,6 +2318,46 @@ class ProductionScreen(ctk.CTkFrame):
                             self._asm_last = s_
                             self._asm_lbl.configure(text=s_)
 
+                    # ── Arnés: colores de hilo por cara, un veredicto por pieza ──
+                    har_closed = None
+                    if self._harness.enabled:
+                        h = self._harness
+                        if self._har_learn_left > 0:
+                            cara_, k_ = h.learn(frame, result.detections, self._har_n_val())
+                            self._har_learn_left -= 1
+                            if self._har_learn_left == 0:
+                                hechas = h.finish_learning()
+                                self._refresh_har_status(
+                                    aviso="" if hechas else t("har_learn_fail"))
+                            else:
+                                self._har_faces.configure(
+                                    text=t("har_learning", f=(cara_ or "?").upper(), n=k_),
+                                    text_color=T.TEXT_DIM)
+                        else:
+                            h.update(frame, from_tracks(self._tracker.get_all()))
+                            har_closed = h.last_closed
+                            if h.paused:
+                                annotated = frame.copy()
+                            h.draw(annotated)
+                            if h.state == "resultado" and h.verdict:
+                                inspection = InspectionResult(
+                                    status=(InspectionStatus.OK if h.verdict == "OK"
+                                            else InspectionStatus.NOT_OK),
+                                    triggered_by=h.defects_text() or h.name,
+                                    confidence=1.0,
+                                    detections=result.detections,
+                                )
+                            else:
+                                inspection = InspectionResult(
+                                    status=InspectionStatus.NO_DETECT,
+                                    triggered_by=h.state_text(),
+                                    detections=result.detections,
+                                )
+                        s_ = h.summary()
+                        if s_ != self._har_last:
+                            self._har_last = s_
+                            self._har_lbl.configure(text=s_)
+
                     # ── polarity preview (picture-in-picture, top-right) ──
                     if self._polarity.enabled and self._polarity.last_debug is not None:
                         dbg = self._polarity.last_debug
@@ -2153,7 +2372,16 @@ class ProductionScreen(ctk.CTkFrame):
 
                     self._draw_watermark(annotated)
                     self._last_result = inspection
-                    if self._session and self._assembly.enabled:
+                    if self._session and self._harness.enabled and not self._assembly.enabled:
+                        # con Arnés también se cuentan PIEZAS, al irse
+                        if har_closed:
+                            self._session.record(InspectionResult(
+                                status=(InspectionStatus.NOT_OK if har_closed == "rechazo"
+                                        else InspectionStatus.OK),
+                                triggered_by=f"arnés: {har_closed}",
+                                confidence=1.0), None)
+                            self._update_counts()
+                    elif self._session and self._assembly.enabled:
                         # con Ensamble la sesión cuenta PIEZAS, no frames: se
                         # registra una vez, cuando la pieza se va
                         if asm_closed:
@@ -2171,6 +2399,13 @@ class ProductionScreen(ctk.CTkFrame):
                         self._update_counts()
                     self._update_canvas(annotated)
                     self._update_status(inspection)
+                elif (self._harness.enabled and self._harness.calibrated
+                      and self._har_learn_left == 0):
+                    # igual que Ensamble: sin resultado nuevo, el HUD se queda
+                    shown = frame.copy()
+                    self._harness.draw(shown)
+                    self._draw_watermark(shown)
+                    self._update_canvas(shown)
                 elif (self._assembly.enabled and self._assembly.calibrated
                       and self._asm_learn_left == 0):
                     # sin resultado nuevo (en CPU, la mayoria de los frames):

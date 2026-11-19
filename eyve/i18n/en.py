@@ -189,6 +189,24 @@ STRINGS = {
     "asm_learn_fail":   "Base not seen: place the part under the camera",
     "asm_help":         "Parts are judged against the base: missing = reject, "
                         "out of place = fix. Hand or motion pauses it.",
+    "har_help":         "Wire colours next to the connector against the job golden. "
+                        "Show each face of a good part and learn it; a person "
+                        "verifies. Motion pauses it.",
+    "har_wires":        "Wires",
+    "har_learn":        "Learn face (good part)",
+    "har_learning":     "Learning face {f}… ({n})",
+    "har_learn_fail":   "Connector with its wires not seen: hold it still under the camera",
+    "har_faces":        "Golden: {caras}",
+    "har_no_golden":    "No golden: show a good part and learn each face",
+    "har_code":         "Colour code (pin 1 → N)",
+    "har_code_ph":      "1 BU · 2 YE · 3 BN …",
+    "har_by_ph":        "Verified by",
+    "har_verify":       "Verify",
+    "har_verified":     "✓ Verified by {por} · {en}",
+    "har_unverified":   "Not verified: a person reviews golden and colour code",
+    "har_verify_need":  "Type who verifies",
+    "har_forget":       "Forget golden",
+    "har_tol":          "Tolerance ΔE",
 
     # ── Home screen ──────────────────────────────────────────────────────────
     "home_welcome": "Welcome to Eyve",

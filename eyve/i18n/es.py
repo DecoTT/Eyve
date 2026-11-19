@@ -188,6 +188,24 @@ STRINGS = {
     "asm_learn_fail":   "No vi la base: coloca la pieza bajo la camara",
     "asm_help":         "Las partes se juzgan contra la base: falta = rechazo, "
                         "fuera de posicion = corregir. Con mano o movimiento, pausa.",
+    "har_help":         "Colores de los hilos junto al conector contra el golden del job. "
+                        "Muestra cada cara de una pieza buena y apréndela; una persona "
+                        "verifica. Con movimiento, pausa.",
+    "har_wires":        "Hilos",
+    "har_learn":        "Aprender cara (pieza buena)",
+    "har_learning":     "Aprendiendo cara {f}… ({n})",
+    "har_learn_fail":   "No vi el conector con sus hilos: déjalo quieto bajo la cámara",
+    "har_faces":        "Golden: {caras}",
+    "har_no_golden":    "Sin golden: muestra una pieza buena y aprende cada cara",
+    "har_code":         "Codificación (pin 1 → N)",
+    "har_code_ph":      "1 AZ · 2 AM · 3 CF …",
+    "har_by_ph":        "Verificado por",
+    "har_verify":       "Verificar",
+    "har_verified":     "✓ Verificado por {por} · {en}",
+    "har_unverified":   "Sin verificar: una persona revisa golden y codificación",
+    "har_verify_need":  "Escribe quién verifica",
+    "har_forget":       "Olvidar golden",
+    "har_tol":          "Tolerancia ΔE",
 
     # ── Home screen ──────────────────────────────────────────────────────────
     "home_welcome": "Bienvenido a Eyve",
