@@ -73,12 +73,20 @@ _PICO_DISP = 8.0
 #: por celda.  La zona de tinta de un estampado ralo casi no tiene ruido, y sin
 #: este piso la máscara marcaba la costura del rollo de rayas.
 _PISO_MIN = 2.5e-4
+#: desenfoque (px de trabajo) que borra el hilo de una tela real y deja el
+#: estampado: a 3.5 px un hilo de 10 px queda en un 9 %, un lunar de 35 px en
+#: un 80 %
+_SIGMA_ESTAMPADO = 3.5
+#: escalas a las que se juzga, en celdas: 1 y una grande para fallos extendidos
+_ESCALAS = (1, 3)
 #: la energía es más ruidosa que la media: pide más
 _EXTRA_ENERGIA = 2.5
 
 #: Enganche mínimo: correlación entre el cuadro y la celda puesta en su lugar,
 #: como fracción de la que dieron los cuadros buenos.
-_ENGANCHE_REL = 0.75
+_ENGANCHE_REL = 0.85
+#: fracción del cuadro que debe calzar para medir el enganche sin lo que no calza
+_CALZA_MIN = 0.75
 
 KIND_EXTRA = "tinta de más"
 KIND_FALTA = "falta tinta"
@@ -108,14 +116,69 @@ class Informe:
     avisos: List[str] = field(default_factory=list)
 
 
-def _gris(frame: np.ndarray) -> np.ndarray:
-    """Gris en coordenadas de trabajo, 0..1, con el desenfoque de Patrón."""
+def _gris(frame: np.ndarray, proy: Optional[np.ndarray] = None) -> np.ndarray:
+    """
+    Gris en coordenadas de trabajo, 0..1, con el desenfoque de Patrón.
+
+    `proy` son pesos BGR (no negativos, ya escalados) aprendidos del material;
+    sin ellos, el gris de siempre.
+    """
     h, w = frame.shape[:2]
     if w > _WORK_W:
         frame = cv2.resize(frame, (_WORK_W, max(1, int(h * _WORK_W / float(w)))),
                            interpolation=cv2.INTER_AREA)
-    g = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY).astype(np.float32) / 255.0
+    if proy is None:
+        g = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY).astype(np.float32) / 255.0
+    else:
+        g = cv2.transform(frame.astype(np.float32),
+                          np.asarray(proy, np.float32).reshape(1, 3))
+        if g.ndim == 3:
+            g = g[..., 0]
     return cv2.GaussianBlur(g, (0, 0), 1.0)
+
+
+_GRIS_BGR = np.array([0.114, 0.587, 0.299])
+
+
+def _elegir_proyeccion(cuadros: Sequence[np.ndarray]) -> Optional[np.ndarray]:
+    """
+    Los pesos de color con los que el estampado más se separa de la tela.
+
+    En gris, unos lunares blancos sobre tela amarilla casi desaparecen: el
+    amarillo y el blanco pesan parecido.  En el canal azul se ven seis veces
+    más.  Los pesos son NO negativos para que un cambio de luz siga siendo
+    una multiplicación (la máscara divide la luz, no la resta).  Se mide el
+    contraste a la escala del estampado, sin el hilo, contra el brillo.
+    Devuelve None si el gris ya es lo mejor (o casi): no se cambia por nada.
+    """
+    muestras = []
+    for c in cuadros[:6]:
+        h, w = c.shape[:2]
+        if w > _WORK_W:
+            c = cv2.resize(c, (_WORK_W, max(1, int(h * _WORK_W / float(w)))),
+                           interpolation=cv2.INTER_AREA)
+        muestras.append(cv2.GaussianBlur(c.astype(np.float32) / 255.0, (0, 0),
+                                         _SIGMA_ESTAMPADO))
+    px = np.concatenate([m.reshape(-1, 3) for m in muestras])
+    px = px[:: max(1, len(px) // 60000)]
+    cov = np.cov(px.T)
+    vals, vecs = np.linalg.eigh(cov)
+    pca = np.abs(vecs[:, -1])
+    candidatos = [_GRIS_BGR, np.eye(3)[0], np.eye(3)[1], np.eye(3)[2], pca]
+
+    def contraste(wv):
+        wv = wv / wv.sum()
+        y = px @ wv
+        return float(y.std() / max(float(y.mean()), 1e-3)), wv
+
+    base, _ = contraste(_GRIS_BGR)
+    mejor, wv = max((contraste(c) for c in candidatos), key=lambda x: x[0])
+    if mejor < 1.5 * base:
+        return None
+    # misma escala que el gris: la tela clara queda cerca de 0.9
+    y = px @ wv
+    return (wv * (0.9 / max(float(np.percentile(y, 99)), 1e-3)) / 255.0
+            ).astype(np.float32)
 
 
 def _dispersion(z: np.ndarray) -> float:
@@ -159,21 +222,26 @@ def _picos_reticula(grises: Sequence[np.ndarray]) -> np.ndarray:
         acc = p if acc is None else acc + p
     ac = np.fft.fftshift(np.fft.irfft2(acc, (ph, pw)))
     cy, cx = ph // 2, pw // 2
-    r = min(h, w) // 2
-    ac = ac[cy - r:cy + r + 1, cx - r:cx + r + 1]
-    lags = np.arange(-r, r + 1, dtype=np.float64)
-    trasl = np.outer(h - np.abs(lags), w - np.abs(lags))
+    # Hasta la mitad del cuadro en cada eje, no un círculo del alto: unos
+    # lunares en tresbolillo de tela real tienen un vector de (99, 93), 136 px,
+    # y con el círculo de 133 la retícula se quedaba sin su segundo vector.
+    ry, rx = h // 2, w // 2
+    ac = ac[cy - ry:cy + ry + 1, cx - rx:cx + rx + 1]
+    ly = np.arange(-ry, ry + 1, dtype=np.float64)
+    lx = np.arange(-rx, rx + 1, dtype=np.float64)
+    trasl = np.outer(h - np.abs(ly), w - np.abs(lx))
     ac = (ac / trasl).astype(np.float32)
     # Sin textura no hay nada que repetir: dividir ruido de redondeo entre
     # casi cero daba picos perfectos, y un cuadro liso «aprendía» una retícula.
-    if float(ac[r, r]) < 1e-7:
+    if float(ac[ry, rx]) < 1e-7:
         return np.zeros((0, 3))
-    ac /= float(ac[r, r])
+    ac /= float(ac[ry, rx])
 
-    yy, xx = np.ogrid[-r:r + 1, -r:r + 1]
+    yy, xx = np.ogrid[-ry:ry + 1, -rx:rx + 1]
     d2 = yy * yy + xx * xx
     dil = cv2.dilate(ac, np.ones((5, 5), np.uint8))
-    es_pico = (ac >= dil) & (d2 >= _LAG_MIN ** 2) & (d2 <= (r - 2) ** 2)
+    es_pico = ((ac >= dil) & (d2 >= _LAG_MIN ** 2) &
+               (np.abs(yy) <= ry - 2) & (np.abs(xx) <= rx - 2))
     # medio plano: cada pico tiene su opuesto
     es_pico &= (yy > 0) | ((yy == 0) & (xx > 0))
     ys, xs = np.nonzero(es_pico)
@@ -188,7 +256,7 @@ def _picos_reticula(grises: Sequence[np.ndarray]) -> np.ndarray:
     out = []
     for y, x, v in zip(ys[keep], xs[keep], vals[keep]):
         fy, fx = _pico_subpixel(ac, int(y), int(x))
-        out.append((fx - r, fy - r, float(v)))
+        out.append((fx - rx, fy - ry, float(v)))
     return np.array(out, dtype=np.float64)
 
 
@@ -313,6 +381,9 @@ class MascaraAprendida:
         self._var: Optional[np.ndarray] = None     # varianza por punto
         #: piso de ruido por zona, medido en cuadros que la celda no vio
         self._piso: Tuple[float, float, float] = (0.0, 0.0, 0.0)
+        #: lo mismo para cada escala grande {factor: piso}
+        self._pisos: dict = {}
+        self._partes = None
         self._enganche_ref: float = 0.0
         self._geom = None
         self._f0 = None
@@ -497,8 +568,33 @@ class MascaraAprendida:
         # pierden el motivo y queda la luz.  Luego se refina con la celda.
         luz = _luz_suave(np.mean(celda_de, axis=0))
 
-        picos = _picos_reticula([g / luz for g in celda_de[:6]])
-        bases = _bases_candidatas(picos)
+        # Dos escalas.  En tela real el hilo también se repite, y con más
+        # contraste que un estampado pálido: lunares amarillos sobre tela
+        # amarilla daban la retícula del hilo (10 px) y una celda gris lisa.
+        # Borrosa, la imagen ya no tiene hilo y la retícula del estampado
+        # aparece.  Gana la que mejor explica el estampado (abajo).
+        # La retícula es geometría: se busca en el color donde el estampado más
+        # resalta (lunares blancos sobre amarillo casi no existen en gris), y
+        # después se juzga en gris, donde una mancha sí oscurece la tela.
+        proy = _elegir_proyeccion(cuadros)
+        if proy is None:
+            geo_de, luz_geo = celda_de, luz
+        else:
+            geo = [_gris(c, proy) for c in cuadros]
+            geo_de = [g for i, g in enumerate(geo) if i % 4 != 3]
+            luz_geo = _luz_suave(np.mean(geo_de, axis=0))
+        bases = []
+        espacios = [(celda_de, luz)] + ([] if proy is None else [(geo_de, luz_geo)])
+        for imgs, lz in espacios:
+            norm = [g / lz for g in imgs[:6]]
+            borrosas = [cv2.GaussianBlur(x, (0, 0), _SIGMA_ESTAMPADO)
+                        for x in norm]
+            for serie in (norm, borrosas):
+                for b in _bases_candidatas(_picos_reticula(serie)):
+                    area = abs(np.linalg.det(b))
+                    if not any(abs(area - abs(np.linalg.det(c))) < 0.02 * area
+                               for c in bases):
+                        bases.append(b)
         if not bases:
             inf.avisos.append("el material no se repite: no hay retícula")
             self.informe = inf
@@ -507,12 +603,23 @@ class MascaraAprendida:
         # Las bases se prueban de verdad y gana la celda más chica que explica
         # el material casi igual que la mejor.  Una celda de más (dos motivos
         # en vez de uno) es correcta pero aprende peor; una de menos no calza.
+        # Se compara en borroso: una celda del hilo explica el hilo, que es
+        # ruido, y deja fuera el estampado, que es lo que se juzga.
         resultados = []
         for base in bases:
             self._base = base
             self._preparar((h, w))
-            r = self._armar_celda(celda_de[:4], luz, vueltas=1)
-            resultados.append((r[0], abs(np.linalg.det(base)), base))
+            _, celda_b, _, luz_b, fases_b = self._armar_celda(
+                geo_de[:4], luz_geo, vueltas=1)
+            m_ = self._geom["margen"] > 0
+            err = []
+            for g, t in zip(geo_de[:4], fases_b):
+                rb = cv2.GaussianBlur(g / luz_b - self._render(celda_b, t),
+                                      (0, 0), _SIGMA_ESTAMPADO)
+                rb = rb - float(np.median(rb[m_]))
+                err.append(float(np.median(np.abs(rb[m_]))))
+            resultados.append((float(np.mean(err)), abs(np.linalg.det(base)),
+                               base))
         mejor = min(x[0] for x in resultados)
         utiles = [x for x in resultados if x[0] <= 1.15 * mejor]
         _, _, base = min(utiles, key=lambda x: x[1])
@@ -532,21 +639,27 @@ class MascaraAprendida:
         self._var = (sigma ** 2).astype(np.float32)
 
         # ── piso de ruido, en cuadros que la celda no vio ─────────────────
-        pt, pc, pe, nccs, residuos = [], [], [], [], []
-        dt, dc = [], []
+        nccs, residuos = [], []
+        # por escala: picos y dispersiones de tinta, tela y energía
+        med = {f: ([], [], [], [], []) for f in _ESCALAS}
         descartados = 0
+        self._pisos = {}
         for g in control:
             zt, zc, ze, ncc, res = self._mapa(g)
             if zt is None:
                 descartados += 1
                 continue
-            pt.append(float(np.abs(zt).max()))
-            pc.append(float(np.abs(zc).max()))
-            pe.append(float(ze.max()))
-            dt.append(_dispersion(zt))
-            dc.append(_dispersion(zc))
+            for f in _ESCALAS:
+                zt_, zc_, ze_ = (zt, zc, ze) if f == 1 else self._zs(f)
+                pt, pc, pe, dt, dc = med[f]
+                pt.append(float(np.abs(zt_).max()))
+                pc.append(float(np.abs(zc_).max()))
+                pe.append(float(ze_.max()))
+                dt.append(_dispersion(zt_))
+                dc.append(_dispersion(zc_))
             nccs.append(ncc)
             residuos.append(res)
+        pt, pc, pe, dt, dc = med[1]
         if not pt:
             inf.avisos.append("ningún cuadro de control calzó con la celda")
             self.informe = inf
@@ -568,6 +681,18 @@ class MascaraAprendida:
         self._piso = (max(min(med_t, cota_t), _PISO_MIN),
                       max(min(med_c, cota_c), _PISO_MIN),
                       max(float(np.median(pe)), 1e-4))
+        # Escala grande: el ruido del hilo de una tela real se promedia y un
+        # fallo extendido (un fantasma de varios motivos) queda entero.  Su
+        # piso se mide igual, en los mismos cuadros de control.
+        self._pisos = {}
+        for f in _ESCALAS[1:]:
+            pt_, pc_, pe_, dt_, dc_ = med[f]
+            self._pisos[f] = (
+                max(min(float(np.median(pt_)), _PICO_DISP * float(np.median(dt_))),
+                    _PISO_MIN / f),
+                max(min(float(np.median(pc_)), _PICO_DISP * float(np.median(dc_))),
+                    _PISO_MIN / f),
+                max(float(np.median(pe_)), 1e-4 / f))
         self._enganche_ref = float(np.median(nccs))
 
         tinta = self._tinta > 0
@@ -672,7 +797,19 @@ class MascaraAprendida:
         e = self._render(self._celda, t)
         m = self._geom["margen"] > 0
         ge, ee = gl[m], e[m]
+        # El enganche se mide sin lo que no calza: una mancha grande bajaba la
+        # correlación del cuadro entero, la máscara «se soltaba» y la mancha
+        # pasaba sin juzgar.  Lo que no calza es justo lo que hay que juzgar.
+        # Pero solo si casi todo el cuadro calza: otro material comparte la tela
+        # de fondo, y sin esa condición «enganchaba» con el 56 % que sí calzaba
+        # (flores contra diamantes).  Limpia o con mancha calza del 85 % arriba.
+        d = ge - ee
+        d = d - float(np.median(d))
+        ok = np.abs(d) < 3.0 * (float(np.median(np.abs(d))) * 1.4826 + 1e-4)
+        if ok.mean() >= _CALZA_MIN:
+            ge, ee = ge[ok], ee[ok]
         ncc = float(np.corrcoef(ge, ee)[0, 1])
+        ge, ee = gl[m], e[m]
         if self._enganche_ref and ncc < _ENGANCHE_REL * self._enganche_ref:
             return None, None, None, ncc, 0.0
         # ganancia global: si la lámpara sube o baja, no es un defecto
@@ -697,8 +834,9 @@ class MascaraAprendida:
         # de buen contraste, y a la escala de una celda casi no mueven la
         # media (puntos sin tejido: un fantasma entero en 0.35 %).
         v = self._render(self._var, t)
+        self._partes = (rt, rw - rt, (r * r - v) * marg)
         zs = [cv2.boxFilter(x, -1, (k, k), borderType=cv2.BORDER_CONSTANT)
-              for x in (rt, rw - rt, (r * r - v) * marg)]
+              for x in self._partes]
         # Cada zona queda con su propio nivel —la ganancia es una sola para
         # las dos— y ese nivel parejo no es un fallo.  Se resta la mediana, que
         # no se mueve por un fallo local.  Por la cobertura: en la orilla la
@@ -707,6 +845,19 @@ class MascaraAprendida:
         cob = g_["cob"]
         zs = [z - float(np.median(z[g_["gy"], g_["gx"]])) * cob for z in zs]
         return zs[0], zs[1], zs[2], ncc, res
+
+    def _zs(self, factor: int):
+        """Las tres desviaciones del último cuadro a `factor` veces la celda."""
+        g_ = self._geom
+        k = min(g_["k"] * factor, (min(g_["shape"]) // 2) | 1) | 1
+        clave = ("cob", k)
+        if clave not in g_:
+            g_[clave] = cv2.boxFilter(g_["margen"], -1, (k, k),
+                                      borderType=cv2.BORDER_CONSTANT)
+        cob = g_[clave]
+        zs = [cv2.boxFilter(x, -1, (k, k), borderType=cv2.BORDER_CONSTANT)
+              for x in self._partes]
+        return [z - float(np.median(z[g_["gy"], g_["gx"]])) * cob for z in zs]
 
     def _rampa(self, z: np.ndarray) -> np.ndarray:
         """
@@ -768,6 +919,16 @@ class MascaraAprendida:
         st = zt / self._piso[0]
         s = np.maximum(np.maximum(np.abs(st), np.abs(zc) / self._piso[1]),
                        ze / (_EXTRA_ENERGIA * self._piso[2]))
+        s1 = s
+        grandes = []
+        for f, piso in self._pisos.items():
+            zt2, zc2, ze2 = self._zs(f)
+            st2 = zt2 / piso[0]
+            st = np.where(np.abs(st2) > np.abs(st), st2, st)
+            sg = np.maximum(np.maximum(np.abs(st2), np.abs(zc2) / piso[1]),
+                            ze2 / (_EXTRA_ENERGIA * piso[2]))
+            grandes.append((f, sg))
+            s = np.maximum(s, sg)
         self._ultimo_z = s
         escala = frame.shape[1] / float(g.shape[1])
         gh, gw = g.shape
@@ -776,8 +937,30 @@ class MascaraAprendida:
         if float(s.max()) <= alto:
             return []
         kern = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-        mk = cv2.morphologyEx((s > 0.6 * alto).astype(np.uint8),
-                              cv2.MORPH_OPEN, kern)
+        mk = (s1 > 0.6 * alto).astype(np.uint8)
+        # A escala grande el promedio desparrama el fallo media ventana de más
+        # por lado: se encoge eso antes de dibujar la caja, o una caja corrida
+        # 300 px seguía tocando el fallo.
+        k1 = self._geom["k"]
+        fuerte = (s1 > alto).astype(np.uint8)
+        for f, sg in grandes:
+            kf = min(k1 * f, (min(sg.shape) // 2) | 1) | 1
+            e_ = max(3, ((kf - k1) // 2) | 1)
+            nucleo = cv2.erode((sg > 0.6 * alto).astype(np.uint8),
+                               cv2.getStructuringElement(cv2.MORPH_ELLIPSE,
+                                                         (e_, e_)))
+            # La escala grande es para lo débil y extendido.  Donde la escala
+            # de una celda ya ve el fallo, ella dibuja la caja: el halo de un
+            # fallo fuerte a escala grande, encogido, se partía en pedazos y
+            # algunos quedaban lejos del fallo (163 marcas en el rollo nuevo).
+            cerca = cv2.dilate(fuerte, cv2.getStructuringElement(
+                cv2.MORPH_ELLIPSE, (kf | 1, kf | 1)))
+            nn, et_n, _, _ = cv2.connectedComponentsWithStats(nucleo, 8)
+            for j in range(1, nn):
+                sel_n = et_n == j
+                if not cerca[sel_n].any():
+                    mk[sel_n] = 1
+        mk = cv2.morphologyEx(mk, cv2.MORPH_OPEN, kern)
         n, et, stats, _ = cv2.connectedComponentsWithStats(mk, 8)
         for i in range(1, n):
             x, y, w_, h_, area = stats[i]
@@ -819,6 +1002,8 @@ class MascaraAprendida:
         for a in (self._celda, self._peso, self._tinta, self._luz, self._base):
             h.update(np.ascontiguousarray(a).tobytes())
         h.update(repr(tuple(round(p, 9) for p in self._piso)).encode())
+        for k in sorted(self._pisos):
+            h.update(repr((k,) + tuple(round(p, 9) for p in self._pisos[k])).encode())
         return h.hexdigest()[:16]
 
     def aprobar(self, quien: str = "operador") -> None:
@@ -908,6 +1093,7 @@ class MascaraAprendida:
             tinta=self._tinta, luz=self._luz, base=self._base,
             meta=json.dumps(dict(
                 piso=list(self._piso), enganche_ref=self._enganche_ref,
+                pisos={str(k): list(v) for k, v in self._pisos.items()},
                 estado=self.estado, por=self.aprobada_por,
                 en=self.aprobada_en, huella=self._huella_aprobada)))
 
@@ -920,6 +1106,8 @@ class MascaraAprendida:
         m._var = (m._sigma ** 2).astype(np.float32)
         meta = json.loads(str(d["meta"]))
         m._piso = tuple(float(x) for x in meta["piso"])
+        m._pisos = {int(k): tuple(float(x) for x in v)
+                    for k, v in meta.get("pisos", {}).items()}
         m._enganche_ref = float(meta["enganche_ref"])
         m.estado = meta["estado"]
         m.aprobada_por = meta["por"]

@@ -1,0 +1,84 @@
+[
+ {
+  "foto": "2d98bb94",
+  "enganche": 0.998,
+  "residuo_pct": 0.72,
+  "avisos": [],
+  "estado": "por_aprobar",
+  "falsas": "0/40",
+  "sin_enganche": 0,
+  "fantasma": "68/96",
+  "falta_tinta": "96/96",
+  "mancha": "96/96",
+  "s": 14.6
+ },
+ {
+  "foto": "680c3aec",
+  "enganche": 0.91,
+  "residuo_pct": 0.71,
+  "avisos": [],
+  "estado": "por_aprobar",
+  "falsas": "0/40",
+  "sin_enganche": 40,
+  "fantasma": "2/96",
+  "falta_tinta": "0/96",
+  "mancha": "2/96",
+  "s": 8.8
+ },
+ {
+  "foto": "707ebbca",
+  "enganche": 0.526,
+  "residuo_pct": 12.36,
+  "avisos": [
+   "la celda explica mal el material: revisar antes de aprobar"
+  ],
+  "estado": "por_aprobar",
+  "falsas": "0/40",
+  "sin_enganche": 22,
+  "fantasma": "0/96",
+  "falta_tinta": "0/96",
+  "mancha": "0/96",
+  "s": 8.3
+ },
+ {
+  "foto": "0c8661bc",
+  "enganche": 0.974,
+  "residuo_pct": 1.21,
+  "avisos": [],
+  "estado": "por_aprobar",
+  "falsas": "0/40",
+  "sin_enganche": 0,
+  "fantasma": "96/96",
+  "falta_tinta": "96/96",
+  "mancha": "96/96",
+  "s": 15.0
+ },
+ {
+  "foto": "92e62421",
+  "enganche": 0.839,
+  "residuo_pct": 2.82,
+  "avisos": [],
+  "estado": "por_aprobar",
+  "falsas": "0/40",
+  "sin_enganche": 0,
+  "fantasma": "92/96",
+  "falta_tinta": "84/96",
+  "mancha": "96/96",
+  "s": 11.6
+ },
+ {
+  "foto": "e7c3ae5e",
+  "enganche": 0.551,
+  "residuo_pct": 26.36,
+  "avisos": [
+   "la celda explica mal el material: revisar antes de aprobar"
+  ],
+  "estado": "por_aprobar",
+  "falsas": "0/40",
+  "sin_enganche": 0,
+  "fantasma": "0/96",
+  "falta_tinta": "96/96",
+  "mancha": "54/96",
+  "s": 11.8
+ }
+]

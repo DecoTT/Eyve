@@ -1,0 +1,83 @@
+[
+ {
+  "foto": "2d98bb94",
+  "enganche": 0.994,
+  "residuo_pct": 0.72,
+  "avisos": [],
+  "estado": "por_aprobar",
+  "falsas": "0/40",
+  "sin_enganche": 0,
+  "fantasma": "30/96",
+  "falta_tinta": "96/96",
+  "mancha": "96/96",
+  "s": 10.7
+ },
+ {
+  "foto": "680c3aec",
+  "enganche": 0.66,
+  "residuo_pct": 0.99,
+  "avisos": [
+   "parece haber un fallo entre los cuadros buenos: revisar antes de aprobar",
+   "la celda explica mal el material: revisar antes de aprobar"
+  ],
+  "estado": "por_aprobar",
+  "falsas": "0/40",
+  "sin_enganche": 0,
+  "fantasma": "0/96",
+  "falta_tinta": "0/96",
+  "mancha": "0/96",
+  "s": 8.9
+ },
+ {
+  "foto": "707ebbca",
+  "enganche": 0.0,
+  "residuo_pct": 0.0,
+  "avisos": [
+   "el material no se repite: no hay retícula"
+  ],
+  "estado": "sin_aprender"
+ },
+ {
+  "foto": "0c8661bc",
+  "enganche": 0.777,
+  "residuo_pct": 1.87,
+  "avisos": [
+   "la celda explica mal el material: revisar antes de aprobar"
+  ],
+  "estado": "por_aprobar",
+  "falsas": "0/40",
+  "sin_enganche": 0,
+  "fantasma": "55/96",
+  "falta_tinta": "0/96",
+  "mancha": "96/96",
+  "s": 8.9
+ },
+ {
+  "foto": "92e62421",
+  "enganche": 0.843,
+  "residuo_pct": 2.6,
+  "avisos": [],
+  "estado": "por_aprobar",
+  "falsas": "0/40",
+  "sin_enganche": 0,
+  "fantasma": "0/96",
+  "falta_tinta": "0/96",
+  "mancha": "96/96",
+  "s": 8.7
+ },
+ {
+  "foto": "e7c3ae5e",
+  "enganche": 0.551,
+  "residuo_pct": 26.36,
+  "avisos": [
+   "la celda explica mal el material: revisar antes de aprobar"
+  ],
+  "estado": "por_aprobar",
+  "falsas": "0/40",
+  "sin_enganche": 0,
+  "fantasma": "0/96",
+  "falta_tinta": "0/96",
+  "mancha": "0/96",
+  "s": 8.3
+ }
+]
