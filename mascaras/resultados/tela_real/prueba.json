@@ -1,0 +1,221 @@
+[
+ {
+  "motivo": "flores",
+  "tejido": "sarga",
+  "paleta": "azul",
+  "fallas": [
+   {
+    "tipo": "raya_racla",
+    "k": 0,
+    "fy": 258,
+    "visibles": 189,
+    "conf": {
+     "patron": 0,
+     "mascara": 0,
+     "juntos": 0
+    },
+    "lejos": {
+     "patron": 0,
+     "mascara": 0,
+     "juntos": 0
+    },
+    "caja": [
+     1119,
+     249,
+     1719,
+     267
+    ]
+   },
+   {
+    "tipo": "franja_sin_tinta",
+    "k": 0,
+    "fy": 112,
+    "visibles": 196,
+    "conf": {
+     "patron": 0,
+     "mascara": 0,
+     "juntos": 0
+    },
+    "lejos": {
+     "patron": 0,
+     "mascara": 0,
+     "juntos": 0
+    },
+    "caja": [
+     1069,
+     100,
+     1769,
+     124
+    ]
+   },
+   {
+    "tipo": "doble_impresion",
+    "k": 0,
+    "fy": 194,
+    "visibles": 182,
+    "conf": {
+     "patron": 0,
+     "mascara": 0,
+     "juntos": 0
+    },
+    "lejos": {
+     "patron": 0,
+     "mascara": 0,
+     "juntos": 0
+    },
+    "caja": [
+     1170,
+     84,
+     1670,
+     304
+    ]
+   },
+   {
+    "tipo": "salpicadura",
+    "k": 0,
+    "fy": 151,
+    "visibles": 152,
+    "conf": {
+     "patron": 111,
+     "mascara": 133,
+     "juntos": 133
+    },
+    "lejos": {
+     "patron": 0,
+     "mascara": 0,
+     "juntos": 0
+    },
+    "caja": [
+     1370,
+     103,
+     1466,
+     199
+    ]
+   },
+   {
+    "tipo": "aceite",
+    "k": 0,
+    "fy": 270,
+    "visibles": 155,
+    "conf": {
+     "patron": 111,
+     "mascara": 0,
+     "juntos": 111
+    },
+    "lejos": {
+     "patron": 0,
+     "mascara": 0,
+     "juntos": 0
+    },
+    "caja": [
+     1347,
+     213,
+     1491,
+     328
+    ]
+   },
+   {
+    "tipo": "hilo_jalado",
+    "k": 0,
+    "fy": 135,
+    "visibles": 140,
+    "conf": {
+     "patron": 0,
+     "mascara": 0,
+     "juntos": 0
+    },
+    "lejos": {
+     "patron": 0,
+     "mascara": 0,
+     "juntos": 0
+    },
+    "caja": [
+     1412,
+     0,
+     1426,
+     319
+    ]
+   },
+   {
+    "tipo": "agujero",
+    "k": 0,
+    "fy": 295,
+    "visibles": 143,
+    "conf": {
+     "patron": 0,
+     "mascara": 0,
+     "juntos": 0
+    },
+    "lejos": {
+     "patron": 0,
+     "mascara": 0,
+     "juntos": 0
+    },
+    "caja": [
+     1399,
+     275,
+     1439,
+     315
+    ]
+   },
+   {
+    "tipo": "hilacha",
+    "k": 0,
+    "fy": 295,
+    "visibles": 151,
+    "conf": {
+     "patron": 0,
+     "mascara": 0,
+     "juntos": 0
+    },
+    "lejos": {
+     "patron": 0,
+     "mascara": 0,
+     "juntos": 0
+    },
+    "caja": [
+     1374,
+     250,
+     1464,
+     340
+    ]
+   },
+   {
+    "tipo": "arruga",
+    "k": 0,
+    "fy": 212,
+    "visibles": 144,
+    "conf": {
+     "patron": 101,
+     "mascara": 0,
+     "juntos": 101
+    },
+    "lejos": {
+     "patron": 0,
+     "mascara": 0,
+     "juntos": 0
+    },
+    "caja": [
+     1399,
+     82,
+     1439,
+     342
+    ]
+   }
+  ],
+  "estado": "por_aprobar",
+  "enganche": 0.9978129130542264,
+  "residuo_pct": 0.652562826871872,
+  "avisos": [],
+  "limpia": {
+   "cuadros": 60,
+   "falsas": {
+    "patron": 0,
+    "mascara": 0
+   },
+   "sin_enganche": 0,
+   "ms_mascara": 36.534336666682066,
+   "ms_patron": 22.56699333335443
+  }
+ }
+]

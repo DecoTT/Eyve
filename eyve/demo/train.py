@@ -30,6 +30,8 @@ def main(argv=None) -> int:
     ap.add_argument("--base", default="yolov8n.pt")
     ap.add_argument("--device", default="auto")
     ap.add_argument("--seed", type=int, default=2026)
+    ap.add_argument("--realista", action="store_true",
+                    help="dataset con la tela realista (eyve.demo.tela_real)")
     ap.add_argument("--skip-dataset", action="store_true",
                     help="reentrenar con el dataset que ya existe")
     args = ap.parse_args(argv)
@@ -49,7 +51,7 @@ def main(argv=None) -> int:
             print(f"\r  {done}/{total}", end="", flush=True)
 
         proj = build_dataset(out, frames=args.frames, seed=args.seed,
-                             progress=show)
+                             progress=show, realista=args.realista)
         print(f"\n  listo: {proj.raw_image_count()} imagenes, "
               f"clases {proj.class_names}")
 

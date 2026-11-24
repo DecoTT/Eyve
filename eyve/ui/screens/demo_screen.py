@@ -45,12 +45,14 @@ from PIL import Image, ImageTk
 from eyve.core.logger import log
 from eyve.core.texto_cv import put_text
 from eyve.demo.source import SyntheticSource
+from eyve.demo.tela_real import FALLAS_REALES, TelaRealista
 from eyve.demo.textile import (MOTIFS, PRINT_FAULTS, TextilePattern, WEAVES,
                                YOLO_CLASSES)
 from eyve.i18n import t
 from eyve.inference.detector import YOLOWorker
 from eyve.inference.tracker import InstanceTracker, RawDetection, TrackerConfig
 from eyve.modules import CountingModule, PatternModule
+from eyve.modules.mascara import SIN_APRENDER, MascaraColor
 from eyve.production.ok_nok_logic import InspectionStatus, decide
 from eyve.ui import theme as T
 
@@ -84,6 +86,14 @@ _MARGEN_TRAS_REINICIO = 6.0
 
 _W, _H = 960, 540
 
+#: etiqueta de lo que marca la mascara en el tracker (Patron usa "anomalia")
+_MASK_LABEL = "mascara"
+#: aprender la mascara: cuadros buenos y cada cuantos del bucle se toma uno
+#: (a ~30 por segundo, 24 cuadros cada 10 son unos 8 s de tela)
+_MASK_N, _MASK_CADA = 24, 10
+#: calibrar: cuadros buenos despues de aprender, uno cada 3 (unos 8 s)
+_CAL_N, _CAL_CADA = 80, 3
+
 #: Modelo de la demo, en orden de preferencia despues del del proyecto
 #: abierto.  El de `projects/` es el de desarrollo; el de `eyve/demo/modelo/`
 #: lo mete build_release.ps1 en el paquete.  Va DENTRO de eyve/ y no en
@@ -93,6 +103,9 @@ _MODELO_DEV = (Path(__file__).resolve().parents[3] / "projects" / "Demo_Textil"
                / "models" / "best.pt")
 _MODELO_EMPAQUETADO = (Path(__file__).resolve().parents[2] / "demo" / "modelo"
                        / "best.pt")
+#: el de la tela realista: el de siempre marca cada flor naranja como mancha
+_MODELO_REAL = (Path(__file__).resolve().parents[3] / "projects" /
+                "Demo_Textil_Real" / "models" / "best.pt")
 
 
 class DemoScreen(ctk.CTkFrame):
@@ -154,6 +167,16 @@ class DemoScreen(ctk.CTkFrame):
         self._auto_placed = 0
         # calibración del módulo Patrón
         self._cal_left = 0
+        # ── tela realista y mascara aprendida ───────────────────────────
+        self._realista = False
+        self._mascara: Optional[MascaraColor] = None
+        #: "off", "aprender", "pensar", "calibrar", "revisar" o "activa"
+        self._masc_fase = "off"
+        self._masc_buf: list = []
+        self._masc_i = 0
+        self._masc_auto_previo = False
+        self._masc_listo = None
+        self._mask_top = None
         # ── vuelta sola por inactividad ──────────────────────────────
         #: cuando toco una PERSONA por ultima vez
         self._last_touch = time.time()
@@ -221,6 +244,7 @@ class DemoScreen(ctk.CTkFrame):
         found.grid(row=2, column=0, sticky="ew", padx=12, pady=(8, 4))
         found.grid_columnconfigure(0, weight=1, uniform="f")
         found.grid_columnconfigure(1, weight=1, uniform="f")
+        found.grid_columnconfigure(2, weight=1, uniform="f")
 
         yolo_box = ctk.CTkFrame(found, fg_color=T.BG_INPUT, corner_radius=8)
         yolo_box.grid(row=0, column=0, sticky="ew", padx=(0, 4))
@@ -248,6 +272,22 @@ class DemoScreen(ctk.CTkFrame):
         if not self._pat_pro:
             self._pat_lbl.configure(text=t("demo_pattern_pro"),
                                     text_color=T.WARN)
+
+        mask_box = ctk.CTkFrame(found, fg_color=T.BG_INPUT, corner_radius=8)
+        mask_box.grid(row=0, column=2, sticky="ew", padx=(8, 0))
+        ctk.CTkLabel(mask_box, text=t("demo_mask_title"),
+                     font=T.bold(T.FONT_XS), text_color="#ff9a3c").pack(
+            anchor="w", padx=10, pady=(6, 0))
+        ctk.CTkLabel(mask_box, text=t("demo_mask_sub"), font=T.font(T.FONT_XS),
+                     text_color=T.TEXT_DIM, wraplength=260, justify="left",
+                     anchor="w").pack(anchor="w", padx=10)
+        self._mask_lbl = ctk.CTkLabel(mask_box, text=t("demo_mask_off"),
+                                      font=T.bold(T.FONT_LG),
+                                      text_color="#ff9a3c")
+        self._mask_lbl.pack(anchor="w", padx=10, pady=(0, 8))
+        if not self._pat_pro:
+            self._mask_lbl.configure(text=t("demo_pattern_pro"),
+                                     text_color=T.WARN)
 
         # ── conteo: el módulo que convierte instancias en producción ─────
         cnt = ctk.CTkFrame(left, fg_color=T.BG_INPUT, corner_radius=8)
@@ -324,6 +364,19 @@ class DemoScreen(ctk.CTkFrame):
                           border_width=1, border_color="#ff78ff",
                           command=lambda f=fault: self._place_fault(f)).pack(
                 side="left", expand=True, fill="x", padx=2)
+        self._faults_lbl = faults.winfo_children()[0]
+        self._faults_basic = frow
+        # Las fallas de linea, solo con la tela realista: 3 x 3
+        self._faults_real = ctk.CTkFrame(faults, fg_color="transparent")
+        for i, falla in enumerate(FALLAS_REALES):
+            ctk.CTkButton(self._faults_real, text=t("falla_" + falla), height=28,
+                          font=T.font(T.FONT_XS), corner_radius=8,
+                          fg_color=T.BG_INPUT, text_color=T.TEXT_PRI,
+                          border_width=1, border_color="#ff9a3c",
+                          command=lambda f=falla: self._place_fault(f)).grid(
+                row=i // 3, column=i % 3, sticky="ew", padx=2, pady=1)
+        for c in range(3):
+            self._faults_real.grid_columnconfigure(c, weight=1, uniform="r")
 
         ctrl = ctk.CTkFrame(right, fg_color="transparent")
         ctrl.grid(row=4, column=0, sticky="ew", padx=12, pady=(6, 2))
@@ -349,8 +402,23 @@ class DemoScreen(ctk.CTkFrame):
             right, text=t("demo_restart"), height=54, corner_radius=12,
             font=T.bold(T.FONT_LG), fg_color=T.ACCENT, text_color="#000",
             hover_color=T.ACCENT2, command=self.empezar_de_cero)
-        self._restart_btn.grid(row=6, column=0, sticky="ew",
+        self._restart_btn.grid(row=7, column=0, sticky="ew",
                                padx=12, pady=(6, 10))
+
+        # ── mascara: aprender, calibrar, revisar y aprobar ───────────────
+        mrow = ctk.CTkFrame(right, fg_color="transparent")
+        mrow.grid(row=6, column=0, sticky="ew", padx=12, pady=(4, 0))
+        self._mask_btn = ctk.CTkButton(
+            mrow, text=t("demo_mask_learn"), height=36, corner_radius=10,
+            font=T.bold(T.FONT_SM), fg_color=T.BG_INPUT, text_color="#ff9a3c",
+            border_width=1, border_color="#ff9a3c",
+            command=self._mask_learn_click,
+            state="normal" if self._pat_pro else "disabled")
+        self._mask_btn.pack(side="left", expand=True, fill="x", padx=3)
+        self._real_sw = ctk.CTkSwitch(mrow, text=t("demo_realista"),
+                                      font=T.font(T.FONT_XS),
+                                      command=self._on_realista)
+        self._real_sw.pack(side="right", padx=(8, 3))
 
         # ── material: estampado y tejido ─────────────────────────────────
         mat = ctk.CTkFrame(right, fg_color="transparent")
@@ -406,6 +474,8 @@ class DemoScreen(ctk.CTkFrame):
 
     # ── modelo ────────────────────────────────────────────────────────────
     def _model_path(self) -> Optional[Path]:
+        if getattr(self, "_realista", False):
+            return _MODELO_REAL if _MODELO_REAL.exists() else None
         proj = self._app.get_project()
         if proj and proj.active_model and Path(proj.active_model).exists():
             return Path(proj.active_model)
@@ -428,6 +498,17 @@ class DemoScreen(ctk.CTkFrame):
             try:
                 w = YOLOWorker(str(path), conf=0.35, imgsz=512)
                 w.start()
+                # Si mientras cargaba cambio la tela (el interruptor de tela
+                # realista), este ya no es el modelo que toca: se tira y se
+                # carga el otro.  Sin esto el modelo de la tela de siempre se
+                # quedaba puesto sobre la realista.
+                otro = self._model_path()
+                if otro != path:
+                    w.stop()
+                    self._worker_loading = False
+                    if otro is not None:
+                        self.after(0, self._load_model)
+                    return
                 self._worker = w
                 self.after(0, lambda: self._hint.configure(
                     text=t("demo_hint"), text_color=T.TEXT_SEC))
@@ -536,6 +617,10 @@ class DemoScreen(ctk.CTkFrame):
         self._paint_fault(fault, fx, fy)
 
     def _paint_fault(self, fault: str, fx: int, fy: int) -> None:
+        if fault in FALLAS_REALES:
+            if isinstance(self._pattern, TelaRealista):
+                self._pattern.falla(fault, fx, fy)
+            return
         if fault == "fantasma":
             self._pattern.ghost(fx, fy, size=self._rng.randint(130, 200))
         elif fault == "offset":
@@ -647,7 +732,9 @@ class DemoScreen(ctk.CTkFrame):
         # mezcla a propósito: unos los nombra YOLO, otros solo los ve Patrón.
         # Sin Pro, solo los de YOLO: un fallo de impresion que nadie marca
         # haria parecer rota la demo con el stand vacio.
-        if not self._pat_pro or self._rng.random() < 0.5:
+        if self._realista and self._pat_pro:
+            self._paint_fault(self._rng.choice(list(FALLAS_REALES)), fx, fy)
+        elif not self._pat_pro or self._rng.random() < 0.5:
             cls = self._rng.choice(YOLO_CLASSES)
             if cls == "rayon":
                 self._pattern.streak(fx, fy,
@@ -766,11 +853,14 @@ class DemoScreen(ctk.CTkFrame):
         self._count_lbl.configure(text=self._counting.summary() or "0")
 
     def _rebuild_fabric(self, motif: str, weave: str) -> None:
-        self._pattern = TextilePattern(width=_W, height=_H, axis="x",
-                                       motif=motif, weave=weave,
-                                       speed=float(self._speed.get()))
+        clase = TelaRealista if self._realista else TextilePattern
+        self._pattern = clase(width=_W, height=_H, axis="x",
+                              motif=motif, weave=weave,
+                              speed=float(self._speed.get()))
         self._source.pattern = self._pattern
         self.reset_demo()
+        # otra tela, otra mascara: la aprobada era de la tela anterior
+        self._mask_off()
         # material nuevo, calibración nueva: el ruido de una tela de rayas
         # no se parece al de una de diamantes
         self._start_calibration()
@@ -789,10 +879,169 @@ class DemoScreen(ctk.CTkFrame):
             self._rebuild_fabric(self._pattern.motif, key)
             self._weave.set(t("weave_" + key))
 
+    # ── tela realista ─────────────────────────────────────────────────────
+    def _on_realista(self) -> None:
+        self._touch()
+        self._realista = bool(self._real_sw.get())
+        if self._realista:
+            self._faults_basic.pack_forget()
+            self._faults_real.pack(fill="x", pady=(2, 0))
+            self._faults_lbl.configure(text=t("demo_faults_real"))
+        else:
+            self._faults_real.pack_forget()
+            self._faults_basic.pack(fill="x", pady=(2, 0))
+            self._faults_lbl.configure(text=t("demo_faults"))
+        self._rebuild_fabric(self._pattern.motif, self._pattern.weave)
+        # Otro modelo: el de la tela de siempre, sobre la realista, marca el
+        # estampado entero como mancha.  Sin modelo realista, YOLO se apaga.
+        if self._worker is not None:
+            self._worker.stop()
+            self._worker = None
+        self._ultimas_dets = []
+        if not self._worker_loading:
+            self._load_model()
+
+    # ── mascara aprendida ─────────────────────────────────────────────────
+    def _mask_off(self) -> None:
+        self._mascara = None
+        self._masc_fase = "off"
+        self._masc_buf = []
+        if hasattr(self, "_mask_lbl") and self._pat_pro:
+            self._mask_lbl.configure(text=t("demo_mask_off"))
+
+    def _mask_learn_click(self) -> None:
+        """Aprender con tela BUENA: se limpia la tela y se calla el automatico."""
+        self._touch()
+        if not self._pat_pro or self._masc_fase in ("aprender", "pensar",
+                                                     "calibrar", "revisar"):
+            return
+        self.reset_demo()
+        self._masc_auto_previo = self._auto
+        self._auto = False
+        self._refresh_auto_label()
+        self._source.set_paused(False)
+        self._pause_btn.configure(text=t("demo_pause"))
+        self._mascara = MascaraColor()
+        self._masc_fase = "aprender"
+        self._masc_buf = []
+        self._masc_i = 0
+        self._mask_lbl.configure(text=t("demo_mask_learning"))
+
+    def _mask_tick(self, frame: np.ndarray) -> None:
+        """Junta cuadros mientras aprende o calibra; el calculo va en un hilo."""
+        cada, n = ((_MASK_CADA, _MASK_N) if self._masc_fase == "aprender"
+                   else (_CAL_CADA, _CAL_N))
+        self._masc_i += 1
+        if self._masc_i % cada:
+            return
+        self._masc_buf.append(frame.copy())
+        if len(self._masc_buf) < n:
+            return
+        cuadros, self._masc_buf = self._masc_buf, []
+        fase, self._masc_fase = self._masc_fase, "pensar"
+        masc = self._mascara
+
+        # El hilo solo deja el resultado: tocar Tk desde otro hilo (ni
+        # siquiera con after) es seguro solo si el bucle principal ya corre.
+        # Lo recoge _mask_poll() desde el bucle de la pantalla.
+        def work():
+            try:
+                if fase == "aprender":
+                    masc.aprender(cuadros)
+                    if masc.estado == SIN_APRENDER:
+                        raise ValueError("; ".join(masc.informe.avisos) or "?")
+                    self._masc_listo = ("calibrar",)
+                else:
+                    u = masc.calibrar(cuadros)
+                    self._masc_listo = ("revisar", cuadros[-1], u)
+            except Exception as e:
+                log.error(f"Demo mascara: {e}")
+                self._masc_listo = ("fallo", str(e)[:60])
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def _mask_poll(self) -> None:
+        """Recoge lo que dejo el hilo de aprender o calibrar."""
+        r, self._masc_listo = self._masc_listo, None
+        if r is None or self._mascara is None:
+            return
+        if r[0] == "calibrar":
+            self._mask_calibrate()
+        elif r[0] == "revisar":
+            self._mask_review(r[1], r[2])
+        else:
+            self._mask_fail(r[1])
+
+    def _mask_calibrate(self) -> None:
+        self._masc_fase = "calibrar"
+        self._masc_i = 0
+        self._mask_lbl.configure(text=t("demo_mask_calibrating"))
+
+    def _mask_fail(self, msg: str) -> None:
+        self._mask_off()
+        self._mask_lbl.configure(text=t("demo_mask_failed", err=msg))
+        self._auto = self._masc_auto_previo
+        self._refresh_auto_label()
+
+    def _mask_review(self, frame: np.ndarray, umbrales) -> None:
+        """La ventana donde se ve lo aprendido y se aprueba o se rechaza."""
+        self._masc_fase = "revisar"
+        self._mask_lbl.configure(text=t("demo_mask_review"))
+        masc = self._mascara
+        try:
+            vista = masc.gris.vista(frame, ancho=900)
+        except Exception as e:
+            self._mask_fail(str(e)[:60])
+            return
+        top = ctk.CTkToplevel(self)
+        top.title(t("demo_mask_window"))
+        top.configure(fg_color=T.BG_DARK)
+        top.attributes("-topmost", True)
+        self._mask_top = top
+        img = Image.fromarray(cv2.cvtColor(vista, cv2.COLOR_BGR2RGB))
+        foto = ctk.CTkImage(light_image=img, dark_image=img, size=img.size)
+        ctk.CTkLabel(top, text=t("demo_mask_window"), font=T.bold(T.FONT_MD),
+                     text_color="#ff9a3c").pack(padx=14, pady=(12, 4))
+        ctk.CTkLabel(top, image=foto, text="").pack(padx=14)
+        u = max(umbrales) if umbrales else 0
+        ctk.CTkLabel(top, text=t("demo_mask_help") + "  " +
+                     t("demo_mask_threshold", u=f"{u:.1f}"),
+                     font=T.font(T.FONT_XS), text_color=T.TEXT_SEC,
+                     wraplength=880, justify="left").pack(padx=14, pady=6)
+        fila = ctk.CTkFrame(top, fg_color="transparent")
+        fila.pack(fill="x", padx=14, pady=(0, 12))
+
+        def decidir(ok: bool):
+            top.destroy()
+            self._mask_top = None
+            if ok:
+                masc.aprobar("demo")
+                self._masc_fase = "activa"
+                self._mask_lbl.configure(text=t("demo_mask_ok"))
+            else:
+                masc.rechazar()
+                self._mask_off()
+            self._auto = self._masc_auto_previo
+            if self._auto:
+                self._auto_next = time.time() + 3.0
+            self._refresh_auto_label()
+
+        self._mask_decidir = decidir
+        ctk.CTkButton(fila, text=t("demo_mask_approve"), height=40,
+                      font=T.bold(T.FONT_SM), fg_color=T.COLOR_OK,
+                      text_color="#000", command=lambda: decidir(True)).pack(
+            side="left", expand=True, fill="x", padx=4)
+        ctk.CTkButton(fila, text=t("demo_mask_reject"), height=40,
+                      font=T.bold(T.FONT_SM), fg_color=T.BG_INPUT,
+                      text_color=T.TEXT_PRI, command=lambda: decidir(False)).pack(
+            side="left", expand=True, fill="x", padx=4)
+        top._foto = foto        # que el GC no se la lleve
+
     # ── bucle ─────────────────────────────────────────────────────────────
     def _loop(self) -> None:
         if not self._running:
             return
+        self._mask_poll()
         frame = self._source.read()
         if frame is not None:
             if self._cal_left > 0:
@@ -800,6 +1049,8 @@ class DemoScreen(ctk.CTkFrame):
                 self._cal_left -= 1
                 self._cal_lbl.configure(
                     text=t("demo_calibrating") if self._cal_left else "")
+            elif self._masc_fase in ("aprender", "calibrar"):
+                self._mask_tick(frame)
             else:
                 self._auto_tick()
                 self._idle_tick()
@@ -828,6 +1079,23 @@ class DemoScreen(ctk.CTkFrame):
                     text=", ".join(nombres) if nombres else t("demo_nothing"))
         raw = list(self._ultimas_dets)
 
+        # ── Mascara: compara contra la tela que se aprobo ────────────────
+        regiones_masc: list = []
+        if self._mascara is not None and self._masc_fase == "activa":
+            try:
+                regiones_masc = self._mascara.analizar(frame)
+                raw += [RawDetection(_MASK_LABEL, 1.0, *r) for r in regiones_masc]
+                if not self._mascara.enganchada:
+                    txt = t("demo_mask_nolock")
+                elif regiones_masc:
+                    txt = t("demo_mask_found", n=len(regiones_masc))
+                else:
+                    txt = t("demo_mask_ok")
+                if self._mask_lbl.cget("text") != txt:
+                    self._mask_lbl.configure(text=txt)
+            except Exception as e:
+                log.debug(f"demo mascara: {e}")
+
         # ── Patron: corre siempre, no necesita modelo ────────────────────
         if self._patternmod.enabled and self._patternmod.calibrated:
             try:
@@ -839,7 +1107,8 @@ class DemoScreen(ctk.CTkFrame):
                 # Las que YOLO ya nombro se descartan para no contar dos
                 # veces el mismo defecto.
                 raw += self._patternmod.as_detections(
-                    named=[d.bbox for d in self._ultimas_dets])
+                    named=[d.bbox for d in self._ultimas_dets] +
+                    list(regiones_masc))
                 resumen = self._patternmod.summary()
                 if resumen != self._pat_last:
                     self._pat_last = resumen
@@ -857,6 +1126,8 @@ class DemoScreen(ctk.CTkFrame):
             x1, y1, x2, y2 = tr.bbox
             if tr.label == PatternModule.ANOMALY_LABEL:
                 col, etq = (255, 120, 255), f"? #{tr.id}"
+            elif tr.label == _MASK_LABEL:
+                col, etq = (60, 154, 255), f"{_MASK_LABEL} #{tr.id}"
             else:
                 col = {"rayon": (0, 215, 255),
                        "mancha": (255, 190, 0)}.get(tr.label, (0, 230, 118))

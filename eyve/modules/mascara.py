@@ -79,6 +79,10 @@ _PISO_MIN = 2.5e-4
 _SIGMA_ESTAMPADO = 3.5
 #: escalas a las que se juzga, en celdas: 1 y una grande para fallos extendidos
 _ESCALAS = (1, 3)
+#: calibración: el umbral queda `margen` veces arriba del ruido de la tela buena,
+#: y nunca abajo del mínimo
+_CAL_MARGEN = 1.4
+_CAL_MIN = 1.8
 #: la energía es más ruidosa que la media: pide más
 _EXTRA_ENERGIA = 2.5
 
@@ -359,7 +363,9 @@ class MascaraAprendida:
 
     ANOMALY_LABEL = "anomalía"
 
-    def __init__(self) -> None:
+    def __init__(self, proy: Optional[np.ndarray] = None) -> None:
+        #: pesos BGR del canal en que se juzga; None = gris (ver MascaraColor)
+        self.proy: Optional[np.ndarray] = proy
         #: 0..100, como en Patrón: mueve el múltiplo del piso aprendido
         self.sensibilidad: float = 50.0
         #: área mínima de una región, en % del cuadro
@@ -384,6 +390,8 @@ class MascaraAprendida:
         #: lo mismo para cada escala grande {factor: piso}
         self._pisos: dict = {}
         self._partes = None
+        #: umbral calibrado con tela buena; 0 = sin calibrar
+        self._umbral_cal: float = 0.0
         self._enganche_ref: float = 0.0
         self._geom = None
         self._f0 = None
@@ -559,7 +567,7 @@ class MascaraAprendida:
             self.informe = inf
             return inf
 
-        grises = [_gris(c) for c in cuadros]
+        grises = [_gris(c, self.proy) for c in cuadros]
         h, w = grises[0].shape
         control = grises[3::4]
         celda_de = [g for i, g in enumerate(grises) if i % 4 != 3]
@@ -722,6 +730,7 @@ class MascaraAprendida:
         self._base = None
         self._geom = None
         self._f0 = None
+        self._umbral_cal = 0.0
 
     def _armar_celda(self, grises, luz, vueltas: int = 3):
         """
@@ -886,10 +895,74 @@ class MascaraAprendida:
             ok = np.abs(e) < 2.5 * mad
         return np.tensordot(c.astype(np.float32), g["plano"], axes=1)
 
+    def _puntaje(self, g: np.ndarray):
+        """
+        Desviación del cuadro en múltiplos del piso: (s, s1, st, grandes).
+
+        s es el máximo de todas las preguntas y escalas; s1 el de la escala de
+        una celda; st la de tinta con signo; grandes [(factor, s_f)].  None si
+        el cuadro no calza con la máscara.
+        """
+        zt, zc, ze, ncc, _ = self._mapa(g)
+        self._ultima_ncc = ncc
+        if zt is None:
+            return None
+        st = zt / self._piso[0]
+        s = np.maximum(np.maximum(np.abs(st), np.abs(zc) / self._piso[1]),
+                       ze / (_EXTRA_ENERGIA * self._piso[2]))
+        s1 = s
+        grandes = []
+        for f, piso in self._pisos.items():
+            zt2, zc2, ze2 = self._zs(f)
+            st2 = zt2 / piso[0]
+            st = np.where(np.abs(st2) > np.abs(st), st2, st)
+            sg = np.maximum(np.maximum(np.abs(st2), np.abs(zc2) / piso[1]),
+                            ze2 / (_EXTRA_ENERGIA * piso[2]))
+            grandes.append((f, sg))
+            s = np.maximum(s, sg)
+        return s, s1, st, grandes
+
+    def calibrar(self, cuadros: Sequence[np.ndarray],
+                 margen: float = _CAL_MARGEN) -> float:
+        """
+        Pone el umbral donde termina el ruido de ESTA tela.
+
+        El umbral fijo (4.5 veces el piso) se escogió con la tela sintética,
+        que casi no tiene ruido: en una tela con hilo irregular, ruido de
+        cámara y luz desigual el fallo real queda en 2 a 4 veces el piso, y
+        ni uno de 2,880 cuadros limpios pasaba de 2.  Aquí se pasan unos
+        segundos de tela BUENA (no los de aprender), se mide hasta dónde
+        llega la desviación y el umbral queda `margen` veces arriba de eso,
+        nunca abajo de _CAL_MIN.  Devuelve el umbral.  Se hace antes de
+        aprobar: lo calibrado es parte de lo que se aprueba (huella).
+        """
+        if self._celda is None:
+            raise ValueError("no hay máscara que calibrar")
+        picos = []
+        for c in cuadros:
+            pt = self._puntaje(_gris(c, self.proy))
+            if pt is not None:
+                picos.append(float(pt[0].max()))
+        if not picos:
+            raise ValueError("ningún cuadro de calibración calzó con la máscara")
+        # el percentil 98, no el máximo: un cuadro raro no debe dejar sorda la
+        # máscara (el margen cubre el resto)
+        self._umbral_cal = float(max(_CAL_MIN, margen * np.percentile(picos, 98)))
+        if self.estado == APROBADA and self._huella_aprobada != self.huella():
+            self.estado = POR_APROBAR
+            self._huella_aprobada = ""
+        return self._umbral_cal
+
     @property
     def umbral(self) -> float:
-        """En múltiplos del piso aprendido: 6.5x a 2.5x, 4.5x por defecto."""
+        """
+        En múltiplos del piso aprendido.  Sin calibrar: 6.5x a 2.5x, 4.5x por
+        defecto.  Calibrada: el umbral de la calibración con sensibilidad 50,
+        y la sensibilidad lo baja o sube hasta un factor 2.
+        """
         s = float(np.clip(self.sensibilidad, 0, 100))
+        if self._umbral_cal:
+            return max(1.2, self._umbral_cal * 2.0 ** ((50.0 - s) / 50.0))
         return 6.5 - 0.04 * s
 
     @property
@@ -909,26 +982,13 @@ class MascaraAprendida:
         self._enganchada = True
         if not self.lista or frame is None or frame.size == 0:
             return []
-        g = _gris(frame)
-        zt, zc, ze, ncc, _ = self._mapa(g)
-        self._ultima_ncc = ncc
-        if zt is None:
+        g = _gris(frame, self.proy)
+        pt = self._puntaje(g)
+        if pt is None:
             self._ultimo_z = None
             self._enganchada = False
             return []
-        st = zt / self._piso[0]
-        s = np.maximum(np.maximum(np.abs(st), np.abs(zc) / self._piso[1]),
-                       ze / (_EXTRA_ENERGIA * self._piso[2]))
-        s1 = s
-        grandes = []
-        for f, piso in self._pisos.items():
-            zt2, zc2, ze2 = self._zs(f)
-            st2 = zt2 / piso[0]
-            st = np.where(np.abs(st2) > np.abs(st), st2, st)
-            sg = np.maximum(np.maximum(np.abs(st2), np.abs(zc2) / piso[1]),
-                            ze2 / (_EXTRA_ENERGIA * piso[2]))
-            grandes.append((f, sg))
-            s = np.maximum(s, sg)
+        s, s1, st, grandes = pt
         self._ultimo_z = s
         escala = frame.shape[1] / float(g.shape[1])
         gh, gw = g.shape
@@ -1002,6 +1062,10 @@ class MascaraAprendida:
         for a in (self._celda, self._peso, self._tinta, self._luz, self._base):
             h.update(np.ascontiguousarray(a).tobytes())
         h.update(repr(tuple(round(p, 9) for p in self._piso)).encode())
+        if self.proy is not None:
+            h.update(np.ascontiguousarray(self.proy, np.float32).tobytes())
+        if self._umbral_cal:
+            h.update(repr(round(self._umbral_cal, 6)).encode())
         for k in sorted(self._pisos):
             h.update(repr((k,) + tuple(round(p, 9) for p in self._pisos[k])).encode())
         return h.hexdigest()[:16]
@@ -1057,7 +1121,7 @@ class MascaraAprendida:
 
         der = np.full((lado, lado, 3), 40, np.uint8)
         if frame is not None:
-            g = _gris(frame)
+            g = _gris(frame, self.proy)
             if g.shape != self._geom["shape"]:
                 self._preparar(g.shape)
             gl = g / self._luz
@@ -1091,9 +1155,12 @@ class MascaraAprendida:
         np.savez_compressed(
             Path(ruta), celda=self._celda, peso=self._peso, sigma=self._sigma,
             tinta=self._tinta, luz=self._luz, base=self._base,
+            proy=(np.zeros(0, np.float32) if self.proy is None
+                  else np.asarray(self.proy, np.float32)),
             meta=json.dumps(dict(
                 piso=list(self._piso), enganche_ref=self._enganche_ref,
                 pisos={str(k): list(v) for k, v in self._pisos.items()},
+                umbral_cal=self._umbral_cal,
                 estado=self.estado, por=self.aprobada_por,
                 en=self.aprobada_en, huella=self._huella_aprobada)))
 
@@ -1103,11 +1170,14 @@ class MascaraAprendida:
         m = cls()
         m._celda, m._peso, m._sigma = d["celda"], d["peso"], d["sigma"]
         m._tinta, m._luz, m._base = d["tinta"], d["luz"], d["base"]
+        if "proy" in d.files and d["proy"].size == 3:
+            m.proy = d["proy"].astype(np.float32)
         m._var = (m._sigma ** 2).astype(np.float32)
         meta = json.loads(str(d["meta"]))
         m._piso = tuple(float(x) for x in meta["piso"])
         m._pisos = {int(k): tuple(float(x) for x in v)
                     for k, v in meta.get("pisos", {}).items()}
+        m._umbral_cal = float(meta.get("umbral_cal", 0.0))
         m._enganche_ref = float(meta["enganche_ref"])
         m.estado = meta["estado"]
         m.aprobada_por = meta["por"]
@@ -1118,6 +1188,112 @@ class MascaraAprendida:
             m.estado = POR_APROBAR
             m._huella_aprobada = ""
         return m
+
+
+class MascaraColor:
+    """
+    La máscara en gris y en color a la vez, como mira el ojo.
+
+    En gris, unos pétalos naranjas sobre blanco casi no tienen contraste, y su
+    doble impresión o una gota de aceite se pierden en el ruido del hilo.  En
+    el canal de color donde el estampado más resalta se ven el doble; pero en
+    ese canal una tela roja es casi negra y una mancha que oscurece ya no se
+    nota.  Por eso no se elige uno: se juzga en los dos, cada uno con su piso
+    aprendido, y se marca lo que cualquiera vea.  Si el gris ya es el mejor
+    canal (estampado gris o de un color que no gana nada), queda solo el gris.
+
+    Misma interfaz que MascaraAprendida para lo que usa la línea: aprender,
+    aprobar, analizar, regiones, tipos, as_detections, enganchada, estado.
+    """
+
+    ANOMALY_LABEL = MascaraAprendida.ANOMALY_LABEL
+
+    def __init__(self) -> None:
+        self.gris = MascaraAprendida()
+        self.color: Optional[MascaraAprendida] = None
+        self._sens = 50.0
+        self._regiones: list = []
+        self._tipos: list = []
+
+    @property
+    def partes(self) -> list:
+        return [m for m in (self.gris, self.color) if m is not None]
+
+    @property
+    def sensibilidad(self) -> float:
+        return self._sens
+
+    @sensibilidad.setter
+    def sensibilidad(self, v: float) -> None:
+        self._sens = float(v)
+        for m in self.partes:
+            m.sensibilidad = self._sens
+
+    @property
+    def estado(self) -> str:
+        return self.gris.estado
+
+    @property
+    def informe(self) -> Informe:
+        return self.gris.informe
+
+    @property
+    def enganchada(self) -> bool:
+        return self.gris.enganchada
+
+    @property
+    def lista(self) -> bool:
+        return all(m.lista for m in self.partes)
+
+    @property
+    def _ultimo_z(self):
+        zs = [m._ultimo_z for m in self.partes if m._ultimo_z is not None]
+        return None if not zs else np.maximum.reduce(zs)
+
+    def aprender(self, cuadros: Sequence[np.ndarray]) -> Informe:
+        self._regiones, self._tipos = [], []
+        inf = self.gris.aprender(cuadros)
+        self.color = None
+        proy = _elegir_proyeccion(cuadros) if self.gris.estado != SIN_APRENDER else None
+        if proy is not None:
+            c = MascaraAprendida(proy=proy)
+            c.sensibilidad = self._sens
+            c.aprender(cuadros)
+            if c.estado != SIN_APRENDER:
+                self.color = c
+        self.gris.sensibilidad = self._sens
+        return inf
+
+    def calibrar(self, cuadros: Sequence[np.ndarray]) -> list:
+        return [m.calibrar(cuadros) for m in self.partes]
+
+    def aprobar(self, quien: str = "operador") -> None:
+        for m in self.partes:
+            m.aprobar(quien)
+
+    def rechazar(self) -> None:
+        for m in self.partes:
+            m.rechazar()
+
+    def analizar(self, frame: np.ndarray) -> list:
+        self._regiones, self._tipos = [], []
+        for m in self.partes:
+            r = m.analizar(frame)
+            self._regiones += r
+            self._tipos += m.tipos
+        return list(self._regiones)
+
+    @property
+    def regiones(self) -> list:
+        return list(self._regiones)
+
+    @property
+    def tipos(self) -> list:
+        return list(self._tipos)
+
+    def as_detections(self) -> list:
+        from eyve.inference.tracker import RawDetection
+        return [RawDetection(self.ANOMALY_LABEL, 1.0, *r) for r in self._regiones]
 
 
 def fusionar(mascara: MascaraAprendida, patron, named=None) -> list:

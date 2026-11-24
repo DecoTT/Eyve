@@ -98,7 +98,8 @@ def _toca(region, caja_cuadro) -> bool:
     return not (x1 < a0 or a1 < x0 or y1 < b0 or b1 < y0)
 
 
-def medir_foto(ruta: Path, fabrica=MascaraAprendida, sens: float = 50.0) -> dict:
+def medir_foto(ruta: Path, fabrica=MascaraAprendida, sens: float = 50.0,
+               calibrar: bool = False) -> dict:
     img = cv2.imread(str(ruta))
     ln = Linea(img, seed=7)
     t0 = time.time()
@@ -110,6 +111,11 @@ def medir_foto(ruta: Path, fabrica=MascaraAprendida, sens: float = 50.0) -> dict
     if m.estado == "sin_aprender":
         return out
     m.sensibilidad = sens
+    if calibrar:
+        # tela buena de la mitad de aprender, en posiciones que no se usaron
+        xs_a = ln.xs_aprender()
+        paso = (xs_a[1] - xs_a[0]) / 2
+        out["umbral"] = m.calibrar([ln.cuadro(x + paso) for x in xs_a[:-1]] * 2)
     m.aprobar("medicion")
     xs = ln.xs_prueba()
     falsas = 0
@@ -146,6 +152,7 @@ def main() -> int:
     ap.add_argument("--grupo", default="dev", choices=["dev", "reserva", "control", "todas"])
     ap.add_argument("--json")
     ap.add_argument("--sens", type=float, default=50.0)
+    ap.add_argument("--calibrar", action="store_true")
     a = ap.parse_args()
     carpeta = Path(a.carpeta)
     ids = {"dev": DEV, "reserva": RESERVA, "control": CONTROL}.get(a.grupo, DEV + RESERVA)
@@ -155,7 +162,7 @@ def main() -> int:
         if ruta is None:
             print("falta", i)
             continue
-        r = medir_foto(ruta, sens=a.sens)
+        r = medir_foto(ruta, sens=a.sens, calibrar=a.calibrar)
         filas.append(r)
         print(" | ".join(f"{k}={v}" for k, v in r.items() if k != "avisos"),
               ("AVISOS: " + "; ".join(r["avisos"])) if r.get("avisos") else "",

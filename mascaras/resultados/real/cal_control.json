@@ -1,0 +1,44 @@
+[
+ {
+  "foto": "sint800_diamantes",
+  "enganche": 0.999,
+  "residuo_pct": 0.77,
+  "avisos": [],
+  "estado": "por_aprobar",
+  "umbral": 1.9850771427154539,
+  "falsas": "0/40",
+  "sin_enganche": 0,
+  "fantasma": "96/96",
+  "falta_tinta": "96/96",
+  "mancha": "96/96",
+  "s": 18.6
+ },
+ {
+  "foto": "sint800_rayas",
+  "enganche": 0.999,
+  "residuo_pct": 0.73,
+  "avisos": [],
+  "estado": "por_aprobar",
+  "umbral": 2.982752180099487,
+  "falsas": "0/40",
+  "sin_enganche": 0,
+  "fantasma": "96/96",
+  "falta_tinta": "96/96",
+  "mancha": "96/96",
+  "s": 20.0
+ },
+ {
+  "foto": "sint800_flores",
+  "enganche": 0.999,
+  "residuo_pct": 0.7,
+  "avisos": [],
+  "estado": "por_aprobar",
+  "umbral": 2.4292331695556637,
+  "falsas": "0/40",
+  "sin_enganche": 0,
+  "fantasma": "96/96",
+  "falta_tinta": "96/96",
+  "mancha": "96/96",
+  "s": 17.9
+ }
+]
